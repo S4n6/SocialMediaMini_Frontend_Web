@@ -6,7 +6,6 @@ import { loginSchema, type LoginFormData } from "@/lib/validations/schemas";
 import { useLogin } from "@/hooks/useAuth";
 import { Button, Input } from "@/components";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export function LoginForm() {
   const router = useRouter();
@@ -25,10 +24,13 @@ export function LoginForm() {
     try {
       await loginMutation.mutateAsync(data);
       router.push("/feed");
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Set form errors if validation fails
-      if (error.response?.data?.errors) {
-        Object.entries(error.response.data.errors).forEach(
+      const errorResponse = error as {
+        response?: { data?: { errors?: Record<string, string> } };
+      };
+      if (errorResponse.response?.data?.errors) {
+        Object.entries(errorResponse.response.data.errors).forEach(
           ([field, message]) => {
             setError(field as keyof LoginFormData, {
               type: "server",
@@ -68,9 +70,9 @@ export function LoginForm() {
             />
           </div>
 
-          {loginMutation.error && (
+          {loginMutation.isError && (
             <div className="text-red-600 text-sm text-center">
-              {loginMutation.error.response?.data?.message || "Login failed"}
+              Login failed. Please try again.
             </div>
           )}
 

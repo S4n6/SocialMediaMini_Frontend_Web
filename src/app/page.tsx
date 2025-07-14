@@ -10,7 +10,7 @@ export default function Home() {
             Welcome to <span className="text-blue-600">SocialMini</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Connect with friends, share your thoughts, and discover what's
+            Connect with friends, share your thoughts, and discover what&apos;s
             happening around you. Join the conversation today!
           </p>
 

@@ -50,8 +50,11 @@ export const useLogin = () => {
       // Invalidate and refetch user queries
       queryClient.invalidateQueries({ queryKey: authKeys.all });
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || "Login failed";
+    onError: (error: unknown) => {
+      const errorResponse = error as {
+        response?: { data?: { message?: string } };
+      };
+      const message = errorResponse.response?.data?.message || "Login failed";
       dispatch(loginFailure(message));
     },
   });
@@ -79,8 +82,12 @@ export const useRegister = () => {
       // Invalidate and refetch user queries
       queryClient.invalidateQueries({ queryKey: authKeys.all });
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || "Registration failed";
+    onError: (error: unknown) => {
+      const errorResponse = error as {
+        response?: { data?: { message?: string } };
+      };
+      const message =
+        errorResponse.response?.data?.message || "Registration failed";
       dispatch(loginFailure(message));
     },
   });
