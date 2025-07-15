@@ -12,13 +12,11 @@ import type {
   RegisterFormData,
 } from "@/lib/validations/schemas";
 
-// Query keys
 export const authKeys = {
   all: ["auth"] as const,
   currentUser: () => [...authKeys.all, "currentUser"] as const,
 };
 
-// Get current user query
 export const useCurrentUser = () => {
   return useQuery({
     queryKey: authKeys.currentUser(),
@@ -28,7 +26,6 @@ export const useCurrentUser = () => {
   });
 };
 
-// Login mutation
 export const useLogin = () => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
@@ -60,7 +57,6 @@ export const useLogin = () => {
   });
 };
 
-// Register mutation
 export const useRegister = () => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
@@ -93,7 +89,6 @@ export const useRegister = () => {
   });
 };
 
-// Logout mutation
 export const useLogout = () => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();

@@ -23,7 +23,7 @@ export function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await loginMutation.mutateAsync(data);
-      router.push("/feed");
+      router.push("/");
     } catch (error: unknown) {
       // Set form errors if validation fails
       const errorResponse = error as {
