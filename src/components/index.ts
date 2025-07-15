@@ -7,9 +7,16 @@ export { Textarea } from "./ui/Textarea";
 export { Header } from "./layout/Header";
 export { Footer } from "./layout/Footer";
 export { ChakraHeader } from "./layout/ChakraHeader";
+export { ConditionalLayout } from "./ConditionalLayout";
 
 // Form Components
 export { LoginForm } from "./forms/LoginForm";
+
+// Theme Components
+export { ThemeProvider } from "./ThemeProvider";
+export { ThemeToggle } from "./ThemeToggle";
+export { ThemeSettings } from "./ThemeSettings";
+export { ThemeTest } from "./ThemeTest";
 
 // Providers
 export { Providers } from "./Providers";

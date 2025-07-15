@@ -11,6 +11,7 @@ import {
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "@chakra-ui/react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
+import { ThemeToggle } from "../ThemeToggle";
 
 export function ChakraHeader() {
   const { user, isAuthenticated, isLoading } = {
@@ -69,6 +70,7 @@ export function ChakraHeader() {
         )}
 
         <HStack gap={4}>
+          <ThemeToggle />
           {!isLoading && (
             <>
               {isAuthenticated ? (

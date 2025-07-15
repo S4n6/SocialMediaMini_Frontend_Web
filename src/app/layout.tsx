@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ChakraHeader, Footer } from "@/components";
+import { ConditionalLayout } from "@/components";
 import { Providers } from "@/components/Providers";
 
 const geistSans = Geist({
@@ -32,9 +32,7 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <Providers>
-          <ChakraHeader />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <ConditionalLayout>{children}</ConditionalLayout>
         </Providers>
       </body>
     </html>

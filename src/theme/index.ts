@@ -18,6 +18,44 @@ const theme = createSystem(defaultConfig, {
         },
       },
     },
+    semanticTokens: {
+      colors: {
+        bg: {
+          canvas: {
+            value: {
+              base: "#f7fafc", // Light gray for light mode
+              _dark: "#0d2390ff", // Dark gray for dark mode
+            },
+          },
+          surface: {
+            value: {
+              base: "#ebf8ff", // Light blue for light mode
+              _dark: "#2d3748", // Dark gray for dark mode
+            },
+          },
+          elevated: {
+            value: {
+              base: "#ffffff",
+              _dark: "#4a5568",
+            },
+          },
+        },
+        text: {
+          primary: {
+            value: {
+              base: "#1a202c",
+              _dark: "#ffffff",
+            },
+          },
+          secondary: {
+            value: {
+              base: "#718096",
+              _dark: "#a0aec0",
+            },
+          },
+        },
+      },
+    },
   },
 });
 

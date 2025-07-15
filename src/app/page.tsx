@@ -1,9 +1,12 @@
 import { Container, Text, VStack, Button } from "@chakra-ui/react";
 import Link from "next/link";
+import { ThemeTest } from "@/components/ThemeTest";
 
 export default function Home() {
   return (
     <Container maxW="container.xl" py={12}>
+      <ThemeTest />
+
       <VStack gap={8}>
         <Text
           fontSize="3xl"
