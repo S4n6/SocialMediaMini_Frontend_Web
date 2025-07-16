@@ -23,14 +23,14 @@ const theme = createSystem(defaultConfig, {
         bg: {
           canvas: {
             value: {
-              base: "#f7fafc", // Light gray for light mode
-              _dark: "#0d2390ff", // Dark gray for dark mode
+              base: "#f7fafc",
+              _dark: "#0d2390ff",
             },
           },
           surface: {
             value: {
-              base: "#ebf8ff", // Light blue for light mode
-              _dark: "#2d3748", // Dark gray for dark mode
+              base: "#ebf8ff",
+              _dark: "#2d3748",
             },
           },
           elevated: {

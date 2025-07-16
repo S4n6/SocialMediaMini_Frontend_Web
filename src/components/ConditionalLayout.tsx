@@ -25,8 +25,9 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
         display="flex"
         alignItems="center"
         justifyContent="center"
-        bg={{ base: "#ebf8ff", _dark: "#2d3748" }}
+        bg={"bg.canvas"}
         transition="all 0.3s ease-in-out"
+        width={"100%"}
       >
         {children}
       </Box>

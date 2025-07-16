@@ -16,7 +16,6 @@ export { LoginForm } from "./forms/LoginForm";
 export { ThemeProvider } from "./ThemeProvider";
 export { ThemeToggle } from "./ThemeToggle";
 export { ThemeSettings } from "./ThemeSettings";
-export { ThemeTest } from "./ThemeTest";
 
 // Providers
 export { Providers } from "./Providers";
