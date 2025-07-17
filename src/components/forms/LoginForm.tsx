@@ -1,19 +1,76 @@
 "use client";
 
+import React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema, type LoginFormData } from "@/lib/validations/schemas";
-import { useLogin } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
-import React from "react";
 import { Box, Button, Checkbox, Input, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
+import { useLogin } from "@/hooks";
+import { toaster } from "@/components/ui/toaster";
 
 export function LoginForm() {
-  const router = useRouter();
-  const loginMutation = useLogin();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    mode: "onChange",
+  });
+
+  const {
+    mutate: loginUser,
+    isError,
+    isPending,
+    error: loginError,
+  } = useLogin();
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      await loginUser(data, {
+        onSuccess: (response) => {
+          if (response.data.user && response.data.accessToken) {
+            toaster.create({
+              title: "Login Successful",
+              description: "Welcome back! You have successfully logged in.",
+              type: "success",
+            });
+          } else {
+            toaster.create({
+              title: "Login Failed",
+              description: "Invalid response from server. Please try again.",
+              type: "error",
+            });
+          }
+        },
+      });
+      if (isError) {
+        toaster.create({
+          title: "Login Failed",
+          description:
+            typeof loginError === "object" &&
+            loginError !== null &&
+            "message" in loginError
+              ? (loginError as { message?: string }).message ||
+                "An error occurred during login."
+              : "An error occurred during login.",
+          type: "error",
+        });
+      }
+    } catch (error) {
+      toaster.create({
+        title: "Login Failed",
+        description:
+          typeof error === "object" && error !== null && "message" in error
+            ? (error as { message?: string }).message ||
+              "An error occurred during login."
+            : "An error occurred during login.",
+      });
+    }
+  };
 
   return (
     <Box
@@ -50,94 +107,125 @@ export function LoginForm() {
         </Box>
 
         <Box width="60%" mt={4}>
-          <Box mb={2}>
-            <Text fontWeight="medium" mb={3}>
-              Email
-            </Text>
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              mb={4}
-              p={4}
-              width={"100%"}
-              borderRadius={"lg"}
-              boxShadow={"sm"}
-            />
-          </Box>
-
-          <Box>
-            <Text fontWeight="medium" mb={3}>
-              Password
-            </Text>
-            <Input
-              type="password"
-              placeholder="Enter your password"
-              mb={4}
-              p={4}
-              width={"100%"}
-              borderRadius={"lg"}
-              boxShadow={"sm"}
-            />
-          </Box>
-
-          <Box
-            display={"flex"}
-            justifyContent="space-between"
-            alignItems="center"
-            mt={3}
-            textAlign={"center"}
-          >
-            <Checkbox.Root
-              defaultChecked
-              variant={"outline"}
-              colorPalette={"white"}
-            >
-              <Checkbox.HiddenInput />
-              <Checkbox.Control />
-              <Checkbox.Label>Remember me</Checkbox.Label>
-            </Checkbox.Root>
-
-            <Link href="/forgot-password">
-              <Text fontSize={"sm"}>Forgot password?</Text>
-            </Link>
-          </Box>
-
-          <Box mt={4}>
-            <Button w={"full"} bg="#EA454C" rounded={"xl"} size={"lg"}>
-              <Text color="white" fontSize={"sm"}>
-                Sign In
+          <Box as="form" onSubmit={handleSubmit(onSubmit)}>
+            <Box mb={2}>
+              <Text fontWeight="medium" mb={3}>
+                Email
               </Text>
-            </Button>
+              <Input
+                {...register("email")}
+                type="email"
+                placeholder="Enter your email"
+                mb={1}
+                p={4}
+                width={"100%"}
+                borderRadius={"lg"}
+                boxShadow={"sm"}
+                borderColor={errors.email ? "red.500" : "gray.300"}
+              />
+              {errors.email && (
+                <Text color="red.500" fontSize="sm" mt={1} mb={2}>
+                  {errors.email.message}
+                </Text>
+              )}
+            </Box>
 
-            <Button
-              variant="outline"
-              size="lg"
-              w="full"
-              rounded={"xl"}
-              mt={2}
-              boxShadow={"sm"}
-            >
-              <FcGoogle size="20" />
-              <Text color="black" fontSize={"sm"}>
-                Continue with Google
+            <Box>
+              <Text fontWeight="medium" mb={3}>
+                Password
               </Text>
-            </Button>
-          </Box>
+              <Input
+                {...register("password")}
+                type="password"
+                placeholder="Enter your password"
+                mb={1}
+                p={4}
+                width={"100%"}
+                borderRadius={"lg"}
+                boxShadow={"sm"}
+                borderColor={errors.password ? "red.500" : "gray.300"}
+              />
+              {errors.password && (
+                <Text color="red.500" fontSize="sm" mt={1} mb={2}>
+                  {errors.password.message}
+                </Text>
+              )}
+            </Box>
 
-          <Text mt={4} textAlign="center" fontSize={"sm"}>
-            Don't have an account?{" "}
-            <Link href="/signup">
-              <Text
-                as="span"
-                color="#EA454C"
-                fontWeight="semibold"
-                cursor="pointer"
-                _hover={{ textDecoration: "underline" }}
+            <Box
+              display={"flex"}
+              justifyContent="space-between"
+              alignItems="center"
+              mt={3}
+              textAlign={"center"}
+            >
+              <Checkbox.Root
+                defaultChecked
+                variant={"outline"}
+                colorPalette={"white"}
               >
-                Sign up to free!
-              </Text>
-            </Link>
-          </Text>
+                <Checkbox.HiddenInput />
+                <Checkbox.Control />
+                <Checkbox.Label>Remember me</Checkbox.Label>
+              </Checkbox.Root>
+
+              <Link href="/forgot-password">
+                <Text fontSize={"sm"}>Forgot password?</Text>
+              </Link>
+            </Box>
+
+            <Box mt={4}>
+              <Button
+                type="submit"
+                w={"full"}
+                bg="#EA454C"
+                rounded={"xl"}
+                size={"lg"}
+                boxShadow={"sm"}
+                loading={isPending || isSubmitting}
+                loadingText="Signing in..."
+                _hover={{ bg: "#d63384" }}
+                _active={{ bg: "#b02a37" }}
+                _disabled={{
+                  opacity: 0.6,
+                  cursor: "not-allowed",
+                }}
+              >
+                <Text color="white" fontSize={"sm"}>
+                  Sign In
+                </Text>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="lg"
+                w="full"
+                rounded={"xl"}
+                mt={2}
+                boxShadow={"sm"}
+              >
+                <FcGoogle size="20" />
+                <Text color="black" fontSize={"sm"}>
+                  Continue with Google
+                </Text>
+              </Button>
+            </Box>
+
+            <Text mt={4} textAlign="center" fontSize={"sm"}>
+              Don&apos;t have an account?{" "}
+              <Link href="/signup">
+                <Text
+                  as="span"
+                  color="#EA454C"
+                  fontWeight="semibold"
+                  cursor="pointer"
+                  _hover={{ textDecoration: "underline" }}
+                >
+                  Sign up to free!
+                </Text>
+              </Link>
+            </Text>
+          </Box>
         </Box>
       </Box>
 

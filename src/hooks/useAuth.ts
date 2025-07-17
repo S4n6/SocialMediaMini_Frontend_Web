@@ -35,14 +35,16 @@ export const useLogin = () => {
       dispatch(loginStart());
       return authService.login(credentials);
     },
-    onSuccess: (data) => {
-      const { user, token } = data.data;
+    onSuccess: (response) => {
+      const { user, accessToken } = response.data;
+
+      console.log("Login successful:", user, accessToken);
 
       // Store token in localStorage
-      localStorage.setItem("token", token);
+      localStorage.setItem("token", accessToken);
 
       // Update Redux state
-      dispatch(loginSuccess({ user, token }));
+      dispatch(loginSuccess({ user, token: accessToken }));
 
       // Invalidate and refetch user queries
       queryClient.invalidateQueries({ queryKey: authKeys.all });
@@ -67,13 +69,13 @@ export const useRegister = () => {
       return authService.register(userData);
     },
     onSuccess: (data) => {
-      const { user, token } = data.data;
+      const { user, accessToken } = data.data;
 
       // Store token in localStorage
-      localStorage.setItem("token", token);
+      localStorage.setItem("token", accessToken);
 
       // Update Redux state
-      dispatch(loginSuccess({ user, token }));
+      dispatch(loginSuccess({ user, token: accessToken }));
 
       // Invalidate and refetch user queries
       queryClient.invalidateQueries({ queryKey: authKeys.all });

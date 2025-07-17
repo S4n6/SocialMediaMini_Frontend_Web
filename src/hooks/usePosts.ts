@@ -79,9 +79,11 @@ export const useCreatePost = () => {
 
       // Invalidate and refetch posts
       queryClient.invalidateQueries({ queryKey: postsKeys.feed() });
-      queryClient.invalidateQueries({
-        queryKey: postsKeys.userPosts(newPost.author.id),
-      });
+      if (newPost.author.id) {
+        queryClient.invalidateQueries({
+          queryKey: postsKeys.userPosts(newPost.author.id),
+        });
+      }
     },
   });
 };
@@ -110,9 +112,11 @@ export const useUpdatePost = () => {
         queryKey: postsKeys.post(updatedPost.id),
       });
       queryClient.invalidateQueries({ queryKey: postsKeys.feed() });
-      queryClient.invalidateQueries({
-        queryKey: postsKeys.userPosts(updatedPost.author.id),
-      });
+      if (updatedPost.author.id) {
+        queryClient.invalidateQueries({
+          queryKey: postsKeys.userPosts(updatedPost.author.id),
+        });
+      }
     },
   });
 };

@@ -1,14 +1,12 @@
 // User types
 export interface User {
-  id: string;
+  id?: string;
   username: string;
   email: string;
-  displayName: string;
-  bio?: string;
-  avatar?: string;
-  followersCount: number;
-  followingCount: number;
-  postsCount: number;
+  fullName?: string;
+  profilePicture?: string;
+  gender?: string;
+  birthDate?: string;
   createdAt: string;
   updatedAt: string;
 }

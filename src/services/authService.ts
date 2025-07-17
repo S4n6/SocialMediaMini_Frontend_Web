@@ -9,7 +9,7 @@ export const authService = {
   // Login user
   login: async (
     credentials: LoginFormData
-  ): Promise<ApiResponse<{ user: User; token: string }>> => {
+  ): Promise<ApiResponse<{ user: User; accessToken: string }>> => {
     const response = await api.post("/auth/login", credentials);
     return response.data;
   },
@@ -17,7 +17,7 @@ export const authService = {
   // Register user
   register: async (
     userData: RegisterFormData
-  ): Promise<ApiResponse<{ user: User; token: string }>> => {
+  ): Promise<ApiResponse<{ user: User; accessToken: string }>> => {
     const response = await api.post("/auth/register", userData);
     return response.data;
   },

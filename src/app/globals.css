@@ -1,12 +1,23 @@
 @import "tailwindcss";
 
-/* Reset and base styles */
+/* Reset and base styles - be more specific to avoid Chakra UI conflicts */
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Only apply box-sizing to elements that need it, not everything */
+html {
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+  box-sizing: inherit;
 }
 
 /* Remove global CSS variables that conflict with Chakra UI */
@@ -14,12 +25,6 @@
   /* Keep only font variables */
   --font-geist-sans: var(--font-geist-sans);
   --font-geist-mono: var(--font-geist-mono);
-}
-
-/* Base HTML styles that don't conflict with Chakra UI */
-html {
-  scroll-behavior: smooth;
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 /* 
@@ -56,6 +61,20 @@ body {
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
   background-color: rgba(168, 24, 24, 0.3);
+}
+
+/* Protect Chakra UI toast components from global styles */
+[data-toast-root] {
+  /* Ensure toasts maintain their intended styling */
+  font-family: inherit !important;
+  line-height: inherit !important;
+}
+
+[data-toast-root] * {
+  /* Prevent global resets from affecting toast internals */
+  margin: revert !important;
+  padding: revert !important;
+  box-sizing: border-box !important;
 }
 
 /* Tailwind utilities that work with Chakra UI */
