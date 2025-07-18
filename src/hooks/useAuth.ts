@@ -43,11 +43,18 @@ export const useLogin = () => {
       // Store token in localStorage
       localStorage.setItem("token", accessToken);
 
+      // Store token in cookies for middleware access
+      document.cookie = `auth-token=${accessToken}; path=/; max-age=${
+        7 * 24 * 60 * 60
+      }; secure; samesite=strict`;
+
       // Update Redux state
       dispatch(loginSuccess({ user, token: accessToken }));
 
       // Invalidate and refetch user queries
       queryClient.invalidateQueries({ queryKey: authKeys.all });
+
+      window.location.href = "/";
     },
     onError: (error: unknown) => {
       const errorResponse = error as {

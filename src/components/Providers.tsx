@@ -6,8 +6,8 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { store } from "@/store";
 import { queryClient } from "@/lib/react-query/queryClient";
 import theme from "@/theme";
-import { ThemeProvider } from "./ThemeProvider";
 import { Toaster } from "./ui/toaster";
+import { ColorModeProvider } from "./ui/color-mode";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -18,13 +18,13 @@ export function Providers({ children }: ProvidersProps) {
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <ChakraProvider value={theme}>
-          <ThemeProvider>
+          <ColorModeProvider>
             {children}
             <Toaster />
             {process.env.NODE_ENV === "development" && (
               <ReactQueryDevtools initialIsOpen={false} />
             )}
-          </ThemeProvider>
+          </ColorModeProvider>
         </ChakraProvider>
       </QueryClientProvider>
     </Provider>

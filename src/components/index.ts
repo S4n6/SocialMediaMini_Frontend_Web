@@ -11,9 +11,5 @@ export { ConditionalLayout } from "./ConditionalLayout";
 export { LoginForm } from "./forms/LoginForm";
 export { SignupForm } from "./forms/SignupForm";
 
-// Theme Components
-export { ThemeProvider } from "./ThemeProvider";
-export { ThemeToggle } from "./ThemeToggle";
-
 // Providers
 export { Providers } from "./Providers";
