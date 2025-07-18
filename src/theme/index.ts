@@ -24,7 +24,7 @@ const theme = createSystem(defaultConfig, {
           canvas: {
             value: {
               base: "#f7fafc",
-              _dark: "#0d2390ff",
+              _dark: "#900d5eff",
             },
           },
           surface: {

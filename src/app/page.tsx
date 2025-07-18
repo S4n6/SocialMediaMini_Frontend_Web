@@ -13,23 +13,10 @@ export default function Home() {
         >
           Welcome to SocialMini!
         </Text>
-        <Text fontSize="lg" textAlign="center" color="gray.600">
+        <Text fontSize="lg" textAlign="center">
           You&#39;re successfully logged in! Explore your social media
           experience.
         </Text>
-
-        <VStack gap={4}>
-          <Link href="/feed">
-            <Button size="lg" colorScheme="blue">
-              Go to Feed
-            </Button>
-          </Link>
-          <Link href="/profile">
-            <Button size="lg" variant="outline">
-              View Profile
-            </Button>
-          </Link>
-        </VStack>
       </VStack>
     </Container>
   );

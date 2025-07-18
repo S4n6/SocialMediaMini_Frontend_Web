@@ -36,7 +36,19 @@ export const useLogin = () => {
       return authService.login(credentials);
     },
     onSuccess: (response) => {
-      const { user, accessToken } = response.data;
+      console.log("Login response:", response);
+
+      if (
+        "requiresEmailVerification" in response.data &&
+        response.data.requiresEmailVerification
+      ) {
+        console.log("Email verification required");
+        return;
+      }
+      const { user, accessToken } = response.data as {
+        user: any;
+        accessToken: string;
+      };
 
       console.log("Login successful:", user, accessToken);
 
@@ -73,19 +85,15 @@ export const useRegister = () => {
   return useMutation({
     mutationFn: (userData: RegisterFormData) => {
       dispatch(loginStart());
+
       return authService.register(userData);
     },
     onSuccess: (data) => {
-      const { user, accessToken } = data.data;
-
-      // Store token in localStorage
-      localStorage.setItem("token", accessToken);
-
-      // Update Redux state
-      dispatch(loginSuccess({ user, token: accessToken }));
-
-      // Invalidate and refetch user queries
+      console.log("Registration response:", data);
       queryClient.invalidateQueries({ queryKey: authKeys.all });
+      if (data.data.requiresEmailVerification) {
+        window.location.href = "/login";
+      }
     },
     onError: (error: unknown) => {
       const errorResponse = error as {
@@ -105,17 +113,17 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: authService.logout,
     onSuccess: () => {
-      // Clear token from localStorage
       localStorage.removeItem("token");
 
-      // Update Redux state
+      document.cookie =
+        "auth-token=; path=/; max-age=0; secure; samesite=strict";
       dispatch(logout());
 
-      // Clear all queries
       queryClient.clear();
+
+      window.location.href = "/login";
     },
     onError: () => {
-      // Even if logout fails on server, clear local state
       localStorage.removeItem("token");
       dispatch(logout());
       queryClient.clear();

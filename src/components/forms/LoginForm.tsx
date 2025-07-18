@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema, type LoginFormData } from "@/lib/validations/schemas";
 import { Box, Button, Checkbox, Input, Text } from "@chakra-ui/react";
@@ -12,6 +12,10 @@ import { useLogin } from "@/hooks";
 import { toaster } from "@/components/ui/toaster";
 
 export function LoginForm() {
+  const [isResendEmail, setIsResendEmail] = React.useState(false);
+  const [isDisabledResendEmail, setIsDisabledResendEmail] =
+    React.useState(false);
+
   const {
     register,
     handleSubmit,
@@ -28,10 +32,34 @@ export function LoginForm() {
     error: loginError,
   } = useLogin();
 
+  const handleResendEmail = () => {
+    toaster.create({
+      title: "Verification Email Resent",
+      description: "Please check your inbox for the verification email.",
+      type: "success",
+    });
+    setIsResendEmail(true);
+    setIsDisabledResendEmail(true);
+    setTimeout(() => {
+      setIsDisabledResendEmail(false);
+    }, 5000);
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       await loginUser(data, {
         onSuccess: (response) => {
+          if (response.data.requiresEmailVerification) {
+            toaster.create({
+              title: "Email Verification Required",
+              description: "Please verify your email to complete the login.",
+              type: "info",
+            });
+
+            setIsResendEmail(true);
+            return;
+          }
+
           if (response.data.user && response.data.accessToken) {
             toaster.create({
               title: "Login Successful",
@@ -151,6 +179,23 @@ export function LoginForm() {
                 </Text>
               )}
             </Box>
+
+            {isResendEmail && (
+              <Text
+                color={isDisabledResendEmail ? "gray.400" : "blue.500"}
+                fontSize="sm"
+                mt={2}
+                mb={2}
+                onClick={isDisabledResendEmail ? undefined : handleResendEmail}
+                cursor={isDisabledResendEmail ? "not-allowed" : "pointer"}
+                _hover={
+                  isDisabledResendEmail ? {} : { textDecoration: "underline" }
+                }
+                aria-disabled={isDisabledResendEmail}
+              >
+                Resend verification email?
+              </Text>
+            )}
 
             <Box
               display={"flex"}

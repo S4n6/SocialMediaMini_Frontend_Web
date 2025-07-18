@@ -88,11 +88,6 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           color={{ base: "gray.700", _dark: "gray.200" }}
         >
           {label}
-          {isRequired && (
-            <Text as="span" color="red.500" ml={1}>
-              *
-            </Text>
-          )}
         </Text>
       )}
       <Input

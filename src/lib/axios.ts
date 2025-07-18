@@ -50,9 +50,10 @@ api.interceptors.response.use(
       typeof originalAxiosData === "object" &&
       originalAxiosData !== null &&
       "message" in originalAxiosData &&
-      typeof (originalAxiosData as ServerResponse).message === "string" &&
-      "success" in originalAxiosData &&
-      typeof (originalAxiosData as ServerResponse).success === "boolean"
+      typeof (originalAxiosData as ServerResponse).message === "string"
+      // &&
+      // "success" in originalAxiosData &&
+      // typeof (originalAxiosData as ServerResponse).success === "boolean"
     ) {
       const serverData = originalAxiosData as ServerResponse;
 

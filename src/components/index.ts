@@ -4,7 +4,6 @@ export { CustomDatePicker } from "./ui/CustomDatePicker";
 // Layout Components
 export { Header } from "./layout/Header";
 export { Footer } from "./layout/Footer";
-export { ChakraHeader } from "./layout/ChakraHeader";
 export { ConditionalLayout } from "./ConditionalLayout";
 
 // Form Components
