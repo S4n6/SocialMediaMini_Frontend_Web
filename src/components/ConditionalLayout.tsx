@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Box } from "@chakra-ui/react";
 import { Footer, Header } from "@/components";
+import LeftSideBar from "./layout/LeftSideBar";
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -35,17 +36,15 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
   }
 
   return (
-    <Box bg={"bg.canvas"} minH="100vh" transition="all 0.3s ease-in-out">
-      <Header />
-      <Box
-        as="main"
-        flex="1"
-        minH="calc(100vh - 140px)"
-        transition="all 0.3s ease-in-out"
-      >
-        {children}
-      </Box>
-      <Footer />
+    <Box
+      bg={"bg.canvas"}
+      minH="100vh"
+      transition="all 0.3s ease-in-out"
+      display={"flex"}
+      w={"100%"}
+    >
+      <LeftSideBar />
+      {children}
     </Box>
   );
 }

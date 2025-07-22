@@ -12,3 +12,6 @@ export { SignupForm } from "./forms/SignupForm";
 
 // Providers
 export { Providers } from "./Providers";
+
+// Post Components
+export { PostCard } from "./post/PostCard";
