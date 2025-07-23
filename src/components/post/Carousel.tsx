@@ -167,6 +167,7 @@ export default function Carousel() {
             w="full"
             h="full"
             objectFit="cover"
+            loading="lazy"
           />
 
           {/* Navigation Arrows */}
