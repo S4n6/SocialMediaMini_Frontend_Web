@@ -116,23 +116,7 @@ export default function ImageList({
   }
 
   return (
-    <Box w="full">
-      {/* Section Title */}
-      {title && (
-        <HStack justify="space-between" align="center" mb={4}>
-          <Text
-            fontSize="lg"
-            fontWeight="semibold"
-            color={{ base: "gray.800", _dark: "white" }}
-          >
-            {title}
-          </Text>
-          <Text fontSize="sm" color={{ base: "gray.500", _dark: "gray.400" }}>
-            {images.length} posts
-          </Text>
-        </HStack>
-      )}
-
+    <Box w="100%">
       {/* Image Grid */}
       <Grid
         templateColumns={{
@@ -169,6 +153,7 @@ export default function ImageList({
               w="full"
               h="full"
               objectFit="cover"
+              loading="lazy"
             />
 
             {/* Image Loading Fallback */}
@@ -242,20 +227,6 @@ export default function ImageList({
           </Box>
         ))}
       </Grid>
-
-      {/* Load More Button */}
-      <Box textAlign="center" mt={8}>
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => console.log("Load more images")}
-          _hover={{
-            bg: { base: "gray.50", _dark: "gray.700" },
-          }}
-        >
-          Load More
-        </Button>
-      </Box>
     </Box>
   );
 }

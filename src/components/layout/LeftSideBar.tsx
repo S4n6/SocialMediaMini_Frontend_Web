@@ -12,7 +12,7 @@ import {
   Separator,
   Text,
 } from "@chakra-ui/react";
-import { MdHomeFilled } from "react-icons/md";
+import { GoHome } from "react-icons/go";
 import { IoSearchOutline } from "react-icons/io5";
 import { MdOutlineExplore } from "react-icons/md";
 import { TfiVideoClapper } from "react-icons/tfi";
@@ -116,43 +116,84 @@ export default function LeftSideBar() {
               window.location.href = "/";
             }}
             cursor="pointer"
-            bg={isActive === 0 ? "gray.100" : "transparent"}
-            _hover={{ bg: "gray.200" }}
           >
-            <MdHomeFilled size={24} />
-            <Text style={styles.textSelected}>Home</Text>
+            <GoHome size={24} />
+            <Text style={isActive === 0 ? styles.textSelected : styles.text}>
+              Home
+            </Text>
           </Box>
 
           <Popover.Trigger asChild>
-            <Box style={styles.containerItem} cursor={"pointer"}>
+            <Box
+              style={styles.containerItem}
+              cursor={"pointer"}
+              onClick={() => setIsActive(1)}
+            >
               <IoSearchOutline size={24} />
-              <Text style={styles.text}>Search</Text>
+              <Text style={isActive === 1 ? styles.textSelected : styles.text}>
+                Search
+              </Text>
             </Box>
           </Popover.Trigger>
 
-          <Box style={styles.containerItem}>
+          <Box
+            style={styles.containerItem}
+            onClick={() => {
+              setIsActive(2);
+            }}
+          >
             <MdOutlineExplore size={24} />
-            <Text style={styles.text}>Explore</Text>
+            <Text style={isActive === 2 ? styles.textSelected : styles.text}>
+              Explore
+            </Text>
           </Box>
 
-          <Box style={styles.containerItem}>
+          <Box
+            style={styles.containerItem}
+            onClick={() => {
+              setIsActive(3);
+            }}
+          >
             <TfiVideoClapper size={24} />
-            <Text style={styles.text}>Reels</Text>
+            <Text style={isActive === 3 ? styles.textSelected : styles.text}>
+              Reels
+            </Text>
           </Box>
 
-          <Box style={styles.containerItem}>
+          <Box
+            style={styles.containerItem}
+            onClick={() => {
+              setIsActive(4);
+            }}
+          >
             <PiMessengerLogo size={24} />
-            <Text style={styles.text}>Messages</Text>
+            <Text style={isActive === 4 ? styles.textSelected : styles.text}>
+              Messages
+            </Text>
           </Box>
 
-          <Box style={styles.containerItem}>
+          <Box
+            style={styles.containerItem}
+            onClick={() => {
+              setIsActive(5);
+            }}
+          >
             <IoIosNotificationsOutline size={24} />
-            <Text style={styles.text}>Notifications</Text>
+            <Text style={isActive === 5 ? styles.textSelected : styles.text}>
+              Notifications
+            </Text>
           </Box>
 
-          <Box style={styles.containerItem}>
+          <Box
+            style={styles.containerItem}
+            onClick={() => {
+              setIsActive(6);
+            }}
+          >
             <MdAddCircleOutline size={24} />
-            <Text style={styles.text}>Create</Text>
+            <Text style={isActive === 6 ? styles.textSelected : styles.text}>
+              Create
+            </Text>
           </Box>
 
           <Box style={styles.containerItem}>
@@ -197,7 +238,7 @@ function UserSearchedItem({
       padding={2}
       borderRadius="lg"
       onClick={() => {
-        window.location.href = `/profile`;
+        window.location.href = `/profile/1`;
       }}
     >
       <Box display="flex" alignItems="center" gap={2}>
