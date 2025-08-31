@@ -1,15 +1,17 @@
 "use client";
 
 import React from "react";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema, type LoginFormData } from "@/lib/validations/schemas";
-import { Box, Button, Checkbox, Input, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
 import { useLogin } from "@/hooks";
-import { toaster } from "@/components/ui/toaster";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function LoginForm() {
   const [isResendEmail, setIsResendEmail] = React.useState(false);
@@ -33,11 +35,9 @@ export function LoginForm() {
   } = useLogin();
 
   const handleResendEmail = () => {
-    toaster.create({
-      title: "Verification Email Resent",
-      description: "Please check your inbox for the verification email.",
-      type: "success",
-    });
+    console.log(
+      "Verification Email Resent - Please check your inbox for the verification email."
+    );
     setIsResendEmail(true);
     setIsDisabledResendEmail(true);
     setTimeout(() => {
@@ -50,232 +50,163 @@ export function LoginForm() {
       await loginUser(data, {
         onSuccess: (response) => {
           if (response.data.requiresEmailVerification) {
-            toaster.create({
-              title: "Email Verification Required",
-              description: "Please verify your email to complete the login.",
-              type: "info",
-            });
+            console.log(
+              "Email Verification Required - Please verify your email to complete the login."
+            );
 
             setIsResendEmail(true);
             return;
           }
 
           if (response.data.user && response.data.accessToken) {
-            toaster.create({
-              title: "Login Successful",
-              description: "Welcome back! You have successfully logged in.",
-              type: "success",
-            });
+            console.log("Login Successful - Welcome back!");
           } else {
-            toaster.create({
-              title: "Login Failed",
-              description: "Invalid response from server. Please try again.",
-              type: "error",
-            });
+            console.log(
+              "Login Failed - Invalid response from server. Please try again."
+            );
           }
         },
       });
       if (isError) {
-        toaster.create({
-          title: "Login Failed",
-          description:
-            typeof loginError === "object" &&
+        console.log(
+          "Login Failed - Please check your credentials and try again:",
+          typeof loginError === "object" &&
             loginError !== null &&
             "message" in loginError
-              ? (loginError as { message?: string }).message ||
+            ? (loginError as { message?: string }).message ||
                 "An error occurred during login."
-              : "An error occurred during login.",
-          type: "error",
-        });
+            : "An error occurred during login."
+        );
       }
     } catch (error) {
-      toaster.create({
-        title: "Login Failed",
-        description:
-          typeof error === "object" && error !== null && "message" in error
-            ? (error as { message?: string }).message ||
+      console.log(
+        "Login Failed - An error occurred during login:",
+        typeof error === "object" && error !== null && "message" in error
+          ? (error as { message?: string }).message ||
               "An error occurred during login."
-            : "An error occurred during login.",
-      });
+          : "An error occurred during login."
+      );
     }
   };
 
   return (
-    <Box
-      bg={{ base: "white", _dark: "gray.800" }}
-      width={1080}
-      height={650}
-      display={"flex"}
-      justifyContent={"center"}
-      alignItems={"center"}
-    >
+    <div className="bg-background w-[1080px] h-[650px] flex justify-center items-center">
       {/* Left side */}
-      <Box
-        bg={{ base: "white", _dark: "gray.800" }}
-        width="50%"
-        display={"flex"}
-        justifyContent={"center"}
-        alignItems={"center"}
-        flexDirection="column"
-      >
-        <Box
-          display="flex"
-          flexDirection="column"
-          width="100%"
-          justifyContent="center"
-          alignItems="center"
-          marginTop={16}
-        >
-          <Text fontSize="2xl" mb={4} fontWeight={"bold"}>
-            SOCIAL MEDIA ST
-          </Text>
-          <Text fontSize="sm" mb={4}>
+      <div className="bg-background w-1/2 flex justify-center items-center flex-col">
+        <div className="flex flex-col w-full justify-center items-center mt-16">
+          <h1 className="text-2xl mb-4 font-bold">SOCIAL MEDIA ST</h1>
+          <p className="text-sm mb-4 text-muted-foreground">
             Welcome Back! Please login to your account to continue.
-          </Text>
-        </Box>
+          </p>
+        </div>
 
-        <Box width="60%" mt={4}>
-          <Box as="form" onSubmit={handleSubmit(onSubmit)}>
-            <Box mb={2}>
-              <Text fontWeight="medium" mb={3}>
+        <div className="w-3/5 mt-4">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="mb-2">
+              <Label htmlFor="email" className="font-medium mb-3 block">
                 Email
-              </Text>
+              </Label>
               <Input
                 {...register("email")}
+                id="email"
                 type="email"
                 placeholder="Enter your email"
-                mb={1}
-                p={4}
-                width={"100%"}
-                borderRadius={"lg"}
-                boxShadow={"sm"}
-                borderColor={errors.email ? "red.500" : "gray.300"}
+                className={`w-full p-4 rounded-lg shadow-sm ${
+                  errors.email ? "border-red-500" : "border-gray-300"
+                }`}
               />
               {errors.email && (
-                <Text color="red.500" fontSize="sm" mt={1} mb={2}>
+                <p className="text-red-500 text-sm mt-1 mb-2">
                   {errors.email.message}
-                </Text>
+                </p>
               )}
-            </Box>
+            </div>
 
-            <Box>
-              <Text fontWeight="medium" mb={3}>
+            <div>
+              <Label htmlFor="password" className="font-medium mb-3 block">
                 Password
-              </Text>
+              </Label>
               <Input
                 {...register("password")}
+                id="password"
                 type="password"
                 placeholder="Enter your password"
-                mb={1}
-                p={4}
-                width={"100%"}
-                borderRadius={"lg"}
-                boxShadow={"sm"}
-                borderColor={errors.password ? "red.500" : "gray.300"}
+                className={`w-full p-4 rounded-lg shadow-sm ${
+                  errors.password ? "border-red-500" : "border-gray-300"
+                }`}
               />
               {errors.password && (
-                <Text color="red.500" fontSize="sm" mt={1} mb={2}>
+                <p className="text-red-500 text-sm mt-1 mb-2">
                   {errors.password.message}
-                </Text>
+                </p>
               )}
-            </Box>
+            </div>
 
             {isResendEmail && (
-              <Text
-                color={isDisabledResendEmail ? "gray.400" : "blue.500"}
-                fontSize="sm"
-                mt={2}
-                mb={2}
+              <p
+                className={`text-sm mt-2 mb-2 cursor-pointer hover:underline ${
+                  isDisabledResendEmail
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-blue-500"
+                }`}
                 onClick={isDisabledResendEmail ? undefined : handleResendEmail}
-                cursor={isDisabledResendEmail ? "not-allowed" : "pointer"}
-                _hover={
-                  isDisabledResendEmail ? {} : { textDecoration: "underline" }
-                }
-                aria-disabled={isDisabledResendEmail}
               >
                 Resend verification email?
-              </Text>
+              </p>
             )}
 
-            <Box
-              display={"flex"}
-              justifyContent="space-between"
-              alignItems="center"
-              mt={3}
-              textAlign={"center"}
-            >
-              <Checkbox.Root
-                defaultChecked
-                variant={"outline"}
-                colorPalette={"white"}
-              >
-                <Checkbox.HiddenInput />
-                <Checkbox.Control />
-                <Checkbox.Label>Remember me</Checkbox.Label>
-              </Checkbox.Root>
+            <div className="flex justify-between items-center mt-3 text-center">
+              <div className="flex items-center space-x-2">
+                <Checkbox id="remember" defaultChecked />
+                <Label htmlFor="remember" className="text-sm">
+                  Remember me
+                </Label>
+              </div>
 
               <Link href="/forgot-password">
-                <Text fontSize={"sm"}>Forgot password?</Text>
+                <span className="text-sm text-primary hover:underline">
+                  Forgot password?
+                </span>
               </Link>
-            </Box>
+            </div>
 
-            <Box mt={4}>
+            <div className="mt-4">
               <Button
                 type="submit"
-                w={"full"}
-                bg="#EA454C"
-                rounded={"xl"}
-                size={"lg"}
-                boxShadow={"sm"}
-                loading={isPending || isSubmitting}
-                loadingText="Signing in..."
-                _hover={{ bg: "#d63384" }}
-                _active={{ bg: "#b02a37" }}
-                _disabled={{
-                  opacity: 0.6,
-                  cursor: "not-allowed",
-                }}
+                className="w-full bg-[#EA454C] hover:bg-[#d63384] active:bg-[#b02a37] rounded-xl text-white text-sm shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                size="lg"
+                disabled={isPending || isSubmitting}
               >
-                <Text color="white" fontSize={"sm"}>
-                  Sign In
-                </Text>
+                {isPending || isSubmitting ? "Signing in..." : "Sign In"}
               </Button>
 
               <Button
                 variant="outline"
                 size="lg"
-                w="full"
-                rounded={"xl"}
-                mt={2}
-                boxShadow={"sm"}
+                className="w-full rounded-xl mt-2 shadow-sm"
+                type="button"
               >
-                <FcGoogle size="20" />
-                <Text color="black" fontSize={"sm"}>
+                <FcGoogle size="20" className="mr-2" />
+                <span className="text-foreground text-sm">
                   Continue with Google
-                </Text>
+                </span>
               </Button>
-            </Box>
+            </div>
 
-            <Text mt={4} textAlign="center" fontSize={"sm"}>
+            <p className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link href="/signup">
-                <Text
-                  as="span"
-                  color="#EA454C"
-                  fontWeight="semibold"
-                  cursor="pointer"
-                  _hover={{ textDecoration: "underline" }}
-                >
+                <span className="text-[#EA454C] font-semibold cursor-pointer hover:underline">
                   Sign up to free!
-                </Text>
+                </span>
               </Link>
-            </Text>
-          </Box>
-        </Box>
-      </Box>
+            </p>
+          </form>
+        </div>
+      </div>
 
       {/* Right side */}
-      <Box width="50%">
+      <div className="w-1/2">
         <Image
           src="/images/loginPage.png"
           alt="Social media illustration - people connecting and sharing"
@@ -286,7 +217,7 @@ export function LoginForm() {
           height={650}
           priority
         />
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

@@ -3,8 +3,6 @@
 import RightSideBar from "@/components/layout/RightSideBar";
 import PostSection, { Post } from "@/components/post/PostSection";
 import { StoriesSection } from "@/components/story/StoriesSection";
-import { SCREEN_SIZES } from "@/lib/constants/screen.constant";
-import { Container, Text, VStack, Button, Box } from "@chakra-ui/react";
 import { useState } from "react";
 
 const mockPosts: Post[] = [
@@ -22,7 +20,6 @@ const mockPosts: Post[] = [
     likes: 24,
     comments: 5,
     isLiked: false,
-    shares: 3,
     isBookmarked: false,
   },
   {
@@ -39,7 +36,6 @@ const mockPosts: Post[] = [
     likes: 67,
     comments: 12,
     isLiked: true,
-    shares: 7,
     isBookmarked: true,
   },
 ];
@@ -229,17 +225,10 @@ const mockStories = [
 ];
 
 export default function Home() {
-  const [posts, setPosts] = useState(mockPosts);
+  const [posts] = useState(mockPosts);
   return (
-    <Box display="flex" w={"83%"}>
-      <Box
-        width={{ base: "100%", md: "75%" }}
-        p={{ base: 2, md: 4, lg: 6 }}
-        bg={{ base: "white", _dark: "gray.800" }}
-        borderRadius="md"
-        boxShadow="md"
-        maxW={{ base: "100%", md: SCREEN_SIZES.md, lg: SCREEN_SIZES.lg }}
-      >
+    <div className="flex w-[83%]">
+      <div className="w-full md:w-3/4 p-2 md:p-4 lg:p-6 bg-background rounded-md shadow-md max-w-full md:max-w-3xl lg:max-w-5xl">
         <StoriesSection stories={mockStories} />
         <PostSection
           posts={posts}
@@ -247,19 +236,11 @@ export default function Home() {
           error={null}
           onLoadMore={() => console.log("Load more posts")}
           hasMore={true}
-          title="Latest Posts"
-          showLoadMore={true}
         />
-      </Box>
-      <Box
-        width={{ base: "100%", md: "25%" }}
-        bg={{ base: "white", _dark: "gray.800" }}
-        borderRadius="md"
-        boxShadow="md"
-        display={{ base: "none", md: "block" }}
-      >
+      </div>
+      <div className="hidden md:block w-full md:w-1/4 bg-background rounded-md shadow-md">
         <RightSideBar />
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

@@ -1,4 +1,3 @@
-import { Box } from "@chakra-ui/react";
 import StoryCard from "@/components/story/StoryCard";
 
 interface StoriesContainerProps {
@@ -26,49 +25,38 @@ interface StoriesContainerProps {
 export function StoriesSection({
   stories,
   currentUser,
-  onStoryClick,
-  onAddStoryClick,
 }: StoriesContainerProps) {
   return (
-    <Box
-      width={"100%"}
-      display="flex"
-      gap={4}
-      overflowX="auto"
-      css={{
-        "&::-webkit-scrollbar": { display: "none" },
+    <div
+      className="w-full flex gap-4 overflow-x-auto px-4 py-2 justify-start items-center flex-nowrap min-w-0"
+      style={{
         scrollbarWidth: "none",
         msOverflowStyle: "none",
       }}
-      px={4}
-      py={2}
-      justifyContent="flex-start"
-      alignItems="center"
-      flexWrap={"nowrap"}
-      minWidth={0}
     >
       {/* Add Story Card (if current user exists) */}
       {currentUser && (
-        <Box flexShrink={0}>
+        <div className="flex-shrink-0">
           <StoryCard
+            id={`add-story-${currentUser.id}`}
             user={currentUser}
-            isAddStory={true}
-            onClick={onAddStoryClick}
+            storyImage={currentUser.avatar || "/default-avatar.png"}
+            isViewed={false}
           />
-        </Box>
+        </div>
       )}
 
       {/* Story Cards */}
       {stories.map((story) => (
-        <Box key={story.id} flexShrink={0}>
+        <div key={story.id} className="flex-shrink-0">
           <StoryCard
+            id={story.id}
             user={story.user}
-            storyImage={story.storyImage}
-            isViewed={story.isViewed}
-            onClick={() => onStoryClick?.(story.id)}
+            storyImage={story.storyImage || "/default-story.png"}
+            isViewed={story.isViewed || false}
           />
-        </Box>
+        </div>
       ))}
-    </Box>
+    </div>
   );
 }

@@ -1,19 +1,13 @@
 "use client";
 
-import React from "react";
-import {
-  Box,
-  Text,
-  Avatar,
-  HStack,
-  VStack,
-  Button,
-  Textarea,
-} from "@chakra-ui/react";
+import React, { useState } from "react";
 import { FaHeart, FaComment, FaShare, FaBookmark } from "react-icons/fa";
-import Carousel from "./Carousel";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 
-interface PostProps {
+interface Post {
   id: string;
   author: {
     id: string;
@@ -22,154 +16,202 @@ interface PostProps {
     avatar?: string;
   };
   content: string;
-  timestamp: string;
-  imageUrl?: string;
+  images?: string[];
   likes: number;
   comments: number;
-  shares?: number;
+  timestamp: string;
   isLiked?: boolean;
   isBookmarked?: boolean;
-  onLike?: (postId: string) => void;
-  onComment?: (postId: string) => void;
-  onShare?: (postId: string) => void;
-  onBookmark?: (postId: string) => void;
-  onDelete?: (postId: string) => void;
 }
 
-export const PostCard: React.FC<PostProps> = ({
-  id,
-  author,
-  content,
-  timestamp,
-  likes,
-  comments,
-  isLiked = false,
-  isBookmarked = false,
-  onLike,
-  onComment,
-  onShare,
-  onBookmark,
-}) => {
+interface PostProps {
+  post: {
+    id: string;
+    author: {
+      id: string;
+      name: string;
+      username: string;
+      avatar?: string;
+    };
+    content: string;
+    timestamp: string;
+    imageUrl?: string;
+    likes: number;
+    comments: number;
+    shares?: number;
+    isLiked?: boolean;
+    isBookmarked?: boolean;
+  };
+  onUpdate?: (post: Post) => void;
+}
+
+export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
+  const [isLiked, setIsLiked] = useState(post.isLiked || false);
+  const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked || false);
+  const [likes, setLikes] = useState(post.likes);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState("");
+
+  const handleLike = () => {
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    setLikes((prev) => (newIsLiked ? prev + 1 : prev - 1));
+
+    if (onUpdate) {
+      onUpdate({
+        ...post,
+        isLiked: newIsLiked,
+        likes: newIsLiked ? post.likes + 1 : post.likes - 1,
+      });
+    }
+  };
+
+  const handleBookmark = () => {
+    const newIsBookmarked = !isBookmarked;
+    setIsBookmarked(newIsBookmarked);
+
+    if (onUpdate) {
+      onUpdate({
+        ...post,
+        isBookmarked: newIsBookmarked,
+      });
+    }
+  };
+
+  const handleComment = () => {
+    setShowComments(!showComments);
+  };
+
+  const handleShare = () => {
+    // Implement share functionality
+    console.log("Share post:", post.id);
+  };
+
   return (
-    <Box
-      w="full"
-      bg={{ base: "white", _dark: "gray.800" }}
-      borderRadius="lg"
-      borderWidth="1px"
-      borderColor={{ base: "gray.200", _dark: "gray.700" }}
-      overflow="hidden"
-      _hover={{
-        borderColor: { base: "gray.300", _dark: "gray.600" },
-      }}
-      transition="all 0.2s"
-    >
-      {/* Post Header */}
-      <HStack justify="space-between" p={4} pb={2}>
-        <HStack gap={3}>
-          <Avatar.Root size="md">
-            <Avatar.Fallback name={author.name} />
-            {author.avatar && <Avatar.Image src={author.avatar} />}
-          </Avatar.Root>
-          <VStack gap={0} align="start">
-            <Text fontWeight="semibold" fontSize="sm">
-              {author.name}
-            </Text>
-            <Text color="gray.500" fontSize="xs">
-              @{author.username} • {timestamp}
-            </Text>
-          </VStack>
-        </HStack>
-        <Button variant="ghost" size="sm" color="gray.500">
-          ⋯
-        </Button>
-      </HStack>
+    <Card className="w-full max-w-lg mx-auto bg-background border border-border shadow-sm">
+      <CardContent className="p-0">
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 pb-2">
+          <div className="flex items-center gap-3">
+            <Avatar className="w-10 h-10">
+              <AvatarImage src={post.author.avatar} />
+              <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="font-semibold text-sm">{post.author.name}</span>
+              <span className="text-muted-foreground text-xs">
+                @{post.author.username} • {post.timestamp}
+              </span>
+            </div>
+          </div>
+          {/* Options menu could go here */}
+        </div>
 
-      {/* Post Content */}
-      <Box px={4} pb={3}>
-        <Text fontSize="md" lineHeight="1.5">
-          {content}
-        </Text>
-        <Carousel />
-      </Box>
+        {/* Content */}
+        <div className="px-4 pb-3">
+          <p className="text-foreground text-base leading-6">{post.content}</p>
+        </div>
 
-      {/* Post Actions */}
-      <HStack
-        justify="space-between"
-        px={4}
-        py={3}
-        borderTopWidth="1px"
-        borderColor={{ base: "gray.100", _dark: "gray.700" }}
-      >
-        <HStack gap={4}>
+        {/* Image */}
+        {post.imageUrl && (
+          <div className="w-full">
+            <img
+              src={post.imageUrl}
+              alt="Post content"
+              className="w-full h-auto object-cover"
+            />
+          </div>
+        )}
+
+        {/* Engagement Stats */}
+        <div className="px-4 py-2 text-xs text-muted-foreground">
+          <span>{likes} likes</span>
+          {post.comments > 0 && (
+            <>
+              <span className="mx-2">•</span>
+              <span>{post.comments} comments</span>
+            </>
+          )}
+          {post.shares && post.shares > 0 && (
+            <>
+              <span className="mx-2">•</span>
+              <span>{post.shares} shares</span>
+            </>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-between items-center px-4 py-2 border-t border-border">
           <Button
             variant="ghost"
             size="sm"
-            color={isLiked ? "red.500" : "gray.500"}
-            onClick={() => onLike?.(id)}
-            _hover={{
-              color: "red.500",
-              bg: "red.50",
-              _dark: { bg: "red.900" },
-            }}
+            onClick={handleLike}
+            className={`flex items-center gap-2 ${
+              isLiked ? "text-red-500" : "text-muted-foreground"
+            }`}
           >
-            <FaHeart />
-            {likes}
+            <FaHeart className="w-4 h-4" />
+            <span>Like</span>
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            color="gray.500"
-            onClick={() => onComment?.(id)}
-            _hover={{
-              color: "blue.500",
-              bg: "blue.50",
-              _dark: { bg: "blue.900" },
-            }}
-          >
-            <FaComment />
-            {comments}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            color="gray.500"
-            onClick={() => onShare?.(id)}
-            _hover={{
-              color: "green.500",
-              bg: "green.50",
-              _dark: { bg: "green.900" },
-            }}
-          >
-            <FaShare />
-            Share
-          </Button>
-        </HStack>
-        <Button
-          variant="ghost"
-          size="sm"
-          color={isBookmarked ? "yellow.500" : "gray.500"}
-          onClick={() => onBookmark?.(id)}
-          _hover={{
-            color: "yellow.500",
-            bg: "yellow.50",
-            _dark: { bg: "yellow.900" },
-          }}
-        >
-          <FaBookmark />
-        </Button>
-      </HStack>
 
-      {/* Comment Input */}
-      <Box
-        px={4}
-        py={2}
-        borderTopWidth="1px"
-        borderColor={{ base: "gray.100", _dark: "gray.700" }}
-      >
-        <Textarea placeholder="Comment..." />
-      </Box>
-    </Box>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleComment}
+            className="flex items-center gap-2 text-muted-foreground"
+          >
+            <FaComment className="w-4 h-4" />
+            <span>Comment</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleShare}
+            className="flex items-center gap-2 text-muted-foreground"
+          >
+            <FaShare className="w-4 h-4" />
+            <span>Share</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBookmark}
+            className={`flex items-center gap-2 ${
+              isBookmarked ? "text-blue-500" : "text-muted-foreground"
+            }`}
+          >
+            <FaBookmark className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Comments Section */}
+        {showComments && (
+          <div className="px-4 pb-4 border-t border-border">
+            <div className="mt-3">
+              <Textarea
+                placeholder="Write a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                className="w-full min-h-[80px] resize-none"
+              />
+              <div className="flex justify-end mt-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    // Handle comment submission
+                    setCommentText("");
+                  }}
+                  disabled={!commentText.trim()}
+                >
+                  Post Comment
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
-
-export default PostCard;

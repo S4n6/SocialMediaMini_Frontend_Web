@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authService } from "@/services/authService";
-import { useAppDispatch } from "@/hooks/redux";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { TokenManager } from "@/lib/axios";
 import {
   loginStart,
   loginSuccess,
@@ -17,12 +18,26 @@ export const authKeys = {
   currentUser: () => [...authKeys.all, "currentUser"] as const,
 };
 
+/**
+ * Get current user with React Query
+ * Only runs if user is authenticated (has token)
+ */
 export const useCurrentUser = () => {
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
   return useQuery({
     queryKey: authKeys.currentUser(),
     queryFn: authService.getCurrentUser,
+    enabled: isAuthenticated && !!TokenManager.getToken(),
     staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: false,
+    retry: (failureCount, error: unknown) => {
+      // Don't retry on 401 (auth errors)
+      if (
+        (error as { response?: { status?: number } })?.response?.status === 401
+      )
+        return false;
+      return failureCount < 2;
+    },
   });
 };
 
@@ -45,20 +60,12 @@ export const useLogin = () => {
         console.log("Email verification required");
         return;
       }
-      const { user, accessToken } = response.data as {
-        user: any;
-        accessToken: string;
-      };
 
+      const { user, accessToken } = response.data;
       console.log("Login successful:", user, accessToken);
 
-      // Store token in localStorage
-      localStorage.setItem("token", accessToken);
-
-      // Store token in cookies for middleware access
-      document.cookie = `auth-token=${accessToken}; path=/; max-age=${
-        7 * 24 * 60 * 60
-      }; secure; samesite=strict`;
+      // Use TokenManager instead of direct localStorage
+      TokenManager.setToken(accessToken);
 
       // Update Redux state
       dispatch(loginSuccess({ user, token: accessToken }));
@@ -113,20 +120,23 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: authService.logout,
     onSuccess: () => {
-      localStorage.removeItem("token");
+      // Use TokenManager to clear tokens
+      TokenManager.clearTokens();
 
-      document.cookie =
-        "auth-token=; path=/; max-age=0; secure; samesite=strict";
+      // Clear Redux state
       dispatch(logout());
 
+      // Clear all React Query cache
       queryClient.clear();
 
       window.location.href = "/login";
     },
     onError: () => {
-      localStorage.removeItem("token");
+      // Even on error, clear local state
+      TokenManager.clearTokens();
       dispatch(logout());
       queryClient.clear();
+      window.location.href = "/login";
     },
   });
 };

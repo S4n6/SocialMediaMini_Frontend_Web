@@ -1,8 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Box } from "@chakra-ui/react";
-import { Footer, Header } from "@/components";
 import LeftSideBar from "./layout/LeftSideBar";
 
 interface ConditionalLayoutProps {
@@ -21,30 +19,16 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
 
   if (isAuthPage) {
     return (
-      <Box
-        minH="100vh"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        bg={"bg.canvas"}
-        transition="all 0.3s ease-in-out"
-        width={"100%"}
-      >
+      <div className="min-h-screen flex items-center justify-center transition-all duration-300 w-full">
         {children}
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box
-      bg={"bg.canvas"}
-      minH="100vh"
-      transition="all 0.3s ease-in-out"
-      display={"flex"}
-      w={"100%"}
-    >
+    <div className="min-h-screen transition-all duration-300 flex w-full">
       <LeftSideBar />
       {children}
-    </Box>
+    </div>
   );
 }

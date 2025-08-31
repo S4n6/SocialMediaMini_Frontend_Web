@@ -1,17 +1,4 @@
 import React from "react";
-import {
-  Avatar,
-  Box,
-  Button,
-  CloseButton,
-  Input,
-  InputGroup,
-  Kbd,
-  Popover,
-  Portal,
-  Separator,
-  Text,
-} from "@chakra-ui/react";
 import { GoHome } from "react-icons/go";
 import { IoSearchOutline } from "react-icons/io5";
 import { MdOutlineExplore } from "react-icons/md";
@@ -21,6 +8,16 @@ import { MdAddCircleOutline } from "react-icons/md";
 import { CgDetailsMore } from "react-icons/cg";
 import { PiMessengerLogo } from "react-icons/pi";
 import { LuSearch } from "react-icons/lu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 const mockUserSearchResults = [
   {
@@ -42,245 +39,151 @@ const mockUserSearchResults = [
 
 export default function LeftSideBar() {
   const [isActive, setIsActive] = React.useState(0);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
+
+  const menuItems = [
+    { icon: GoHome, label: "Home", id: 0 },
+    { icon: IoSearchOutline, label: "Search", id: 1 },
+    { icon: MdOutlineExplore, label: "Explore", id: 2 },
+    { icon: TfiVideoClapper, label: "Reels", id: 3 },
+    { icon: PiMessengerLogo, label: "Messages", id: 4 },
+    { icon: IoIosNotificationsOutline, label: "Notifications", id: 5 },
+    { icon: MdAddCircleOutline, label: "Create", id: 6 },
+  ];
+
   return (
-    <Box
-      bg={{ base: "white", _dark: "gray.800" }}
-      p={4}
-      display="flex"
-      flexDirection="column"
-      borderRightWidth="1px"
-      borderColor="gray.200"
-      height="100vh"
-      position="sticky"
-      width={"20%"}
-      top={0}
-    >
-      <Popover.Root positioning={{ placement: "right" }}>
-        <Portal>
-          <Popover.Positioner>
-            <Popover.Content>
-              <Popover.Arrow />
-              <Popover.Body>
-                <Popover.Title fontWeight="bold" fontSize="lg">
-                  Search
-                </Popover.Title>
-                <InputGroup flex="1" startElement={<LuSearch />} mt={8}>
-                  <Input placeholder="Search..." borderRadius="xl" />
-                </InputGroup>
-                <Separator />
-                <Box mt={4}>
-                  <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    mb={4}
+    <div className="bg-background p-4 flex flex-col gap-4 min-h-screen border-r border-border">
+      {/* Logo */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-primary">SocialMini</h1>
+      </div>
+
+      {/* Navigation Menu */}
+      <nav className="flex flex-col gap-2">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+
+          if (item.label === "Search") {
+            return (
+              <Popover
+                key={item.id}
+                open={isSearchOpen}
+                onOpenChange={setIsSearchOpen}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "justify-start h-12 px-3 py-2 hover:bg-accent",
+                      isActive === item.id && "bg-accent"
+                    )}
+                    onClick={() => setIsActive(item.id)}
                   >
-                    <Text fontWeight="bold">Recent</Text>
-                    <Text color="blue.500">Clear all</Text>
-                  </Box>
-                  {mockUserSearchResults.map((user) => (
-                    <UserSearchedItem key={user.username} {...user} />
-                  ))}
-                </Box>
-              </Popover.Body>
-            </Popover.Content>
-          </Popover.Positioner>
-        </Portal>
+                    <Icon className="w-6 h-6 mr-4" />
+                    <span className="hidden lg:block">{item.label}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-96 p-0" side="right" align="start">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">Search</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsSearchOpen(false)}
+                      >
+                        ×
+                      </Button>
+                    </div>
 
-        <Text
-          fontSize="2xl"
-          fontWeight="bold"
-          mb={6}
-          color="gray.900"
-          _dark={{ color: "white" }}
-          fontFamily="'Dancing Script', 'Brush Script MT', cursive"
-          letterSpacing="tight"
-          textAlign="center"
-          background="linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)"
-          backgroundClip="text"
-          textShadow="0 0 20px rgba(240, 148, 51, 0.3)"
-          transition="all 0.3s ease"
-          _hover={{
-            transform: "scale(1.05)",
-            textShadow: "0 0 30px rgba(240, 148, 51, 0.5)",
-          }}
-          cursor="pointer"
-        >
-          SocialMiniST
-        </Text>
-        <Box display="flex" flexDirection="column" gap={8}>
-          <Box
-            style={styles.containerItem}
-            onClick={() => {
-              setIsActive(0);
-              window.location.href = "/";
-            }}
-            cursor="pointer"
-          >
-            <GoHome size={24} />
-            <Text style={isActive === 0 ? styles.textSelected : styles.text}>
-              Home
-            </Text>
-          </Box>
+                    <div className="relative mb-4">
+                      <LuSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                      <Input
+                        placeholder="Search"
+                        className="pl-10 rounded-lg"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
 
-          <Popover.Trigger asChild>
-            <Box
-              style={styles.containerItem}
-              cursor={"pointer"}
-              onClick={() => setIsActive(1)}
+                    <Separator className="mb-4" />
+
+                    <div>
+                      <h4 className="text-sm font-medium mb-3 text-muted-foreground">
+                        Recent
+                      </h4>
+                      <div className="space-y-2">
+                        {mockUserSearchResults.map((user, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent cursor-pointer"
+                          >
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={user.avatarUrl} />
+                              <AvatarFallback>
+                                {user.name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {user.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {user.username}
+                              </p>
+                            </div>
+                            <Button variant="ghost" size="sm">
+                              ×
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            );
+          }
+
+          return (
+            <Button
+              key={item.id}
+              variant="ghost"
+              className={cn(
+                "justify-start h-12 px-3 py-2 hover:bg-accent",
+                isActive === item.id && "bg-accent"
+              )}
+              onClick={() => setIsActive(item.id)}
             >
-              <IoSearchOutline size={24} />
-              <Text style={isActive === 1 ? styles.textSelected : styles.text}>
-                Search
-              </Text>
-            </Box>
-          </Popover.Trigger>
+              <Icon className="w-6 h-6 mr-4" />
+              <span className="hidden lg:block">{item.label}</span>
+            </Button>
+          );
+        })}
+      </nav>
 
-          <Box
-            style={styles.containerItem}
-            onClick={() => {
-              setIsActive(2);
-            }}
-          >
-            <MdOutlineExplore size={24} />
-            <Text style={isActive === 2 ? styles.textSelected : styles.text}>
-              Explore
-            </Text>
-          </Box>
+      {/* Profile Section */}
+      <div className="mt-auto">
+        <Button
+          variant="ghost"
+          className="justify-start h-12 px-3 py-2 hover:bg-accent w-full"
+        >
+          <Avatar className="w-6 h-6 mr-4">
+            <AvatarImage src="https://bit.ly/sage-adebayo" />
+            <AvatarFallback>JD</AvatarFallback>
+          </Avatar>
+          <span className="hidden lg:block">Profile</span>
+        </Button>
 
-          <Box
-            style={styles.containerItem}
-            onClick={() => {
-              setIsActive(3);
-            }}
-          >
-            <TfiVideoClapper size={24} />
-            <Text style={isActive === 3 ? styles.textSelected : styles.text}>
-              Reels
-            </Text>
-          </Box>
-
-          <Box
-            style={styles.containerItem}
-            onClick={() => {
-              setIsActive(4);
-            }}
-          >
-            <PiMessengerLogo size={24} />
-            <Text style={isActive === 4 ? styles.textSelected : styles.text}>
-              Messages
-            </Text>
-          </Box>
-
-          <Box
-            style={styles.containerItem}
-            onClick={() => {
-              setIsActive(5);
-            }}
-          >
-            <IoIosNotificationsOutline size={24} />
-            <Text style={isActive === 5 ? styles.textSelected : styles.text}>
-              Notifications
-            </Text>
-          </Box>
-
-          <Box
-            style={styles.containerItem}
-            onClick={() => {
-              setIsActive(6);
-            }}
-          >
-            <MdAddCircleOutline size={24} />
-            <Text style={isActive === 6 ? styles.textSelected : styles.text}>
-              Create
-            </Text>
-          </Box>
-
-          <Box style={styles.containerItem}>
-            <Avatar.Root size={"2xs"}>
-              <Avatar.Fallback name="Segun Adebayo" />
-              <Avatar.Image src="https://bit.ly/sage-adebayo" />
-            </Avatar.Root>
-            <Text style={styles.text}>Profile</Text>
-          </Box>
-
-          <Box style={styles.containerItem}>
-            <CgDetailsMore size={24} />
-            <Text style={styles.text}>More</Text>
-          </Box>
-        </Box>
-      </Popover.Root>
-    </Box>
+        <Button
+          variant="ghost"
+          className="justify-start h-12 px-3 py-2 hover:bg-accent w-full"
+        >
+          <CgDetailsMore className="w-6 h-6 mr-4" />
+          <span className="hidden lg:block">More</span>
+        </Button>
+      </div>
+    </div>
   );
 }
-
-interface UserSearchedItemProps {
-  name: string;
-  username: string;
-  avatarUrl: string;
-}
-
-function UserSearchedItem({
-  name,
-  username,
-  avatarUrl,
-}: UserSearchedItemProps) {
-  return (
-    <Box
-      display="flex"
-      justifyContent={"space-between"}
-      alignItems="center"
-      _hover={{
-        backgroundColor: "gray.100",
-        _dark: { bg: "gray.700" },
-      }}
-      cursor={"pointer"}
-      padding={2}
-      borderRadius="lg"
-      onClick={() => {
-        window.location.href = `/profile/1`;
-      }}
-    >
-      <Box display="flex" alignItems="center" gap={2}>
-        <Avatar.Root size={"xs"}>
-          <Avatar.Fallback name={name} />
-          <Avatar.Image src={avatarUrl} />
-        </Avatar.Root>
-        <Box fontSize="sm" fontWeight="bold">
-          {name}
-          <Box color="gray.500" fontWeight="normal">
-            {" "}
-            @{username}
-          </Box>
-        </Box>
-      </Box>
-
-      <CloseButton aria-label={`Close ${name}'s search result`} />
-    </Box>
-  );
-}
-
-const styles = {
-  text: {
-    color: "gray.700",
-    fontSize: "16px",
-    _hover: {
-      color: "gray.900",
-    },
-    marginLeft: "20px",
-  },
-  textSelected: {
-    color: "gray.700",
-    fontSize: "16px",
-    fontWeight: "bold",
-    _hover: {
-      color: "gray.900",
-    },
-    marginLeft: "20px",
-  },
-  containerItem: {
-    display: "flex",
-    alignItems: "center",
-    mb: 2,
-  },
-};

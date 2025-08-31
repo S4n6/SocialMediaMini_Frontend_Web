@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  Box,
-  Grid,
-  Image,
-  Text,
-  VStack,
-  HStack,
-  Button,
-} from "@chakra-ui/react";
 import React, { useState } from "react";
 import { FaHeart, FaComment, FaPlay } from "react-icons/fa";
+import { Card } from "@/components/ui/card";
 
 /**
  * Interface for individual image/post items
@@ -73,161 +65,153 @@ export default function ImageList({
 
   if (isLoading) {
     return (
-      <Box w="full">
+      <div className="w-full">
         {title && (
-          <Text
-            fontSize="lg"
-            fontWeight="semibold"
-            mb={4}
-            color={{ base: "gray.800", _dark: "white" }}
-          >
+          <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
             {title}
-          </Text>
+          </h3>
         )}
-        <Grid templateColumns={`repeat(${columns}, 1fr)`} gap={gap} w="full">
+        <div
+          className="grid w-full"
+          style={{
+            gridTemplateColumns: `repeat(${columns}, 1fr)`,
+            gap: `${gap * 0.25}rem`,
+          }}
+        >
           {Array.from({ length: 9 }).map((_, index) => (
-            <Box
+            <div
               key={index}
-              aspectRatio="1"
-              bg={{ base: "gray.200", _dark: "gray.700" }}
-              borderRadius="md"
-              opacity={0.6}
+              className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-md opacity-60"
             />
           ))}
-        </Grid>
-      </Box>
+        </div>
+      </div>
     );
   }
 
   if (images.length === 0) {
     return (
-      <VStack
-        gap={4}
-        py={12}
-        textAlign="center"
-        color={{ base: "gray.600", _dark: "gray.400" }}
-      >
-        <Text fontSize="lg" fontWeight="semibold">
-          No posts yet
-        </Text>
-        <Text fontSize="sm">Share your first photo to get started!</Text>
-      </VStack>
+      <div className="flex flex-col items-center gap-4 py-12 text-center text-gray-600 dark:text-gray-400">
+        <h3 className="text-lg font-semibold">No posts yet</h3>
+        <p className="text-sm">Share your first photo to get started!</p>
+      </div>
     );
   }
 
   return (
-    <Box w="100%">
+    <div className="w-full">
       {/* Image Grid */}
-      <Grid
-        templateColumns={{
-          base: "repeat(2, 1fr)",
-          sm: `repeat(${Math.min(columns, 3)}, 1fr)`,
-          md: `repeat(${columns}, 1fr)`,
+      <div
+        className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-3"
+        style={{
+          gap: `${gap * 0.25}rem`,
         }}
-        gap={gap}
-        w="full"
       >
         {images.map((image) => (
-          <Box
+          <Card
             key={image.id}
-            position="relative"
-            aspectRatio="1"
-            cursor="pointer"
+            className="relative aspect-square overflow-hidden cursor-pointer transition-all duration-200 hover:scale-105"
             onClick={() => handleImageClick(image)}
             onMouseEnter={() => setHoveredItem(image.id)}
             onMouseLeave={() => setHoveredItem(null)}
-            borderRadius="md"
-            overflow="hidden"
-            bg={{ base: "gray.100", _dark: "gray.800" }}
-            transition="all 0.2s ease"
-            css={{
-              "&:hover": {
-                transform: "scale(1.02)",
-              },
-            }}
           >
             {/* Main Image */}
-            <Image
-              src={image.imageUrl}
-              alt={image.caption || `Post by ${image.author?.name || "User"}`}
-              w="full"
-              h="full"
-              objectFit="cover"
-              loading="lazy"
-            />
+            <div className="relative w-full h-full">
+              <img
+                src={image.imageUrl}
+                alt={image.caption || `Post by ${image.author?.name || "User"}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
 
-            {/* Image Loading Fallback */}
-            <Box
-              position="absolute"
-              top="0"
-              left="0"
-              w="full"
-              h="full"
-              bg={{ base: "gray.200", _dark: "gray.700" }}
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              zIndex="-1"
-            >
-              <Text fontSize="sm" color="gray.500">
-                Loading...
-              </Text>
-            </Box>
+              {/* Video Indicator */}
+              {image.isVideo && (
+                <div className="absolute top-2 right-2 p-1 bg-black/70 rounded-sm">
+                  <FaPlay className="w-3 h-3 text-white" />
+                </div>
+              )}
 
-            {/* Video Indicator */}
-            {image.isVideo && (
-              <Box
-                position="absolute"
-                top={2}
-                right={2}
-                p={1}
-                borderRadius="sm"
-                bg="blackAlpha.700"
-              >
-                <FaPlay size="12" color="white" />
-              </Box>
-            )}
-
-            {/* Multiple Images Indicator */}
-            {/* You can add logic here if the post has multiple images */}
-
-            {/* Hover Overlay */}
-            {showOverlay && hoveredItem === image.id && (
-              <Box
-                position="absolute"
-                top={0}
-                left={0}
-                right={0}
-                bottom={0}
-                bg="blackAlpha.600"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                transition="all 0.2s ease"
-              >
-                <HStack gap={6} color="white">
-                  {/* Likes */}
-                  <HStack gap={1}>
-                    <FaHeart size="18" />
-                    <Text fontWeight="bold" fontSize="sm">
-                      {image.likes.toLocaleString()}
-                    </Text>
-                  </HStack>
-
-                  {/* Comments */}
-                  <HStack gap={1}>
-                    <FaComment size="18" />
-                    <Text fontWeight="bold" fontSize="sm">
-                      {image.comments.toLocaleString()}
-                    </Text>
-                  </HStack>
-                </HStack>
-              </Box>
-            )}
-          </Box>
+              {/* Hover Overlay */}
+              {showOverlay && hoveredItem === image.id && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-opacity duration-200">
+                  <div className="flex items-center gap-6 text-white">
+                    <div className="flex items-center gap-2">
+                      <FaHeart className="w-5 h-5" />
+                      <span className="font-bold text-sm">
+                        {image.likes.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FaComment className="w-5 h-5" />
+                      <span className="font-bold text-sm">
+                        {image.comments.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
         ))}
-      </Grid>
-    </Box>
+      </div>
+
+      {/* Load More Indicator */}
+      {images.length > 0 && images.length % (columns * 3) === 0 && (
+        <div className="flex justify-center mt-6">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {images.length} posts
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Skeleton component for loading state
+ */
+export function ImageListSkeleton({
+  columns = 3,
+  gap = 1,
+  count = 9,
+}: {
+  columns?: number;
+  gap?: number;
+  count?: number;
+}) {
+  return (
+    <div
+      className="grid w-full"
+      style={{
+        gridTemplateColumns: `repeat(${columns}, 1fr)`,
+        gap: `${gap * 0.25}rem`,
+      }}
+    >
+      {Array.from({ length: count }).map((_, index) => (
+        <div
+          key={index}
+          className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse"
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Empty state component
+ */
+export function ImageListEmpty({
+  title = "No posts yet",
+  description = "Share your first photo to get started!",
+}: {
+  title?: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-4 py-12 text-center text-gray-600 dark:text-gray-400">
+      <h3 className="text-lg font-semibold">{title}</h3>
+      <p className="text-sm">{description}</p>
+    </div>
   );
 }
 

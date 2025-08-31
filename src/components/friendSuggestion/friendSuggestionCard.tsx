@@ -1,5 +1,6 @@
-import { Avatar, Box, Button } from "@chakra-ui/react";
 import React from "react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 export default function FriendSuggestionCard({
   name = "Segun Adebayo",
@@ -7,21 +8,18 @@ export default function FriendSuggestionCard({
   avatarUrl = "https://bit.ly/sage-adebayo",
 }) {
   return (
-    <Box gap={4} display="flex" alignItems={"center"} justifyContent={"center"}>
-      <Avatar.Root size={"xs"}>
-        <Avatar.Fallback name="Segun Adebayo" />
-        <Avatar.Image src="https://bit.ly/sage-adebayo" />
-      </Avatar.Root>
-      <Box fontSize="sm" fontWeight="bold">
-        Segun Adebayo
-        <Box as="span" color="gray.500" fontWeight="normal">
-          {" "}
-          @segun.adebayo
-        </Box>
-      </Box>
-      <Button variant={"outline"} size="sm" ml="auto">
+    <div className="flex items-center justify-center gap-4">
+      <Avatar className="w-8 h-8">
+        <AvatarImage src={avatarUrl} />
+        <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+      </Avatar>
+      <div className="text-sm font-bold flex-1">
+        {name}
+        <span className="text-muted-foreground font-normal"> @{username}</span>
+      </div>
+      <Button variant="outline" size="sm">
         Follow
       </Button>
-    </Box>
+    </div>
   );
 }

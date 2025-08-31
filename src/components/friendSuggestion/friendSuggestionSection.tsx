@@ -1,25 +1,15 @@
-import { Box } from "@chakra-ui/react";
 import React from "react";
-
 import FriendSuggestionCard from "./friendSuggestionCard";
 
 export default function FriendSuggestionSection() {
   return (
-    <Box>
-      <Box fontSize="lg" fontWeight="bold" mb={4}>
-        Friend Suggestions
-      </Box>
-      <Box
-        display="flex"
-        flexDirection="column"
-        gap={8}
-        maxHeight="400px"
-        overflowY="auto"
-      >
+    <div>
+      <h3 className="text-lg font-bold mb-4">Friend Suggestions</h3>
+      <div className="flex flex-col gap-8 max-h-[400px] overflow-y-auto">
         <FriendSuggestionCard />
         <FriendSuggestionCard />
         <FriendSuggestionCard />
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

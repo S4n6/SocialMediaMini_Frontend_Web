@@ -3,322 +3,214 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  signupSchema,
-  type SignupFormData,
-  type RegisterFormData,
-} from "@/lib/validations/schemas";
-import {
-  Box,
-  Button,
-  HStack,
-  Input,
-  RadioGroup,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { signupSchema, type SignupFormData } from "@/lib/validations/schemas";
 import Image from "next/image";
 import Link from "next/link";
-import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
-import { useRegister } from "@/hooks/useAuth";
-import { toaster } from "@/components/ui/toaster";
+import { FcGoogle } from "react-icons/fc";
+import { useRegister } from "@/hooks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function SignupForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-    watch,
     setValue,
-    trigger,
+    formState: { errors, isSubmitting },
   } = useForm<SignupFormData>({
     resolver: yupResolver(signupSchema),
-    mode: "onChange",
-    defaultValues: {
-      gender: "male",
-    },
   });
 
-  const { mutate: registerUser, isPending } = useRegister();
+  const registerMutation = useRegister();
 
-  const birthdate = watch("birthdate");
-  const gender = watch("gender");
-
-  const onSubmit = (data: SignupFormData) => {
-    const registerData: RegisterFormData = {
-      fullname: data.fullName,
-      username: data.email.split("@")[0],
-      email: data.email,
-      password: data.password,
-      birthDate: data.birthdate,
-      gender: data.gender,
-    };
-
-    registerUser(registerData, {
-      onSuccess: (response) => {
-        toaster.create({
-          title: "Registration Successful",
-          description: "Welcome to Social Media ST! You can now log in.",
-          type: "success",
-        });
-      },
-      onError: (error) => {
-        console.error("Registration failed:", error);
-        // Extract error message from the error object
-        let errorMessage = "An error occurred during registration.";
-        if (error && typeof error === "object") {
-          if ("message" in error && typeof error.message === "string") {
-            errorMessage = error.message;
-          } else if (
-            "response" in error &&
-            error.response &&
-            typeof error.response === "object"
-          ) {
-            const response = error.response as { data?: { message?: string } };
-            if (response.data?.message) {
-              errorMessage = response.data.message;
-            }
-          }
-        }
-        toaster.create({
-          title: "Registration Failed",
-          description: errorMessage,
-          type: "error",
-        });
-      },
-    });
-  };
-
-  const handleBirthdateChange = (value: string) => {
-    setValue("birthdate", value, { shouldValidate: true });
-  };
-
-  const handleGenderChange = (value: string) => {
-    setValue("gender", value as "male" | "female", { shouldValidate: true });
+  const onSubmit = async (data: SignupFormData) => {
+    try {
+      // Transform data to match registerSchema format
+      const registerData = {
+        fullname: data.fullName,
+        username: data.fullName.toLowerCase().replace(/\s+/g, ""), // Generate username from fullName
+        email: data.email,
+        password: data.password,
+        birthDate: data.birthdate,
+        gender: data.gender,
+      };
+      await registerMutation.mutateAsync(registerData);
+    } catch (error) {
+      console.error("Signup failed:", error);
+    }
   };
 
   return (
-    <Box
-      bg={{ base: "white", _dark: "gray.800" }}
-      width={1080}
-      height={700}
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-    >
-      {/* Left side */}
-      <Box width="50%">
-        <Image
-          src="/images/loginPage.png"
-          alt="Social media illustration - people connecting and sharing"
-          style={{
-            objectFit: "cover",
-            transform: "scaleX(-1)",
-          }}
-          width={540}
-          height={700}
-          priority
-        />
-      </Box>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <Image
+              src="/logo.svg"
+              alt="SocialMediaMini Logo"
+              width={40}
+              height={40}
+              className="dark:invert"
+            />
+          </div>
+          <CardTitle className="text-2xl font-bold">
+            Sign up to see photos and videos from your friends.
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button variant="outline" className="w-full" type="button">
+            <FcGoogle className="mr-2 h-4 w-4" />
+            Log in with Google
+          </Button>
 
-      {/* Right side */}
-      <Box
-        bg={{ base: "white", _dark: "gray.800" }}
-        width="50%"
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        flexDirection="column"
-      >
-        <Box
-          display="flex"
-          flexDirection="column"
-          width="100%"
-          justifyContent="center"
-          alignItems="center"
-        >
-          <Text fontSize="2xl" mb={2} fontWeight="bold">
-            SIGN UP TO SOCIAL MEDIA
-          </Text>
-          <Text fontSize="sm" mb={4}>
-            Create your account to connect with friends and share your moments
-          </Text>
-        </Box>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or
+              </span>
+            </div>
+          </div>
 
-        <Box width="60%" mt={4}>
-          <Box as="form" onSubmit={handleSubmit(onSubmit)}>
-            <VStack gap={4} align="stretch">
-              {/* Full Name Field */}
-              <Box>
-                <Text fontWeight="medium" mb={2}>
-                  Full Name
-                </Text>
-                <Input
-                  {...register("fullName")}
-                  type="text"
-                  placeholder="Enter your full name"
-                  p={4}
-                  width="100%"
-                  borderRadius="lg"
-                  boxShadow="sm"
-                  borderColor={errors.fullName ? "red.500" : "gray.300"}
-                />
-                {errors.fullName && (
-                  <Text color="red.500" fontSize="sm" mt={1}>
-                    {errors.fullName.message}
-                  </Text>
-                )}
-              </Box>
-
-              {/* Email Field */}
-              <Box>
-                <Text fontWeight="medium" mb={2}>
-                  Email
-                </Text>
-                <Input
-                  {...register("email")}
-                  type="email"
-                  placeholder="Enter your email"
-                  p={4}
-                  width="100%"
-                  borderRadius="lg"
-                  boxShadow="sm"
-                  borderColor={errors.email ? "red.500" : "gray.300"}
-                />
-                {errors.email && (
-                  <Text color="red.500" fontSize="sm" mt={1}>
-                    {errors.email.message}
-                  </Text>
-                )}
-              </Box>
-
-              {/* Birthdate Field */}
-              <Box>
-                <CustomDatePicker
-                  label="Birthdate"
-                  value={birthdate || ""}
-                  onChange={handleBirthdateChange}
-                  isRequired
-                  error={errors.birthdate?.message}
-                />
-              </Box>
-
-              {/* Password Field */}
-              <Box>
-                <Text fontWeight="medium" mb={2}>
-                  Password
-                </Text>
-                <Input
-                  {...register("password")}
-                  type="password"
-                  placeholder="Enter your password"
-                  p={4}
-                  width="100%"
-                  borderRadius="lg"
-                  boxShadow="sm"
-                  borderColor={errors.password ? "red.500" : "gray.300"}
-                />
-                {errors.password && (
-                  <Text color="red.500" fontSize="sm" mt={1}>
-                    {errors.password.message}
-                  </Text>
-                )}
-              </Box>
-
-              {/* Confirm Password Field */}
-              <Box>
-                <Text fontWeight="medium" mb={2}>
-                  Confirm Password
-                </Text>
-                <Input
-                  {...register("confirmPassword")}
-                  type="password"
-                  placeholder="Enter your confirm password"
-                  p={4}
-                  width="100%"
-                  borderRadius="lg"
-                  boxShadow="sm"
-                  borderColor={errors.confirmPassword ? "red.500" : "gray.300"}
-                />
-                {errors.confirmPassword && (
-                  <Text color="red.500" fontSize="sm" mt={1}>
-                    {errors.confirmPassword.message}
-                  </Text>
-                )}
-              </Box>
-
-              {/* Gender Field */}
-              <Box display="flex" alignItems="center" textAlign="center">
-                <Text fontWeight="medium" mr={2}>
-                  Gender:{" "}
-                </Text>
-
-                <RadioGroup.Root
-                  value={gender}
-                  onValueChange={(e) => handleGenderChange(e.value ?? "male")}
-                >
-                  <HStack gap={4}>
-                    <RadioGroup.Item key="gender1" value="male">
-                      <RadioGroup.ItemHiddenInput />
-                      <RadioGroup.ItemIndicator />
-                      <RadioGroup.ItemText>Male</RadioGroup.ItemText>
-                    </RadioGroup.Item>
-
-                    <RadioGroup.Item key="gender2" value="female">
-                      <RadioGroup.ItemHiddenInput />
-                      <RadioGroup.ItemIndicator />
-                      <RadioGroup.ItemText>Female</RadioGroup.ItemText>
-                    </RadioGroup.Item>
-                  </HStack>
-                </RadioGroup.Root>
-              </Box>
-              {errors.gender && (
-                <Text color="red.500" fontSize="sm" mt={1}>
-                  {errors.gender.message}
-                </Text>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email.message}</p>
               )}
+            </div>
 
-              {/* Submit Button */}
-              <Box>
-                <Button
-                  type="submit"
-                  w="full"
-                  bg="#EA454C"
-                  rounded="xl"
-                  size="lg"
-                  loading={isPending || isSubmitting}
-                  loadingText="Creating account..."
-                  _hover={{ bg: "#d63384" }}
-                  _active={{ bg: "#b02a37" }}
-                  _disabled={{
-                    opacity: 0.6,
-                    cursor: "not-allowed",
-                  }}
-                >
-                  <Text color="white" fontSize="sm">
-                    Sign Up
-                  </Text>
-                </Button>
-              </Box>
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Enter your full name"
+                {...register("fullName")}
+              />
+              {errors.fullName && (
+                <p className="text-sm text-red-500">
+                  {errors.fullName.message}
+                </p>
+              )}
+            </div>
 
-              <Text textAlign="center" fontSize="sm">
-                Already have an account?{" "}
-                <Link href="/login">
-                  <Text
-                    as="span"
-                    color="#EA454C"
-                    fontWeight="semibold"
-                    cursor="pointer"
-                    _hover={{ textDecoration: "underline" }}
-                  >
-                    Sign In
-                  </Text>
-                </Link>
-              </Text>
-            </VStack>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+            <div className="space-y-2">
+              <Label htmlFor="birthdate">Birthdate</Label>
+              <Input id="birthdate" type="date" {...register("birthdate")} />
+              {errors.birthdate && (
+                <p className="text-sm text-red-500">
+                  {errors.birthdate.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                {...register("password")}
+              />
+              {errors.password && (
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm your password"
+                {...register("confirmPassword")}
+              />
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-500">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gender">Gender</Label>
+              <Select
+                onValueChange={(value: string) =>
+                  setValue("gender", value as "male" | "female")
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.gender && (
+                <p className="text-sm text-red-500">{errors.gender.message}</p>
+              )}
+            </div>
+
+            {registerMutation.isError && (
+              <div className="text-sm text-red-500 text-center">
+                Something went wrong. Please try again.
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting || registerMutation.isPending}
+            >
+              {isSubmitting || registerMutation.isPending
+                ? "Signing up..."
+                : "Sign Up"}
+            </Button>
+          </form>
+
+          <div className="text-center text-sm text-muted-foreground">
+            By signing up, you agree to our{" "}
+            <Link href="/terms" className="underline hover:text-primary">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="underline hover:text-primary">
+              Privacy Policy
+            </Link>
+            .
+          </div>
+
+          <div className="text-center">
+            <span className="text-sm text-muted-foreground">
+              Have an account?{" "}
+              <Link href="/login" className="text-primary hover:underline">
+                Log in
+              </Link>
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

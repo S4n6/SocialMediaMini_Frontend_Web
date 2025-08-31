@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
-import { Box, VStack, Text, Button, Spinner, Alert } from "@chakra-ui/react";
-import { PostCard } from "@/components/post/PostCard";
+import React from "react";
+import { PostCard } from "./PostCard";
 
-interface Post {
+export interface Post {
   id: string;
   author: {
     id: string;
@@ -13,194 +12,74 @@ interface Post {
     avatar?: string;
   };
   content: string;
-  imageUrl?: string;
-  timestamp: string;
+  images?: string[];
   likes: number;
   comments: number;
-  shares: number;
-  isLiked: boolean;
-  isBookmarked: boolean;
+  timestamp: string;
+  isLiked?: boolean;
+  isBookmarked?: boolean;
 }
 
-/**
- * PostSection component props interface
- */
 interface PostSectionProps {
-  posts?: Post[];
-  isLoading?: boolean;
-  error?: string | null;
-  onLoadMore?: () => void;
-  hasMore?: boolean;
-  title?: string;
-  showLoadMore?: boolean;
+  posts: Post[];
+  isLoading: boolean;
+  error: string | null;
+  onLoadMore: () => void;
+  hasMore: boolean;
 }
 
 export default function PostSection({
-  posts = [],
-  isLoading = false,
-  error = null,
+  posts,
+  isLoading,
+  error,
   onLoadMore,
-  hasMore = true,
-  title = "Posts",
-  showLoadMore = true,
+  hasMore,
 }: PostSectionProps) {
-  const [localPosts, setLocalPosts] = useState<Post[]>(posts);
-
-  React.useEffect(() => {
-    setLocalPosts(posts);
-  }, [posts]);
-
-  const handleLike = useCallback((postId: string) => {
-    setLocalPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              isLiked: !post.isLiked,
-              likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-            }
-          : post
-      )
-    );
-  }, []);
-
-  const handleComment = useCallback((postId: string) => {
-    console.log("Comment on post:", postId);
-    // TODO: Open comment modal or navigate to post detail
-  }, []);
-
-  const handleShare = useCallback((postId: string) => {
-    console.log("Share post:", postId);
-    // TODO: Implement share functionality
-    setLocalPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId ? { ...post, shares: post.shares + 1 } : post
-      )
-    );
-  }, []);
-
-  const handleBookmark = useCallback((postId: string) => {
-    setLocalPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId
-          ? { ...post, isBookmarked: !post.isBookmarked }
-          : post
-      )
-    );
-  }, []);
-
-  const handleDelete = useCallback((postId: string) => {
-    setLocalPosts((prevPosts) =>
-      prevPosts.filter((post) => post.id !== postId)
-    );
-  }, []);
-
   if (error) {
     return (
-      <Box w="full" maxW="600px" mx="auto" p={4}>
-        <Alert.Root status="error" borderRadius="lg">
-          <Alert.Indicator />
-          <Alert.Title>Error loading posts</Alert.Title>
-          <Alert.Description>{error}</Alert.Description>
-        </Alert.Root>
-      </Box>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <p className="text-red-500 mb-2">Error loading posts</p>
+          <p className="text-sm text-muted-foreground">{error}</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Box
-      w="full"
-      mx="auto"
-      p={{ base: 2, md: 4 }}
-      display={"flex"}
-      flexDirection="column"
-      alignItems="center"
-      gap={4}
-      mt={6}
-    >
-      <VStack gap={6} align="stretch" w={{ base: "100%", md: "75%" }}>
-        {isLoading && localPosts.length === 0 ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            py={12}
-          >
-            <VStack gap={4}>
-              <Spinner size="lg" color="blue.500" />
-              <Text
-                color={{ base: "gray.600", _dark: "gray.400" }}
-                fontSize="sm"
-              >
-                Loading posts...
-              </Text>
-            </VStack>
-          </Box>
-        ) : localPosts.length === 0 ? (
-          /* Empty state */
-          <Box
-            textAlign="center"
-            py={12}
-            px={6}
-            bg={{ base: "gray.50", _dark: "gray.800" }}
-            borderRadius="lg"
-            borderWidth="1px"
-            borderColor={{ base: "gray.200", _dark: "gray.700" }}
-          >
-            <Text
-              fontSize="lg"
-              fontWeight="semibold"
-              color={{ base: "gray.800", _dark: "white" }}
-              mb={2}
-            >
-              No posts yet
-            </Text>
-            <Text color={{ base: "gray.600", _dark: "gray.400" }} fontSize="sm">
-              Be the first to share something amazing!
-            </Text>
-          </Box>
-        ) : (
-          /* Post Cards */
-          localPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              id={post.id}
-              author={post.author}
-              content={post.content}
-              imageUrl={post.imageUrl}
-              timestamp={post.timestamp}
-              likes={post.likes}
-              comments={post.comments}
-              shares={post.shares}
-              isLiked={post.isLiked}
-              isBookmarked={post.isBookmarked}
-              onLike={handleLike}
-              onComment={handleComment}
-              onShare={handleShare}
-              onBookmark={handleBookmark}
-              onDelete={handleDelete}
-            />
-          ))
-        )}
+    <div className="w-full space-y-4">
+      {posts.map((post) => (
+        <PostCard
+          key={post.id}
+          post={post}
+          onUpdate={(updatedPost) => {
+            console.log("Post updated:", updatedPost);
+          }}
+        />
+      ))}
 
-        {/* End of feed message */}
-        {!hasMore && localPosts.length > 0 && (
-          <Box textAlign="center" py={6}>
-            <Text color={{ base: "gray.500", _dark: "gray.400" }} fontSize="sm">
-              You've reached the end of the feed
-            </Text>
-          </Box>
-        )}
+      {isLoading && (
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      )}
 
-        {/* Loading indicator for infinite scroll */}
-        {isLoading && localPosts.length > 0 && (
-          <Box display="flex" justifyContent="center" py={4}>
-            <Spinner size="md" color="blue.500" />
-          </Box>
-        )}
-      </VStack>
-    </Box>
+      {hasMore && !isLoading && (
+        <div className="flex items-center justify-center p-4">
+          <button
+            onClick={onLoadMore}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          >
+            Load More Posts
+          </button>
+        </div>
+      )}
+
+      {!hasMore && posts.length > 0 && (
+        <div className="text-center p-4">
+          <p className="text-sm text-muted-foreground">No more posts to load</p>
+        </div>
+      )}
+    </div>
   );
 }
-
-export type { Post, PostSectionProps };

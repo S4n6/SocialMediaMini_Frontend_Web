@@ -1,13 +1,12 @@
 @import "tailwindcss";
 
-/* Reset and base styles - be more specific to avoid Chakra UI conflicts */
+/* Reset and base styles */
 html,
 body {
   margin: 0;
   padding: 0;
 }
 
-/* Only apply box-sizing to elements that need it, not everything */
 html {
   box-sizing: border-box;
   scroll-behavior: smooth;
@@ -20,32 +19,20 @@ html {
   box-sizing: inherit;
 }
 
-/* Remove global CSS variables that conflict with Chakra UI */
-:root {
-  /* Keep only font variables */
-  --font-geist-sans: var(--font-geist-sans);
-  --font-geist-mono: var(--font-geist-mono);
-}
-
-/* 
-  Remove body background/color styles to let Chakra UI handle theming
-  Chakra UI will apply theme-aware styles to the body automatically
-*/
 body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Let Chakra UI handle background and text colors */
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
-/* Focus styles for accessibility */
 :focus-visible {
   outline: 2px solid #2196f3;
   outline-offset: 2px;
 }
 
-/* Custom scrollbar for dark/light theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -59,59 +46,15 @@ body {
   border-radius: 4px;
 }
 
-[data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background-color: rgba(168, 24, 24, 0.3);
+/* Theme styles */
+:root {
+  --font-geist-sans: var(--font-geist-sans);
+  --font-geist-mono: var(--font-geist-mono);
+  --background: #d10d76;
+  --foreground: 222.2 47.4% 11.2%;
 }
 
-/* Protect Chakra UI toast components from global styles */
-[data-toast-root] {
-  /* Ensure toasts maintain their intended styling */
-  font-family: inherit !important;
-  line-height: inherit !important;
-}
-
-[data-toast-root] * {
-  /* Prevent global resets from affecting toast internals */
-  margin: revert !important;
-  padding: revert !important;
-  box-sizing: border-box !important;
-}
-
-/* Tailwind utilities that work with Chakra UI */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Custom animations that complement Chakra UI */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* Print styles */
-@media print {
-  * {
-    background: transparent !important;
-    color: black !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
+.dark {
+  --background: #10d10d;
+  --foreground: #d3cfcf;
 }
