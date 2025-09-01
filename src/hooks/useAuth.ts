@@ -1,17 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authService } from "@/services/authService";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { TokenManager } from "@/lib/axios";
-import {
-  loginStart,
-  loginSuccess,
-  loginFailure,
-  logout,
-} from "@/store/slices/authSlice";
+import { loginSuccess, logout } from "@/store/slices/authSlice";
 import type {
   LoginFormData,
   RegisterFormData,
 } from "@/lib/validations/schemas";
+import { TokenManager } from "@/lib/tokenManager";
+import { useRouter } from "next/navigation";
 
 export const authKeys = {
   all: ["auth"] as const,
@@ -24,7 +20,6 @@ export const authKeys = {
  */
 export const useCurrentUser = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-
   return useQuery({
     queryKey: authKeys.currentUser(),
     queryFn: authService.getCurrentUser,
@@ -42,12 +37,12 @@ export const useCurrentUser = () => {
 };
 
 export const useLogin = () => {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (credentials: LoginFormData) => {
-      dispatch(loginStart());
       return authService.login(credentials);
     },
     onSuccess: (response) => {
@@ -73,26 +68,21 @@ export const useLogin = () => {
       // Invalidate and refetch user queries
       queryClient.invalidateQueries({ queryKey: authKeys.all });
 
-      window.location.href = "/";
+      router.push("/");
     },
     onError: (error: unknown) => {
       const errorResponse = error as {
         response?: { data?: { message?: string } };
       };
-      const message = errorResponse.response?.data?.message || "Login failed";
-      dispatch(loginFailure(message));
     },
   });
 };
 
 export const useRegister = () => {
-  const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (userData: RegisterFormData) => {
-      dispatch(loginStart());
-
       return authService.register(userData);
     },
     onSuccess: (data) => {
@@ -106,9 +96,6 @@ export const useRegister = () => {
       const errorResponse = error as {
         response?: { data?: { message?: string } };
       };
-      const message =
-        errorResponse.response?.data?.message || "Registration failed";
-      dispatch(loginFailure(message));
     },
   });
 };
@@ -128,7 +115,6 @@ export const useLogout = () => {
 
       // Clear all React Query cache
       queryClient.clear();
-
       window.location.href = "/login";
     },
     onError: () => {

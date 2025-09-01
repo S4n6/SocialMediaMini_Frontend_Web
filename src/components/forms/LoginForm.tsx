@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
 
 export function LoginForm() {
   const [isResendEmail, setIsResendEmail] = React.useState(false);
@@ -47,6 +48,7 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
+      console.log("Submitting login form with data:", data);
       await loginUser(data, {
         onSuccess: (response) => {
           if (response.data.requiresEmailVerification) {

@@ -3,6 +3,7 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
 } from "axios";
+import { TokenManager } from "./tokenManager";
 
 /**
  * Extended Axios Request Config with metadata
@@ -41,40 +42,6 @@ export interface ApiError {
     field: string;
     message: string;
   }>;
-}
-
-/**
- * Auth Token Management
- */
-class TokenManager {
-  private static readonly TOKEN_KEY = "access_token";
-  private static readonly REFRESH_TOKEN_KEY = "refresh_token";
-
-  static getToken(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(this.TOKEN_KEY);
-  }
-
-  static setToken(token: string): void {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(this.TOKEN_KEY, token);
-  }
-
-  static getRefreshToken(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
-  }
-
-  static setRefreshToken(token: string): void {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
-  }
-
-  static clearTokens(): void {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-  }
 }
 
 /**
@@ -228,6 +195,4 @@ api.interceptors.response.use(
   }
 );
 
-// Export TokenManager and default api instance
-export { TokenManager };
 export default api;
