@@ -14,16 +14,12 @@ export const authKeys = {
   currentUser: () => [...authKeys.all, "currentUser"] as const,
 };
 
-/**
- * Get current user with React Query
- * Only runs if user is authenticated (has token)
- */
 export const useCurrentUser = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   return useQuery({
     queryKey: authKeys.currentUser(),
     queryFn: authService.getCurrentUser,
-    enabled: isAuthenticated && !!TokenManager.getToken(),
+    enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: (failureCount, error: unknown) => {
       // Don't retry on 401 (auth errors)
@@ -45,7 +41,7 @@ export const useLogin = () => {
     mutationFn: (credentials: LoginFormData) => {
       return authService.login(credentials);
     },
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       console.log("Login response:", response);
 
       if (
@@ -60,7 +56,7 @@ export const useLogin = () => {
       console.log("Login successful:", user, accessToken);
 
       // Use TokenManager instead of direct localStorage
-      TokenManager.setToken(accessToken);
+      await TokenManager.setToken(accessToken);
 
       // Update Redux state
       dispatch(loginSuccess({ user, token: accessToken }));
@@ -74,6 +70,40 @@ export const useLogin = () => {
       const errorResponse = error as {
         response?: { data?: { message?: string } };
       };
+    },
+  });
+};
+
+export const useGoogleLogin = () => {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => {
+      return authService.loginWithGoogle();
+    },
+    onSuccess: async (response) => {
+      console.log("Google login response:", response);
+
+      const { user, accessToken } = response;
+      console.log("Google login successful:", user, accessToken);
+
+      // Store token using TokenManager
+      TokenManager.setToken(accessToken);
+
+      // Update Redux state
+      dispatch(loginSuccess({ user, token: accessToken }));
+
+      // Invalidate and refetch user queries
+      queryClient.invalidateQueries({ queryKey: authKeys.all });
+
+      // Redirect to home page
+      router.push("/");
+    },
+    onError: (error) => {
+      console.error("Google login failed:", error);
+      // You can add toast notification here
     },
   });
 };
@@ -106,9 +136,9 @@ export const useLogout = () => {
 
   return useMutation({
     mutationFn: authService.logout,
-    onSuccess: () => {
+    onSuccess: async () => {
       // Use TokenManager to clear tokens
-      TokenManager.clearTokens();
+      await TokenManager.clearTokens();
 
       // Clear Redux state
       dispatch(logout());
@@ -117,9 +147,9 @@ export const useLogout = () => {
       queryClient.clear();
       window.location.href = "/login";
     },
-    onError: () => {
+    onError: async () => {
       // Even on error, clear local state
-      TokenManager.clearTokens();
+      await TokenManager.clearTokens();
       dispatch(logout());
       queryClient.clear();
       window.location.href = "/login";

@@ -18,6 +18,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "../ui/theme-toggle";
 
 const mockUserSearchResults = [
   {
@@ -165,6 +166,11 @@ export default function LeftSideBar() {
 
       {/* Profile Section */}
       <div className="mt-auto">
+        <div>
+          <Separator className="mb-4" />
+          <ThemeToggle />
+        </div>
+
         <Button
           variant="ghost"
           className="justify-start h-12 px-3 py-2 hover:bg-accent w-full"

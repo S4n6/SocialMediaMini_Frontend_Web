@@ -21,6 +21,89 @@ export const authService = {
     return response.data;
   },
 
+  // Login with Google - postMessage approach
+  loginWithGoogle: (): Promise<{
+    user: User;
+    accessToken: string;
+    email?: string;
+    requiresEmailVerification?: boolean;
+  }> => {
+    return new Promise((resolve, reject) => {
+      const googleAuthUrl = `http://localhost:3107/auth/google`;
+
+      // Open popup window for Google authentication
+      const popup = window.open(
+        googleAuthUrl,
+        "google-auth",
+        "width=500,height=600,scrollbars=yes,resizable=yes"
+      );
+
+      if (!popup) {
+        reject(new Error("Popup blocked. Please allow popups for this site."));
+        return;
+      }
+
+      // Listen for postMessage from popup
+      const messageListener = (event: MessageEvent) => {
+        // Allow both backend domain and current domain for development
+        const allowedOrigins = [
+          window.location.origin,
+          "http://localhost:3107", // Backend domain
+          "http://localhost:3000", // Frontend domain
+        ];
+
+        console.log("Received message from origin:", event.origin);
+        console.log("Message data:", event.data);
+
+        if (!allowedOrigins.includes(event.origin)) {
+          console.warn("Message from unauthorized origin:", event.origin);
+          return;
+        }
+
+        if (event.data.type === "GOOGLE_AUTH_SUCCESS") {
+          window.removeEventListener("message", messageListener);
+          clearTimeout(timeoutId);
+          clearInterval(checkClosed);
+          popup.close();
+
+          const { user } = event.data.payload;
+          resolve({
+            user,
+            accessToken: "from_cookie", // Token is in httpOnly cookie
+          });
+        } else if (event.data.type === "GOOGLE_AUTH_ERROR") {
+          window.removeEventListener("message", messageListener);
+          clearTimeout(timeoutId);
+          clearInterval(checkClosed);
+          popup.close();
+          reject(new Error(event.data.error || "Google authentication failed"));
+        }
+      };
+
+      window.addEventListener("message", messageListener);
+
+      // Check if popup is closed manually without success
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkClosed);
+          clearTimeout(timeoutId);
+          window.removeEventListener("message", messageListener);
+          reject(new Error("Authentication cancelled"));
+        }
+      }, 1000);
+
+      // Timeout after 5 minutes
+      const timeoutId = setTimeout(() => {
+        clearInterval(checkClosed);
+        window.removeEventListener("message", messageListener);
+        if (!popup.closed) {
+          popup.close();
+        }
+        reject(new Error("Authentication timeout"));
+      }, 5 * 60 * 1000);
+    });
+  },
+
   // Register user
   register: async (
     userData: RegisterFormData

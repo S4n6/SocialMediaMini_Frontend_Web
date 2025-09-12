@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
-  // Get the token from cookies
-  const authToken = request.cookies.get("access_token")?.value ?? null;
-
-  // Check if the user is authenticated (has a token)
-  const isAuthenticated = Boolean(authToken);
-
-  // If not authenticated, redirect to login
-  if (!isAuthenticated) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  // Allow public pages
+  const publicPaths = ["/login", "/signup"];
+  if (publicPaths.some((p) => request.nextUrl.pathname.startsWith(p))) {
+    return NextResponse.next();
   }
 
-  // User is authenticated, allow access
+  const authToken = request.cookies.get("access_token")?.value ?? null;
+  if (!authToken) {
+    const loginUrl = new URL("/login", request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
   return NextResponse.next();
 }
 

@@ -59,11 +59,15 @@ export const api = axios.create({
  * Request Interceptor - Add auth token and handle common request logic
  */
 api.interceptors.request.use(
-  (config: ExtendedAxiosRequestConfig) => {
-    // Add authentication token
-    const token = TokenManager.getToken();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config: ExtendedAxiosRequestConfig) => {
+    // Add authentication token (TokenManager methods are async)
+    try {
+      const token = await TokenManager.getToken();
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (e) {
+      // ignore token retrieval errors - proceed without auth header
     }
 
     // Add request timestamp for debugging
@@ -123,7 +127,7 @@ api.interceptors.response.use(
         originalRequest._retry = true;
 
         try {
-          const refreshToken = TokenManager.getRefreshToken();
+          const refreshToken = await TokenManager.getRefreshToken();
           if (refreshToken) {
             const response = await axios.post(
               `${
@@ -133,7 +137,7 @@ api.interceptors.response.use(
             );
 
             const { accessToken } = response.data;
-            TokenManager.setToken(accessToken);
+            await TokenManager.setToken(accessToken);
 
             // Retry original request
             if (originalRequest.headers) {
@@ -143,7 +147,7 @@ api.interceptors.response.use(
           }
         } catch {
           // Refresh failed - redirect to login
-          TokenManager.clearTokens();
+          await TokenManager.clearTokens();
           if (typeof window !== "undefined") {
             window.location.href = "/login";
           }

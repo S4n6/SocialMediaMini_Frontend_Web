@@ -1,25 +1,15 @@
-/**
- * Auth Token Management
- */
-/**
- * TokenManager - use cookies so middleware/server code can read tokens.
- * - On client: uses document.cookie to set/read/clear cookies.
- * - On server: attempts to read cookies via `next/headers` when available.
- * Note: setting cookies from server requires access to response headers; this
- * utility focuses on client-side set/clear and server-side read.
- */
 export class TokenManager {
   private static readonly TOKEN_KEY = "access_token";
   private static readonly REFRESH_TOKEN_KEY = "refresh_token";
 
-  static getToken(): string | null {
+  static async getToken(): Promise<string | null> {
     // Server-side: try to read via next/headers if available
     if (typeof window === "undefined") {
       try {
-        // Use require to avoid static ESM import issues in some runtimes
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { cookies } = require("next/headers");
-        const c = cookies().get(this.TOKEN_KEY);
+        // Dynamic import to avoid bundling next/headers in client
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        const c = cookieStore.get(this.TOKEN_KEY);
         return c?.value ?? null;
       } catch (e) {
         return null;
@@ -42,7 +32,7 @@ export class TokenManager {
       sameSite?: "lax" | "strict" | "none";
     }
   ): void {
-    if (typeof window === "undefined") return; // can't set cookie from server here
+    if (typeof window === "undefined") return;
     const path = opts?.path ?? "/";
     let cookie = `${this.TOKEN_KEY}=${encodeURIComponent(token)}; path=${path}`;
     if (opts?.maxAge) cookie += `; max-age=${opts.maxAge}`;
@@ -51,13 +41,13 @@ export class TokenManager {
     document.cookie = cookie;
   }
 
-  static getRefreshToken(): string | null {
+  static async getRefreshToken(): Promise<string | null> {
     if (typeof window === "undefined") {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { cookies } = require("next/headers");
-        const c = cookies().get(this.REFRESH_TOKEN_KEY);
-        return c?.value ?? null;
+        // Dynamic import to avoid bundling next/headers in client
+        const { cookies } = await import("next/headers");
+        const c = await cookies();
+        return c.get(this.REFRESH_TOKEN_KEY)?.value ?? null;
       } catch (e) {
         return null;
       }

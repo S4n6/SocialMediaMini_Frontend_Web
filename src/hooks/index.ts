@@ -1,6 +1,12 @@
 export { useLocalStorage } from "./useLocalStorage";
 export { useAppDispatch, useAppSelector } from "./redux";
-export { useCurrentUser, useLogin, useRegister, useLogout } from "./useAuth";
+export {
+  useCurrentUser,
+  useLogin,
+  useRegister,
+  useLogout,
+  useGoogleLogin,
+} from "./useAuth";
 export {
   useFeedPosts,
   useUserPosts,

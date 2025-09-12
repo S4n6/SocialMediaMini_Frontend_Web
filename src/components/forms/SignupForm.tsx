@@ -7,7 +7,7 @@ import { signupSchema, type SignupFormData } from "@/lib/validations/schemas";
 import Image from "next/image";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
-import { useRegister } from "@/hooks";
+import { useRegister, useGoogleLogin } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +31,7 @@ export function SignupForm() {
   });
 
   const registerMutation = useRegister();
+  const googleLogin = useGoogleLogin();
 
   const onSubmit = async (data: SignupFormData) => {
     try {
@@ -47,6 +48,10 @@ export function SignupForm() {
     } catch (error) {
       console.error("Signup failed:", error);
     }
+  };
+
+  const handleGoogleSignup = () => {
+    googleLogin.mutate();
   };
 
   return (
@@ -67,7 +72,13 @@ export function SignupForm() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button variant="outline" className="w-full" type="button">
+          <Button
+            variant="outline"
+            className="w-full"
+            type="button"
+            onClick={handleGoogleSignup}
+            disabled={googleLogin.isPending}
+          >
             <FcGoogle className="mr-2 h-4 w-4" />
             Log in with Google
           </Button>

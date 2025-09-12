@@ -7,7 +7,7 @@ import { loginSchema, type LoginFormData } from "@/lib/validations/schemas";
 import Image from "next/image";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
-import { useLogin } from "@/hooks";
+import { useLogin, useGoogleLogin } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,12 @@ export function LoginForm() {
     isPending,
     error: loginError,
   } = useLogin();
+
+  const {
+    mutate: loginWithGoogle,
+    isPending: isGoogleLoginPending,
+    error: googleLoginError,
+  } = useGoogleLogin();
 
   const handleResendEmail = () => {
     console.log(
@@ -92,9 +98,9 @@ export function LoginForm() {
   };
 
   return (
-    <div className="bg-background w-[1080px] h-[650px] flex justify-center items-center">
+    <div className="w-[1080px] h-[650px] flex justify-center items-center">
       {/* Left side */}
-      <div className="bg-background w-1/2 flex justify-center items-center flex-col">
+      <div className="w-1/2 flex justify-center items-center flex-col">
         <div className="flex flex-col w-full justify-center items-center mt-16">
           <h1 className="text-2xl mb-4 font-bold">SOCIAL MEDIA ST</h1>
           <p className="text-sm mb-4 text-muted-foreground">
@@ -187,6 +193,8 @@ export function LoginForm() {
                 size="lg"
                 className="w-full rounded-xl mt-2 shadow-sm"
                 type="button"
+                onClick={() => loginWithGoogle()}
+                disabled={isGoogleLoginPending}
               >
                 <FcGoogle size="20" className="mr-2" />
                 <span className="text-foreground text-sm">
