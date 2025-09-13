@@ -73,7 +73,7 @@ api.interceptors.request.use(
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-    } catch (e) {
+    } catch {
       // ignore token retrieval errors - proceed without auth header
     }
 

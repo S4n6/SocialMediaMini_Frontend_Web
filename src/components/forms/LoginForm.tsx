@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useRouter } from "next/navigation";
+// ...existing code...
 
 export function LoginForm() {
   const [isResendEmail, setIsResendEmail] = React.useState(false);
@@ -35,11 +35,8 @@ export function LoginForm() {
     error: loginError,
   } = useLogin();
 
-  const {
-    mutate: loginWithGoogle,
-    isPending: isGoogleLoginPending,
-    error: googleLoginError,
-  } = useGoogleLogin();
+  const { mutate: loginWithGoogle, isPending: isGoogleLoginPending } =
+    useGoogleLogin();
 
   const handleResendEmail = () => {
     console.log(

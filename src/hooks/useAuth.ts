@@ -67,9 +67,7 @@ export const useLogin = () => {
       router.push("/");
     },
     onError: (error: unknown) => {
-      const errorResponse = error as {
-        response?: { data?: { message?: string } };
-      };
+      console.error("Login error:", error);
     },
   });
 };
@@ -123,9 +121,7 @@ export const useRegister = () => {
       }
     },
     onError: (error: unknown) => {
-      const errorResponse = error as {
-        response?: { data?: { message?: string } };
-      };
+      console.error("Registration error:", error);
     },
   });
 };

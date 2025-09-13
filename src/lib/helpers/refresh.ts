@@ -29,10 +29,10 @@ export async function performTokenRefresh(): Promise<string | null> {
       });
 
       return newAccessToken;
-    } catch (err) {
+    } catch {
       await TokenManager.clearTokens();
       if (typeof window !== "undefined") window.location.href = "/login";
-      throw err;
+      throw new Error("Refresh failed");
     } finally {
       isRefreshing = false;
       refreshPromise = null;
@@ -49,7 +49,7 @@ export async function refreshTokenIfNeeded(): Promise<void> {
     if (isTokenExpired(token)) {
       await performTokenRefresh();
     }
-  } catch (e) {
-    console.warn("refreshTokenIfNeeded failed:", e);
+  } catch {
+    console.warn("refreshTokenIfNeeded failed");
   }
 }

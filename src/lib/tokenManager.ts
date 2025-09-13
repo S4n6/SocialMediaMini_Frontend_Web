@@ -11,7 +11,7 @@ export class TokenManager {
         const cookieStore = await cookies();
         const c = cookieStore.get(this.TOKEN_KEY);
         return c?.value ?? null;
-      } catch (e) {
+      } catch {
         return null;
       }
     }
@@ -40,7 +40,6 @@ export class TokenManager {
     if (opts?.sameSite) cookie += `; SameSite=${opts.sameSite}`;
     document.cookie = cookie;
   }
-
 
   static clearTokens(): void {
     if (typeof window === "undefined") return; // clearing on server requires response access
