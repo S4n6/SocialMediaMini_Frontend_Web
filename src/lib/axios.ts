@@ -4,6 +4,10 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import { TokenManager } from "./tokenManager";
+import {
+  performTokenRefresh,
+  refreshTokenIfNeeded,
+} from "@/lib/helpers/refresh";
 
 /**
  * Extended Axios Request Config with metadata
@@ -60,6 +64,9 @@ export const api = axios.create({
  */
 api.interceptors.request.use(
   async (config: ExtendedAxiosRequestConfig) => {
+    // Proactive token refresh check
+    await refreshTokenIfNeeded();
+
     // Add authentication token (TokenManager methods are async)
     try {
       const token = await TokenManager.getToken();
@@ -127,30 +134,21 @@ api.interceptors.response.use(
         originalRequest._retry = true;
 
         try {
-          const refreshToken = await TokenManager.getRefreshToken();
-          if (refreshToken) {
-            const response = await axios.post(
-              `${
-                process.env.NEXT_PUBLIC_API_URL || "http://localhost:3107/api"
-              }/auth/refresh`,
-              { refreshToken }
-            );
+          // Use centralized refresh logic to prevent race conditions
+          const newAccessToken = await performTokenRefresh();
 
-            const { accessToken } = response.data;
-            await TokenManager.setToken(accessToken);
+          if (newAccessToken && originalRequest.headers) {
+            // Update the failed request with new token
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
-            // Retry original request
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-            }
+            // Retry the original request
+            console.log("🔄 Retrying request with new token");
             return api(originalRequest);
           }
-        } catch {
-          // Refresh failed - redirect to login
-          await TokenManager.clearTokens();
-          if (typeof window !== "undefined") {
-            window.location.href = "/login";
-          }
+        } catch (refreshError) {
+          // Refresh failed, redirect handled in performTokenRefresh
+          console.error("❌ Token refresh failed, redirecting to login");
+          return Promise.reject(refreshError);
         }
       }
 
