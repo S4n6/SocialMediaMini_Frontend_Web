@@ -129,6 +129,7 @@ export const useRegister = () => {
 export const useLogout = () => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: authService.logout,
@@ -141,14 +142,20 @@ export const useLogout = () => {
 
       // Clear all React Query cache
       queryClient.clear();
-      window.location.href = "/login";
+      router.push("/login");
     },
     onError: async () => {
       // Even on error, clear local state
       await TokenManager.clearTokens();
       dispatch(logout());
       queryClient.clear();
-      window.location.href = "/login";
+      router.push("/login");
     },
   });
 };
+
+export const useVerifyEmail = (token: string) => {
+  return useMutation({
+    mutationFn: () => authService.verifyEmail(token),
+  });
+}

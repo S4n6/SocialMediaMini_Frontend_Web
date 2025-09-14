@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
   // Allow public pages
-  const publicPaths = ["/login", "/signup"];
+  const publicPaths = ["/login", "/signup", "/verify-email", "/reset-password"];
   if (publicPaths.some((p) => request.nextUrl.pathname.startsWith(p))) {
     return NextResponse.next();
   }

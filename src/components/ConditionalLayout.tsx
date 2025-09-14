@@ -14,8 +14,14 @@ interface ConditionalLayoutProps {
 export function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
 
-  const authPages = ["/login", "/signup", "/register"];
-  const isAuthPage = authPages.includes(pathname);
+  const authPages = [
+    "/login",
+    "/signup",
+    "/register",
+    "/verify-email",
+    "/reset-password",
+  ];
+  const isAuthPage = authPages.some((route) => pathname.startsWith(route));
 
   if (isAuthPage) {
     return (
