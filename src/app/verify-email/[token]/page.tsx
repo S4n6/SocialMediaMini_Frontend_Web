@@ -1,25 +1,18 @@
 "use client";
 
 import React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useVerifyEmail } from "@/hooks/useAuth";
 
 type VerifyStatus = "idle" | "loading" | "success" | "error";
 
-export default function VerifyEmailPage({
-  params,
-}: {
-  params: { token: string };
-}) {
+export default function VerifyEmailPage() {
+  const params = useParams();
   const token = params.token;
   const router = useRouter();
-  const search = useSearchParams();
-  const { mutateAsync: verifyEmail } = useVerifyEmail(token);
-
-  // dev/testing override: ?simulate=error to show error state
-  const simulate = search?.get("simulate") ?? "success";
+  const { mutateAsync: verifyEmail } = useVerifyEmail();
 
   const [status, setStatus] = React.useState<VerifyStatus>("idle");
   const [message, setMessage] = React.useState<string | null>(null);
@@ -37,7 +30,7 @@ export default function VerifyEmailPage({
     setMessage(null);
 
     try {
-      const response = await verifyEmail();
+      const response = await verifyEmail(token as string);
       console.log("Email verification response:", response);
 
       if (response.success) {

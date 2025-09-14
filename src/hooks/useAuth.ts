@@ -154,8 +154,8 @@ export const useLogout = () => {
   });
 };
 
-export const useVerifyEmail = (token: string) => {
+export const useVerifyEmail = () => {
   return useMutation({
-    mutationFn: () => authService.verifyEmail(token),
+    mutationFn: (token: string) => authService.verifyEmail(token),
   });
-}
+};
