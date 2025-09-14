@@ -12,12 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import ForgotPasswordModal from "../forgot-password";
 // ...existing code...
 
 export function LoginForm() {
   const [isResendEmail, setIsResendEmail] = React.useState(false);
   const [isDisabledResendEmail, setIsDisabledResendEmail] =
     React.useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = React.useState(false);
+
+  const handleForgotPassword = async (email: string) => {
+    console.log("Forgot password requested for email:", email);
+  };
 
   const {
     register,
@@ -95,7 +101,7 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-[1080px] h-[650px] flex justify-center items-center">
+    <div className="w-[1080px] h-[650px] flex">
       {/* Left side */}
       <div className="w-1/2 flex justify-center items-center flex-col">
         <div className="flex flex-col w-full justify-center items-center mt-16">
@@ -168,11 +174,11 @@ export function LoginForm() {
                 </Label>
               </div>
 
-              <Link href="/forgot-password">
-                <span className="text-sm text-primary hover:underline">
-                  Forgot password?
-                </span>
-              </Link>
+              <ForgotPasswordModal
+                open={isForgotPasswordOpen}
+                onOpenChange={setIsForgotPasswordOpen}
+                onSubmit={handleForgotPassword}
+              />
             </div>
 
             <div className="mt-4">

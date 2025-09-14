@@ -1,5 +1,5 @@
 import React from "react";
-import FriendSuggestionSection from "../friendSuggestion/friendSuggestionSection";
+import FriendSuggestionSection from "../friend-suggestion/friendSuggestionSection";
 import { Footer } from "./Footer";
 
 export default function RightSideBar() {

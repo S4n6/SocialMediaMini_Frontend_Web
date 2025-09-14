@@ -22,19 +22,18 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
     "/reset-password",
   ];
   const isAuthPage = authPages.some((route) => pathname.startsWith(route));
-
-  if (isAuthPage) {
-    return (
-      <div className="min-h-screen flex items-center justify-center transition-all duration-300 w-full">
-        {children}
-      </div>
-    );
-  }
-
+  // Always render the same DOM structure to avoid hydration mismatches.
+  // Visually hide or center elements via classes instead of removing them from the tree.
   return (
-    <div className="min-h-screen transition-all duration-300 flex w-full">
-      <LeftSideBar />
-      {children}
+    <div
+      className={`min-h-screen transition-all duration-300 flex w-full ${
+        isAuthPage ? "items-center justify-center" : ""
+      }`}
+    >
+      <div className={`${isAuthPage ? "hidden" : "block"}`}>
+        <LeftSideBar />
+      </div>
+      <div className="flex-1">{children}</div>
     </div>
   );
 }

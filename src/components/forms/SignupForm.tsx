@@ -35,10 +35,9 @@ export function SignupForm() {
 
   const onSubmit = async (data: SignupFormData) => {
     try {
-      // Transform data to match registerSchema format
       const registerData = {
         fullname: data.fullName,
-        username: data.fullName.toLowerCase().replace(/\s+/g, ""), // Generate username from fullName
+        username: data.fullName.toLowerCase().replace(/\s+/g, ""),
         email: data.email,
         password: data.password,
         birthDate: data.birthdate,
@@ -55,36 +54,45 @@ export function SignupForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="w-[1080px] h-[650px] flex justify-center items-center">
+      <div className="flex-1">
+        <Image
+          src="/images/loginPage.png"
+          alt="Social media illustration - people connecting and sharing"
+          style={{
+            objectFit: "cover",
+          }}
+          width={540}
+          height={650}
+          priority
+        />
+      </div>
+      <Card className="flex-1 border-0 shadow-none">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Image
-              src="/logo.svg"
-              alt="SocialMediaMini Logo"
-              width={40}
-              height={40}
-              className="dark:invert"
-            />
-          </div>
-          <CardTitle className="text-2xl font-bold">
-            Sign up to see photos and videos from your friends.
+          <CardTitle className="text-lg font-semibold">
+            Create an account
           </CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Join now — it only takes a minute.
+          </p>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Button
-            variant="outline"
-            className="w-full"
-            type="button"
-            onClick={handleGoogleSignup}
-            disabled={googleLogin.isPending}
-          >
-            <FcGoogle className="mr-2 h-4 w-4" />
-            Log in with Google
-          </Button>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
+        <CardContent className="px-6 pb-6">
+          <div className="mb-3">
+            <Button
+              variant="outline"
+              className="w-full h-9 flex items-center justify-center gap-2 text-sm"
+              type="button"
+              onClick={handleGoogleSignup}
+              disabled={googleLogin.isPending}
+            >
+              <FcGoogle className="h-4 w-4" />
+              Sign up with Google
+            </Button>
+          </div>
+
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center" aria-hidden>
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
@@ -94,93 +102,113 @@ export function SignupForm() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 mt-4">
+            <div className="w-full">
+              <Label htmlFor="email" className="text-sm">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="you@example.com"
                 {...register("email")}
               />
               {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+            <div className="w-full">
+              <Label htmlFor="fullName" className="text-sm">
+                Full Name
+              </Label>
               <Input
                 id="fullName"
                 type="text"
-                placeholder="Enter your full name"
+                placeholder="Your full name"
                 {...register("fullName")}
               />
               {errors.fullName && (
-                <p className="text-sm text-red-500">
+                <p className="text-xs text-red-500 mt-1">
                   {errors.fullName.message}
                 </p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="birthdate">Birthdate</Label>
-              <Input id="birthdate" type="date" {...register("birthdate")} />
-              {errors.birthdate && (
-                <p className="text-sm text-red-500">
-                  {errors.birthdate.message}
-                </p>
-              )}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="birthdate" className="text-sm">
+                  Birthdate
+                </Label>
+                <Input id="birthdate" type="date" {...register("birthdate")} />
+                {errors.birthdate && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.birthdate.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="gender" className="text-sm">
+                  Gender
+                </Label>
+                <Select
+                  onValueChange={(value: string) =>
+                    setValue("gender", value as "male" | "female")
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Gender" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full bg-white dark:bg-gray-800">
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.gender && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.gender.message}
+                  </p>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="password" className="text-sm">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  {...register("password")}
+                />
+                {errors.password && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm your password"
-                {...register("confirmPassword")}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-500">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="gender">Gender</Label>
-              <Select
-                onValueChange={(value: string) =>
-                  setValue("gender", value as "male" | "female")
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.gender && (
-                <p className="text-sm text-red-500">{errors.gender.message}</p>
-              )}
+              <div>
+                <Label htmlFor="confirmPassword" className="text-sm">
+                  Confirm
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Confirm"
+                  {...register("confirmPassword")}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             {registerMutation.isError && (
@@ -191,7 +219,11 @@ export function SignupForm() {
 
             <Button
               type="submit"
-              className="w-full"
+              className={`w-full h-10 my-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow rounded-md ${
+                isSubmitting || registerMutation.isPending
+                  ? "opacity-80 cursor-not-allowed shadow-none"
+                  : "cursor-pointer"
+              }`}
               disabled={isSubmitting || registerMutation.isPending}
             >
               {isSubmitting || registerMutation.isPending
@@ -200,7 +232,7 @@ export function SignupForm() {
             </Button>
           </form>
 
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="text-center text-xs text-muted-foreground mt-3">
             By signing up, you agree to our{" "}
             <Link href="/terms" className="underline hover:text-primary">
               Terms
@@ -212,7 +244,7 @@ export function SignupForm() {
             .
           </div>
 
-          <div className="text-center">
+          <div className="text-center mt-3">
             <span className="text-sm text-muted-foreground">
               Have an account?{" "}
               <Link href="/login" className="text-primary hover:underline">
