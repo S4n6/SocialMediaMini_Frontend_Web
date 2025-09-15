@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ForgotPasswordModal from "../forgot-password";
 import { useForgotPassword } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { ThemeToggle } from "../ui/theme-toggle";
 
 export function LoginForm() {
   const [isResendEmail, setIsResendEmail] = React.useState(false);
@@ -116,6 +117,7 @@ export function LoginForm() {
     <div className="w-[1080px] h-[650px] flex">
       {/* Left side */}
       <div className="w-1/2 flex justify-center items-center flex-col">
+        <ThemeToggle />
         <div className="flex flex-col w-full justify-center items-center mt-16">
           <h1 className="text-2xl mb-4 font-bold">SOCIAL MEDIA ST</h1>
           <p className="text-sm mb-4 text-muted-foreground">
