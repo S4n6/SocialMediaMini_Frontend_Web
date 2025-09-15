@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -31,11 +34,45 @@ export default function ForgotPasswordModal({
 
   async function submit(data: { email: string }) {
     if (onSubmit) {
-      await onSubmit(data.email);
+      try {
+        await onSubmit(data.email);
+        // start cooldown after successful send
+        setCooldownRemaining(30);
+      } catch (err) {
+        // don't start cooldown on failure
+        throw err;
+      }
     }
     // close when done
     onOpenChange?.(false);
   }
+
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+  const cooldownRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (cooldownRemaining <= 0) {
+      if (cooldownRef.current) {
+        clearInterval(cooldownRef.current);
+        cooldownRef.current = null;
+      }
+      return;
+    }
+
+    // start interval to decrement
+    if (!cooldownRef.current) {
+      cooldownRef.current = window.setInterval(() => {
+        setCooldownRemaining((v) => Math.max(0, v - 1));
+      }, 1000);
+    }
+
+    return () => {
+      if (cooldownRef.current) {
+        clearInterval(cooldownRef.current);
+        cooldownRef.current = null;
+      }
+    };
+  }, [cooldownRemaining]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -90,9 +127,15 @@ export default function ForgotPasswordModal({
               className={`cursor-pointer ${
                 !formState.isValid ? "opacity-60" : ""
               }`}
-              disabled={formState.isSubmitting || !formState.isValid}
+              disabled={
+                formState.isSubmitting ||
+                !formState.isValid ||
+                cooldownRemaining > 0
+              }
             >
-              Send reset link
+              {cooldownRemaining > 0
+                ? `Send again in ${cooldownRemaining}s`
+                : "Send reset link"}
             </Button>
           </DialogFooter>
         </form>

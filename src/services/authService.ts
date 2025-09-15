@@ -17,7 +17,10 @@ export const authService = {
       requiresEmailVerification?: boolean;
     }>
   > => {
-    const response = await api.post("/auth/login", credentials);
+    const response = await api.post("/auth/login", credentials, {
+      headers: { "x-skip-refresh": "1" },
+    });
+    console.log("Login response:", response.data);
     return response.data;
   },
 
@@ -111,7 +114,9 @@ export const authService = {
     ApiResponse<{ email: string; requiresEmailVerification: boolean }>
   > => {
     userData.username = userData.email.split("@")[0];
-    const response = await api.post("/auth/register", userData);
+    const response = await api.post("/auth/register", userData, {
+      headers: { "x-skip-refresh": "1" },
+    });
     return response.data;
   },
 
@@ -129,13 +134,49 @@ export const authService = {
 
   // Refresh token
   refreshToken: async (): Promise<ApiResponse<{ token: string }>> => {
-    const response = await api.post("/auth/refresh");
+    const response = await api.post("/auth/refresh", undefined, {
+      headers: { "x-skip-refresh": "1" },
+    });
     return response.data;
   },
 
   // Verify email
   verifyEmail: async (token: string): Promise<ApiResponse<null>> => {
-    const response = await api.get(`/auth/verify-email/${token}`);
+    const response = await api.get(`/auth/verify-email/${token}`, {
+      headers: { "x-skip-refresh": "1" },
+    });
+    return response.data;
+  },
+
+  // Forgot password
+  forgotPassword: async (email: string): Promise<ApiResponse<null>> => {
+    const response = await api.post(
+      "/auth/forgot-password",
+      { email },
+      {
+        headers: { "x-skip-refresh": "1" },
+      }
+    );
+    return response.data;
+  },
+
+  // Reset password
+  resetPassword: async (
+    token: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Promise<ApiResponse<null>> => {
+    const response = await api.post(
+      `/auth/reset-password`,
+      {
+        newPassword,
+        token,
+        confirmPassword,
+      },
+      {
+        headers: { "x-skip-refresh": "1" },
+      }
+    );
     return response.data;
   },
 };

@@ -29,10 +29,12 @@ export async function performTokenRefresh(): Promise<string | null> {
       });
 
       return newAccessToken;
-    } catch {
+    } catch (err) {
+      // Clear tokens but do NOT force a hard redirect here.
+      // Let the caller (e.g. app-level code or hooks) decide how to handle navigation.
       await TokenManager.clearTokens();
-      if (typeof window !== "undefined") window.location.href = "/login";
-      throw new Error("Refresh failed");
+      // Preserve original error for upstream handling
+      throw err instanceof Error ? err : new Error("Refresh failed");
     } finally {
       isRefreshing = false;
       refreshPromise = null;

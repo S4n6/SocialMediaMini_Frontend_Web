@@ -159,3 +159,23 @@ export const useVerifyEmail = () => {
     mutationFn: (token: string) => authService.verifyEmail(token),
   });
 };
+
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: (email: string) => authService.forgotPassword(email),
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: ({
+      token,
+      newPassword,
+      confirmPassword,
+    }: {
+      token: string;
+      newPassword: string;
+      confirmPassword: string;
+    }) => authService.resetPassword(token, newPassword, confirmPassword),
+  });
+};

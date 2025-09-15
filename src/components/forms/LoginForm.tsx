@@ -13,17 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import ForgotPasswordModal from "../forgot-password";
-// ...existing code...
+import { useForgotPassword } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export function LoginForm() {
   const [isResendEmail, setIsResendEmail] = React.useState(false);
   const [isDisabledResendEmail, setIsDisabledResendEmail] =
     React.useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = React.useState(false);
-
-  const handleForgotPassword = async (email: string) => {
-    console.log("Forgot password requested for email:", email);
-  };
 
   const {
     register,
@@ -44,6 +41,29 @@ export function LoginForm() {
   const { mutate: loginWithGoogle, isPending: isGoogleLoginPending } =
     useGoogleLogin();
 
+  const { mutate: forgotPassword } = useForgotPassword();
+
+  const handleForgotPassword = async (email: string) => {
+    console.log("Forgot password requested for email:", email);
+    forgotPassword(email, {
+      onSuccess: () => {
+        toast.success(
+          "Password reset email sent! Please check your inbox for further instructions."
+        );
+        setIsForgotPasswordOpen(false);
+      },
+      onError: (error) => {
+        console.error("Forgot password error:", error);
+        toast.error(
+          typeof error === "object" && error !== null && "message" in error
+            ? (error as { message?: string }).message +
+                " when requesting password reset."
+            : "An error occurred while requesting password reset."
+        );
+      },
+    });
+  };
+
   const handleResendEmail = () => {
     console.log(
       "Verification Email Resent - Please check your inbox for the verification email."
@@ -56,48 +76,40 @@ export function LoginForm() {
   };
 
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      console.log("Submitting login form with data:", data);
-      await loginUser(data, {
-        onSuccess: (response) => {
-          if (response.data.requiresEmailVerification) {
-            console.log(
-              "Email Verification Required - Please verify your email to complete the login."
-            );
+    const response = await loginUser(data, {
+      onSuccess: (data) => {
+        if (
+          "requiresEmailVerification" in data.data &&
+          data.data.requiresEmailVerification
+        ) {
+          toast.error(
+            "Email verification required. Please check your inbox for the verification email."
+          );
+          return;
+        }
+      },
+      onError: (error) => {
+        // Try to detect HTTP status from common error shapes (Axios, fetch wrappers, etc.)
+        const status =
+          error && typeof error === "object"
+            ? (error as any).response?.status ??
+              (error as any).status ??
+              (error as any).statusCode
+            : undefined;
 
-            setIsResendEmail(true);
-            return;
-          }
+        if (status === 401) {
+          // 401 -> incorrect credentials
+          toast.error("Thông tin đăng nhập không chính xác.");
+          return;
+        }
 
-          if (response.data.user && response.data.accessToken) {
-            console.log("Login Successful - Welcome back!");
-          } else {
-            console.log(
-              "Login Failed - Invalid response from server. Please try again."
-            );
-          }
-        },
-      });
-      if (isError) {
-        console.log(
-          "Login Failed - Please check your credentials and try again:",
-          typeof loginError === "object" &&
-            loginError !== null &&
-            "message" in loginError
-            ? (loginError as { message?: string }).message ||
-                "An error occurred during login."
-            : "An error occurred during login."
+        toast.error(
+          typeof error === "object" && error !== null && "message" in error
+            ? (error as { message?: string }).message + " khi đăng nhập."
+            : "Đã xảy ra lỗi khi đăng nhập."
         );
-      }
-    } catch (error) {
-      console.log(
-        "Login Failed - An error occurred during login:",
-        typeof error === "object" && error !== null && "message" in error
-          ? (error as { message?: string }).message ||
-              "An error occurred during login."
-          : "An error occurred during login."
-      );
-    }
+      },
+    });
   };
 
   return (
