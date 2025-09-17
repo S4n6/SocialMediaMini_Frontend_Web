@@ -32,12 +32,7 @@ export function LoginForm() {
     mode: "onChange",
   });
 
-  const {
-    mutate: loginUser,
-    isError,
-    isPending,
-    error: loginError,
-  } = useLogin();
+  const { mutate: loginUser, isPending } = useLogin();
 
   const { mutate: loginWithGoogle, isPending: isGoogleLoginPending } =
     useGoogleLogin();
@@ -76,8 +71,8 @@ export function LoginForm() {
     }, 5000);
   };
 
-  const onSubmit = async (data: LoginFormData) => {
-    const response = await loginUser(data, {
+  const onSubmit = (data: LoginFormData) => {
+    loginUser(data, {
       onSuccess: (data) => {
         if (
           "requiresEmailVerification" in data.data &&
@@ -91,12 +86,15 @@ export function LoginForm() {
       },
       onError: (error) => {
         // Try to detect HTTP status from common error shapes (Axios, fetch wrappers, etc.)
-        const status =
-          error && typeof error === "object"
-            ? (error as any).response?.status ??
-              (error as any).status ??
-              (error as any).statusCode
-            : undefined;
+        let status: number | undefined;
+        if (error && typeof error === "object" && error !== null) {
+          const errObj = error as {
+            response?: { status?: number };
+            status?: number;
+            statusCode?: number;
+          };
+          status = errObj.response?.status ?? errObj.status ?? errObj.statusCode;
+        }
 
         if (status === 401) {
           // 401 -> incorrect credentials
@@ -104,11 +102,13 @@ export function LoginForm() {
           return;
         }
 
-        toast.error(
-          typeof error === "object" && error !== null && "message" in error
-            ? (error as { message?: string }).message + " khi đăng nhập."
-            : "Đã xảy ra lỗi khi đăng nhập."
-        );
+        if (typeof error === "object" && error !== null && "message" in error) {
+          const msg = (error as { message?: string }).message;
+          toast.error((msg ?? "") + " khi đăng nhập.");
+          return;
+        }
+
+        toast.error("Đã xảy ra lỗi khi đăng nhập.");
       },
     });
   };

@@ -33,7 +33,6 @@ export default function ResetPasswordClient() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting, isValid },
-    setValue,
     watch,
   } = useForm<Form>({ mode: "onChange" });
 

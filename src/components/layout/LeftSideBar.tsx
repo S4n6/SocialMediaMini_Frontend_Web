@@ -19,6 +19,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "../ui/theme-toggle";
+import { FiLogOut } from "react-icons/fi";
+import { useLogout } from "@/hooks";
 
 const mockUserSearchResults = [
   {
@@ -38,20 +40,25 @@ const mockUserSearchResults = [
   },
 ];
 
+const menuItems = [
+  { icon: GoHome, label: "Home", id: 0 },
+  { icon: IoSearchOutline, label: "Search", id: 1 },
+  { icon: MdOutlineExplore, label: "Explore", id: 2 },
+  { icon: TfiVideoClapper, label: "Reels", id: 3 },
+  { icon: PiMessengerLogo, label: "Messages", id: 4 },
+  { icon: IoIosNotificationsOutline, label: "Notifications", id: 5 },
+  { icon: MdAddCircleOutline, label: "Create", id: 6 },
+];
+
 export default function LeftSideBar() {
   const [isActive, setIsActive] = React.useState(0);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
+  const [isLogoutPopoverOpen, setIsLogoutPopoverOpen] = React.useState(false);
+  // router not used here
+  // const router = useRouter();
 
-  const menuItems = [
-    { icon: GoHome, label: "Home", id: 0 },
-    { icon: IoSearchOutline, label: "Search", id: 1 },
-    { icon: MdOutlineExplore, label: "Explore", id: 2 },
-    { icon: TfiVideoClapper, label: "Reels", id: 3 },
-    { icon: PiMessengerLogo, label: "Messages", id: 4 },
-    { icon: IoIosNotificationsOutline, label: "Notifications", id: 5 },
-    { icon: MdAddCircleOutline, label: "Create", id: 6 },
-  ];
+  const { mutate: logout } = useLogout();
 
   return (
     <div className="bg-background p-4 flex flex-col gap-4 min-h-screen border-r border-border">
@@ -169,6 +176,51 @@ export default function LeftSideBar() {
         <div>
           <Separator className="mb-4" />
           <ThemeToggle />
+        </div>
+
+        <div>
+          <Popover
+            open={isLogoutPopoverOpen}
+            onOpenChange={setIsLogoutPopoverOpen}
+          >
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                className="justify-start h-12 px-3 py-2 hover:bg-accent w-full text-destructive"
+                onClick={() => setIsLogoutPopoverOpen(true)}
+              >
+                <FiLogOut className="w-6 h-6 mr-4" />
+                <span className="hidden lg:block">Đăng xuất</span>
+              </Button>
+            </PopoverTrigger>
+
+            <PopoverContent side="right" align="start" className="w-60 p-3">
+              <div className="flex flex-col gap-3">
+                <p className="text-sm">Bạn có chắc muốn đăng xuất?</p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setIsLogoutPopoverOpen(false)}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    className="flex-1 bg-destructive text-white"
+                    onClick={() => {
+                      try {
+                        logout();
+                      } finally {
+                        setIsLogoutPopoverOpen(false);
+                      }
+                    }}
+                  >
+                    Đăng xuất
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <Button

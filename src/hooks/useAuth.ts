@@ -129,34 +129,28 @@ export const useRegister = () => {
 export const useLogout = () => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   return useMutation({
     mutationFn: authService.logout,
     onSuccess: async () => {
-      // Use TokenManager to clear tokens
       await TokenManager.clearTokens();
-
-      // Clear Redux state
       dispatch(logout());
-
-      // Clear all React Query cache
       queryClient.clear();
-      router.push("/login");
+      window.location.href = "/login";
     },
     onError: async () => {
-      // Even on error, clear local state
       await TokenManager.clearTokens();
       dispatch(logout());
       queryClient.clear();
-      router.push("/login");
+      window.location.href = "/login";
     },
   });
 };
 
 export const useVerifyEmail = () => {
   return useMutation({
-    mutationFn: (token: string) => authService.verifyEmail(token),
+    mutationFn: ({ token, password }: { token: string; password: string }) =>
+      authService.verifyEmail(token, password),
   });
 };
 
@@ -177,5 +171,20 @@ export const useResetPassword = () => {
       newPassword: string;
       confirmPassword: string;
     }) => authService.resetPassword(token, newPassword, confirmPassword),
+  });
+};
+
+export const useResendVerificationEmail = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (email: string) => authService.resendVerification(email),
+    onSuccess: (response) => {
+      console.log("Resend verification response:", response);
+      queryClient.invalidateQueries({ queryKey: authKeys.all });
+    },
+    onError: (error) => {
+      console.error("Resend verification error:", error);
+    },
   });
 };

@@ -84,7 +84,7 @@ function isPublicRequest(url?: string) {
 api.interceptors.request.use(
   async (config: ExtendedAxiosRequestConfig) => {
     const url = config.url ?? "";
-    const headers = config.headers as Record<string, any> | undefined;
+    const headers = config.headers as Record<string, unknown> | undefined;
     const skipRefreshHeader =
       headers && (headers["x-skip-refresh"] || headers["X-Skip-Refresh"]);
 
@@ -157,7 +157,7 @@ api.interceptors.response.use(
       if (status === 401 && !originalRequest._retry) {
         const reqUrl = originalRequest.url ?? "";
         const reqHeaders = originalRequest.headers as
-          | Record<string, any>
+          | Record<string, unknown>
           | undefined;
         const skipRefreshHeader =
           reqHeaders &&

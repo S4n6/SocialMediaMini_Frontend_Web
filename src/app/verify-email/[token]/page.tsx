@@ -2,147 +2,233 @@
 
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
+import { ResendVerificationModal } from "@/components/ui/resend-verification-modal";
 import { useVerifyEmail } from "@/hooks/useAuth";
 
-type VerifyStatus = "idle" | "loading" | "success" | "error";
+// Password setup schema
+const passwordSetupSchema = yup.object({
+  password: yup
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .required("Password is required"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("password")], "Passwords must match")
+    .required("Please confirm your password"),
+});
 
-export default function VerifyEmailPage() {
+type PasswordSetupData = yup.InferType<typeof passwordSetupSchema>;
+
+export default function PasswordSetupPage() {
   const params = useParams();
-  const token = params.token;
+  const token = params.token as string;
   const router = useRouter();
-  const { mutateAsync: verifyEmail } = useVerifyEmail();
 
-  const [status, setStatus] = React.useState<VerifyStatus>("idle");
-  const [message, setMessage] = React.useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<PasswordSetupData>({
+    resolver: yupResolver(passwordSetupSchema),
+  });
+
+  const { mutate: verifyEmail, isPending } = useVerifyEmail();
+
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirm, setShowConfirm] = React.useState(false);
+  const [resendOpen, setResendOpen] = React.useState(false);
+
+  const getPasswordStrength = (pw: string) => {
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    const labels = ["Very weak", "Weak", "Okay", "Good", "Strong"];
+    // Use hex colors to ensure inline style changes work consistently across browsers
+    const hex = ["#f87171", "#fb923c", "#fbbf24", "#34d399", "#059669"];
+    return { score, label: labels[score], colorHex: hex[score] };
+  };
+
+  const passwordValue = watch("password") || "";
+  const strength = getPasswordStrength(passwordValue);
 
   React.useEffect(() => {
     if (!token) {
       router.push("/signup");
       return;
     }
-    runVerification();
-  }, [token]);
+  }, [token, router]);
 
-  async function runVerification() {
-    setStatus("loading");
-    setMessage(null);
-
+  const onSubmit = async (data: PasswordSetupData) => {
     try {
-      const response = await verifyEmail(token as string);
-      console.log("Email verification response:", response);
-
-      if (response.success) {
-        setStatus("success");
-        setMessage("Your email has been successfully verified.");
-      } else {
-        setStatus("error");
-        setMessage("Verification failed. The token may be invalid or expired.");
+      if (!token) {
+        toast.error("Invalid or missing token. Please try again.");
+        return;
       }
+      verifyEmail(
+        { token, password: data.password },
+        {
+          onSuccess: () => {
+            toast.success("Email verified and password set successfully!");
+            setTimeout(() => {
+              router.push("/login");
+            }, 1500);
+          },
+          onError: (error) => {
+            console.error("Email verification error:", error);
+            toast.error("An error occurred. Please try again.");
+          },
+        }
+      );
     } catch (error) {
-      console.error("Email verification error:", error);
-      setStatus("error");
-      setMessage("Verification failed. The token may be invalid or expired.");
+      console.error("Password setup error:", error);
+      toast.error("An error occurred. Please try again.");
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-gray-100 to-gray-200 p-6">
-      <Card className="w-full max-w-lg p-10 shadow-lg rounded-lg bg-white">
-        <div className="flex flex-col items-center text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">
-            Verify Your Email
-          </h1>
-          <p className="text-base text-gray-600 mb-8">
-            This page will verify your email and display the result.
-          </p>
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-6">
+      <Card className="w-full max-w-md p-8 shadow-sm rounded-xl border">
+        <div className="flex flex-col">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Set Your Password
+            </h1>
+            <p className="text-sm text-gray-600 mt-2">
+              Complete your account setup by creating a secure password.
+            </p>
+          </div>
 
-          <div className="mt-6 flex flex-col items-center">
-            {status === "loading" && (
-              <div className="flex flex-col items-center">
-                <svg
-                  className="animate-spin h-10 w-10 text-blue-500 mb-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="w-full mt-6 space-y-4"
+          >
+            <div>
+              <Label
+                htmlFor="password"
+                className="text-sm font-medium text-gray-700"
+              >
+                Password
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  {...register("password")}
+                  className="pr-10"
+                  aria-invalid={!!errors.password}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                  ></path>
-                </svg>
-                <div className="text-lg text-gray-700">
-                  Verifying your email...
-                </div>
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
               </div>
-            )}
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.password.message}
+                </p>
+              )}
 
-            {status === "success" && (
-              <div className="text-center">
-                <div className="text-5xl text-green-500 mb-4">✅</div>
-                <h2 className="text-2xl font-semibold text-gray-800">
-                  Email Verified
-                </h2>
-                <p className="text-base text-gray-600 mt-3 mb-6">{message}</p>
-                <div className="flex justify-center space-x-4">
-                  <Button
-                    className="px-6 py-2 text-white bg-green-500 hover:bg-green-600"
-                    onClick={() => router.push("/login")}
-                  >
-                    Go to Login
-                  </Button>
-                  <Button
-                    className="px-6 py-2 text-gray-800 bg-gray-200 hover:bg-gray-300"
-                    onClick={() => router.push("/")}
-                  >
-                    Continue
-                  </Button>
+              <div className="mt-3">
+                <div className="h-3 rounded-full bg-gray-200 overflow-hidden">
+                  <div
+                    className={`h-3 rounded-full origin-left transform-gpu transition-transform transition-colors duration-200 ease-linear`}
+                    style={{
+                      transform: `scaleX(${strength.score / 4})`,
+                      backgroundColor: strength.colorHex,
+                      willChange: "transform, background-color",
+                    }}
+                  />
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {strength.label} — Tip: Use at least 8 characters, including
+                  uppercase, numbers, or symbols.
+                </p>
               </div>
-            )}
+            </div>
 
-            {status === "error" && (
-              <div className="text-center">
-                <div className="text-5xl text-red-500 mb-4">❌</div>
-                <h2 className="text-2xl font-semibold text-gray-800">
-                  Verification Failed
-                </h2>
-                <p className="text-base text-gray-600 mt-3 mb-6">{message}</p>
-                <div className="flex justify-center space-x-4">
-                  <Button
-                    className="px-6 py-2 text-white bg-red-500 hover:bg-red-600"
-                    onClick={runVerification}
-                  >
-                    Retry
-                  </Button>
-                  <Button
-                    className="px-6 py-2 text-gray-800 bg-gray-200 hover:bg-gray-300"
-                    onClick={() => router.push("/signup")}
-                  >
-                    Resend Verification
-                  </Button>
-                </div>
+            <div>
+              <Label
+                htmlFor="confirmPassword"
+                className="text-sm font-medium text-gray-700"
+              >
+                Confirm Password
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  {...register("confirmPassword")}
+                  className="pr-10"
+                  aria-invalid={!!errors.confirmPassword}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm((s) => !s)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                  aria-label={showConfirm ? "Hide password" : "Show password"}
+                >
+                  {showConfirm ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
               </div>
-            )}
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
 
-            {status === "idle" && (
-              <div className="text-lg text-gray-700">
-                Ready to verify. The verification will start automatically.
-              </div>
-            )}
+            <Button
+              type="submit"
+              className="w-full bg-primary hover:bg-primary/90 text-black py-3 rounded-md font-medium"
+              disabled={isSubmitting || isPending}
+            >
+              {isSubmitting || isPending
+                ? "Setting up..."
+                : "Set Password & Continue"}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Need to resend verification email?{" "}
+              <button
+                onClick={() => setResendOpen(true)}
+                className="text-primary hover:underline"
+              >
+                Resend email
+              </button>
+            </p>
           </div>
         </div>
       </Card>
+
+      <ResendVerificationModal open={resendOpen} onOpenChange={setResendOpen} />
     </div>
   );
 }

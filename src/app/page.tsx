@@ -227,7 +227,7 @@ const mockStories = [
 export default function Home() {
   const [posts] = useState(mockPosts);
   return (
-    <div className="flex w-[83%]">
+    <div className="flex w-full gap-4 p-4 md:p-6 lg:p-8">
       <div className="w-full md:w-3/4 p-2 md:p-4 lg:p-6 bg-background rounded-md shadow-md max-w-full md:max-w-3xl lg:max-w-5xl">
         <StoriesSection stories={mockStories} />
         <PostSection

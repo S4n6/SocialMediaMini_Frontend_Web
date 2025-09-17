@@ -1,8 +1,5 @@
 import { api } from "@/lib/axios";
-import type {
-  LoginFormData,
-  RegisterFormData,
-} from "@/lib/validations/schemas";
+import type { LoginFormData } from "@/lib/validations/schemas";
 import type { User, ApiResponse } from "@/types";
 
 export const authService = {
@@ -107,16 +104,46 @@ export const authService = {
     });
   },
 
-  // Register user
-  register: async (
-    userData: RegisterFormData
-  ): Promise<
+  // Register user (simplified - no password)
+  register: async (userData: {
+    fullname: string;
+    username: string;
+    email: string;
+    birthDate: string;
+    gender: string;
+  }): Promise<
     ApiResponse<{ email: string; requiresEmailVerification: boolean }>
   > => {
-    userData.username = userData.email.split("@")[0];
     const response = await api.post("/auth/register", userData, {
       headers: { "x-skip-refresh": "1" },
     });
+    return response.data;
+  },
+
+  // Setup password with verification token
+  setupPassword: async (
+    token: string,
+    password: string
+  ): Promise<ApiResponse<null>> => {
+    const response = await api.post(
+      "/auth/setup-password",
+      { token, password },
+      {
+        headers: { "x-skip-refresh": "1" },
+      }
+    );
+    return response.data;
+  },
+
+  // Resend verification email
+  resendVerification: async (email: string): Promise<ApiResponse<null>> => {
+    const response = await api.post(
+      "/auth/resend-verification",
+      { email },
+      {
+        headers: { "x-skip-refresh": "1" },
+      }
+    );
     return response.data;
   },
 
@@ -141,10 +168,17 @@ export const authService = {
   },
 
   // Verify email
-  verifyEmail: async (token: string): Promise<ApiResponse<null>> => {
-    const response = await api.get(`/auth/verify-email/${token}`, {
-      headers: { "x-skip-refresh": "1" },
-    });
+  verifyEmail: async (
+    token: string,
+    password: string
+  ): Promise<ApiResponse<null>> => {
+    const response = await api.post(
+      `/auth/verify-email`,
+      { token, password },
+      {
+        headers: { "x-skip-refresh": "1" },
+      }
+    );
     return response.data;
   },
 

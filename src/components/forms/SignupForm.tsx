@@ -3,7 +3,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { signupSchema, type SignupFormData } from "@/lib/validations/schemas";
+import * as yup from "yup";
 import Image from "next/image";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
@@ -19,8 +19,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ResendVerificationModal } from "@/components/ui/resend-verification-modal";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import type { RegisterFormData } from "@/lib/validations/schemas";
+
+// Updated schema without password fields
+const signupSchema = yup.object({
+  email: yup
+    .string()
+    .email("Please enter a valid email address")
+    .required("Email is required"),
+  fullName: yup
+    .string()
+    .min(2, "Full name must be at least 2 characters")
+    .required("Full name is required"),
+  birthdate: yup.string().required("Birthdate is required"),
+  gender: yup
+    .string()
+    .oneOf(["male", "female"], "Please select a gender")
+    .required("Gender is required"),
+});
+
+type SignupFormData = yup.InferType<typeof signupSchema>;
 
 export function SignupForm() {
+  const [showResendModal, setShowResendModal] = React.useState(false);
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -36,16 +62,52 @@ export function SignupForm() {
   const onSubmit = async (data: SignupFormData) => {
     try {
       const registerData = {
-        fullname: data.fullName,
-        username: data.fullName.toLowerCase().replace(/\s+/g, ""),
+        fullName: data.fullName,
+        userName: data.fullName.toLowerCase().replace(/\s+/g, ""),
         email: data.email,
-        password: data.password,
-        birthDate: data.birthdate,
+        dateOfBirth: data.birthdate,
         gender: data.gender,
       };
-      await registerMutation.mutateAsync(registerData);
-    } catch (error) {
+
+      const response = await registerMutation.mutateAsync(
+        registerData as unknown as RegisterFormData
+      );
+
+      if (response?.data?.requiresEmailVerification) {
+        toast.success(
+          "Registration successful! Please check your email to set up your password."
+        );
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+      }
+    } catch (error: unknown) {
       console.error("Signup failed:", error);
+      const err = error as {
+        response?: {
+          status?: number;
+          data?: { message?: string };
+        };
+        status?: number;
+      };
+      const statusCode = err?.status ?? err?.response?.status ?? null;
+      const message = err?.response?.data?.message ?? "";
+
+      console.log("Error details:", { statusCode, message });
+
+      if (
+        statusCode === 400 &&
+        typeof message === "string" &&
+        message.includes("verified")
+      ) {
+        toast.error(
+          "This email is already registered. Please verify or resend the verification email."
+        );
+      } else if (statusCode === 409) {
+        toast.error("Email is already in use. Please try again.");
+      } else {
+        toast.error("Registration failed. Please try again.");
+      }
     }
   };
 
@@ -175,42 +237,6 @@ export function SignupForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="password" className="text-sm">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("password")}
-                />
-                {errors.password && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="confirmPassword" className="text-sm">
-                  Confirm
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Confirm"
-                  {...register("confirmPassword")}
-                />
-                {errors.confirmPassword && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
             {registerMutation.isError && (
               <div className="text-sm text-red-500 text-center">
                 Something went wrong. Please try again.
@@ -227,9 +253,19 @@ export function SignupForm() {
               disabled={isSubmitting || registerMutation.isPending}
             >
               {isSubmitting || registerMutation.isPending
-                ? "Signing up..."
-                : "Sign Up"}
+                ? "Creating account..."
+                : "Create Account"}
             </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setShowResendModal(true)}
+                className="text-sm text-primary hover:underline"
+              >
+                Already registered but didn&apos;t receive verification email?
+              </button>
+            </div>
           </form>
 
           <div className="text-center text-xs text-muted-foreground mt-3">
@@ -253,6 +289,11 @@ export function SignupForm() {
             </span>
           </div>
         </CardContent>
+
+        <ResendVerificationModal
+          open={showResendModal}
+          onOpenChange={setShowResendModal}
+        />
       </Card>
     </div>
   );
