@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
   }
 
   const authToken = request.cookies.get("access_token")?.value ?? null;
-  if (!authToken) {
+  if (!!authToken) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }

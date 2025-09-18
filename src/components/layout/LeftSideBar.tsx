@@ -48,6 +48,8 @@ const menuItems = [
   { icon: PiMessengerLogo, label: "Messages", id: 4 },
   { icon: IoIosNotificationsOutline, label: "Notifications", id: 5 },
   { icon: MdAddCircleOutline, label: "Create", id: 6 },
+  { icon: "", label: "Profile", id: 7 },
+  { icon: CgDetailsMore, label: "More", id: 8 },
 ];
 
 export default function LeftSideBar() {
@@ -55,16 +57,15 @@ export default function LeftSideBar() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [isLogoutPopoverOpen, setIsLogoutPopoverOpen] = React.useState(false);
-  // router not used here
-  // const router = useRouter();
-
   const { mutate: logout } = useLogout();
 
   return (
-    <div className="bg-background p-4 flex flex-col gap-4 min-h-screen border-r border-border">
+    <div className="p-4 bg-[#f59e0b] flex flex-col gap-4 min-h-screen border-r border-gray-300 dark:border-gray-600">
       {/* Logo */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-primary">SocialMini</h1>
+        <h1 className="text-2xl font-bold text-primary text-background">
+          SocialMini
+        </h1>
       </div>
 
       {/* Navigation Menu */}
@@ -154,6 +155,22 @@ export default function LeftSideBar() {
             );
           }
 
+          if (item.label === "Profile") {
+            return (
+              <Button
+                key={item.id}
+                variant="ghost"
+                className="justify-start h-12 px-3 py-2 hover:bg-accent"
+              >
+                <Avatar className="w-6 h-6 mr-2">
+                  <AvatarImage src="https://bit.ly/sage-adebayo" />
+                  <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
+                <span className="hidden lg:block">Profile</span>
+              </Button>
+            );
+          }
+
           return (
             <Button
               key={item.id}
@@ -171,13 +188,7 @@ export default function LeftSideBar() {
         })}
       </nav>
 
-      {/* Profile Section */}
-      <div className="mt-auto">
-        <div>
-          <Separator className="mb-4" />
-          <ThemeToggle />
-        </div>
-
+      <div>
         <div>
           <Popover
             open={isLogoutPopoverOpen}
@@ -222,25 +233,9 @@ export default function LeftSideBar() {
             </PopoverContent>
           </Popover>
         </div>
-
-        <Button
-          variant="ghost"
-          className="justify-start h-12 px-3 py-2 hover:bg-accent w-full"
-        >
-          <Avatar className="w-6 h-6 mr-4">
-            <AvatarImage src="https://bit.ly/sage-adebayo" />
-            <AvatarFallback>JD</AvatarFallback>
-          </Avatar>
-          <span className="hidden lg:block">Profile</span>
-        </Button>
-
-        <Button
-          variant="ghost"
-          className="justify-start h-12 px-3 py-2 hover:bg-accent w-full"
-        >
-          <CgDetailsMore className="w-6 h-6 mr-4" />
-          <span className="hidden lg:block">More</span>
-        </Button>
+        <div className="mt-4">
+          <ThemeToggle />
+        </div>
       </div>
     </div>
   );

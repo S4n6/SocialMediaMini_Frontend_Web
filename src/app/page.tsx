@@ -227,8 +227,8 @@ const mockStories = [
 export default function Home() {
   const [posts] = useState(mockPosts);
   return (
-    <div className="flex w-full gap-4 p-4 md:p-6 lg:p-8">
-      <div className="w-full md:w-3/4 p-2 md:p-4 lg:p-6 bg-background rounded-md shadow-md max-w-full md:max-w-3xl lg:max-w-5xl">
+    <div className="flex w-full">
+      <div className="w-full md:w-3/4 p-2 md:p-4 lg:p-6 rounded-md max-w-full md:max-w-3xl lg:max-w-5xl">
         <StoriesSection stories={mockStories} />
         <PostSection
           posts={posts}
@@ -238,7 +238,7 @@ export default function Home() {
           hasMore={true}
         />
       </div>
-      <div className="hidden md:block w-full md:w-1/4 bg-background rounded-md shadow-md">
+      <div className="hidden md:block w-full md:w-1/4 rounded-md">
         <RightSideBar />
       </div>
     </div>
