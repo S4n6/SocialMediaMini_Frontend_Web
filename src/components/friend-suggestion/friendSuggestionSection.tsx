@@ -3,9 +3,12 @@ import FriendSuggestionCard from "./friendSuggestionCard";
 
 export default function FriendSuggestionSection() {
   return (
-    <div>
-      <h3 className="text-lg font-bold mb-4">Friend Suggestions</h3>
-      <div className="flex flex-col gap-8 max-h-[400px] overflow-y-auto">
+    <div className="w-full">
+      <div className="flex w-full justify-between items-center mb-4">
+        <span className="text-sm">Friend suggestions for you</span>
+        <span className="text-sm font-bold">See all</span>
+      </div>
+      <div className="flex w-full flex-col space-y-8 overflow-y-auto">
         <FriendSuggestionCard />
         <FriendSuggestionCard />
         <FriendSuggestionCard />

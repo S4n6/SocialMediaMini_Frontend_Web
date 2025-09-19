@@ -1,47 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaHeart, FaComment, FaShare, FaBookmark } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-
-interface Post {
-  id: string;
-  author: {
-    id: string;
-    name: string;
-    username: string;
-    avatar?: string;
-  };
-  content: string;
-  images?: string[];
-  likes: number;
-  comments: number;
-  timestamp: string;
-  isLiked?: boolean;
-  isBookmarked?: boolean;
-}
+import { Post } from "./PostSection";
+import ImageList from "../ui/image-list-custom";
 
 interface PostProps {
-  post: {
-    id: string;
-    author: {
-      id: string;
-      name: string;
-      username: string;
-      avatar?: string;
-    };
-    content: string;
-    timestamp: string;
-    imageUrl?: string;
-    likes: number;
-    comments: number;
-    shares?: number;
-    isLiked?: boolean;
-    isBookmarked?: boolean;
-  };
+  post: Post;
   onUpdate?: (post: Post) => void;
 }
 
@@ -49,7 +18,6 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
   const [isLiked, setIsLiked] = useState(post.isLiked || false);
   const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked || false);
   const [likes, setLikes] = useState(post.likes);
-  const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
 
   const handleLike = () => {
@@ -79,7 +47,7 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
   };
 
   const handleComment = () => {
-    setShowComments(!showComments);
+    console.log("Comment button clicked");
   };
 
   const handleShare = () => {
@@ -87,8 +55,12 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
     console.log("Share post:", post.id);
   };
 
+  useEffect(() => {
+    console.log("Post updated:", post);
+  }, [post]);
+
   return (
-    <Card className="w-full max-w-lg mx-auto bg-background border border-border shadow-sm">
+    <Card className="w-full max-w-lg mx-auto border-none shadow-none">
       <CardContent className="p-0">
         {/* Header */}
         <div className="flex justify-between items-center p-4 pb-2">
@@ -113,16 +85,9 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
         </div>
 
         {/* Image */}
-        {post.imageUrl && (
-          <div className="w-full">
-            <img
-              src={post.imageUrl}
-              alt="Post content"
-              className="w-full h-auto object-cover"
-            />
-          </div>
+        {post.images && post.images.length > 0 && (
+          <ImageList images={post.images} />
         )}
-
         {/* Engagement Stats */}
         <div className="px-4 py-2 text-xs text-muted-foreground">
           <span>{likes} likes</span>
@@ -142,37 +107,36 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
 
         {/* Action Buttons */}
         <div className="flex justify-between items-center px-4 py-2 border-t border-border">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLike}
-            className={`flex items-center gap-2 ${
-              isLiked ? "text-red-500" : "text-muted-foreground"
-            }`}
-          >
-            <FaHeart className="w-4 h-4" />
-            <span>Like</span>
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLike}
+              className={`flex items-center gap-2 ${
+                isLiked ? "text-red-500" : "text-muted-foreground"
+              }`}
+            >
+              <FaHeart className="w-4 h-4" />
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleComment}
-            className="flex items-center gap-2 text-muted-foreground"
-          >
-            <FaComment className="w-4 h-4" />
-            <span>Comment</span>
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleComment}
+              className="flex items-center gap-2 text-muted-foreground"
+            >
+              <FaComment className="w-4 h-4" />
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleShare}
-            className="flex items-center gap-2 text-muted-foreground"
-          >
-            <FaShare className="w-4 h-4" />
-            <span>Share</span>
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleShare}
+              className="flex items-center gap-2 text-muted-foreground"
+            >
+              <FaShare className="w-4 h-4" />
+            </Button>
+          </div>
 
           <Button
             variant="ghost"
@@ -186,31 +150,28 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
           </Button>
         </div>
 
-        {/* Comments Section */}
-        {showComments && (
-          <div className="px-4 pb-4 border-t border-border">
-            <div className="mt-3">
-              <Textarea
-                placeholder="Write a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="w-full min-h-[80px] resize-none"
-              />
-              <div className="flex justify-end mt-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    // Handle comment submission
-                    setCommentText("");
-                  }}
-                  disabled={!commentText.trim()}
-                >
-                  Post Comment
-                </Button>
-              </div>
-            </div>
+        <div className="px-4 pb-4">
+          <div className="relative">
+            <Textarea
+              placeholder="Write a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              className="w-full min-h-[40px] resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 pr-16 rounded-lg"
+            />
+            {commentText.trim() && (
+              <Button
+                onClick={() => {
+                  // Handle post comment
+                  console.log("Posting comment:", commentText);
+                  setCommentText("");
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 px-3 text-sm bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                Post
+              </Button>
+            )}
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );

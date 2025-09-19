@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import ImageList, { ImageItem } from "@/components/post/ImageList";
+import ImageList, { ImageItem } from "@/components/ui/image-list-custom";
 import StoryCard from "@/components/story/StoryCard";
 import { IoPersonAddOutline } from "react-icons/io5";
 import { MdOutlineMoreHoriz } from "react-icons/md";
@@ -108,7 +108,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         </div>
         <div className="w-1/2 ml-8">
           <div className="flex items-center gap-3">
-            <h1 className="text-lg mr-8">neymarjr {id && `(${id})`}</h1>
+            <div className="mr-8">
+              <h1 className="text-xl font-semibold">Neymar Jr</h1>
+              <p className="text-lg text-muted-foreground">
+                @neymarjr {id && `(${id})`}
+              </p>
+            </div>
             <Button variant="default" size="sm">
               Following
             </Button>
@@ -131,7 +136,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
             </span>
           </div>
           <div className="mt-4">
-            <h2 className="font-semibold">Neymar Jr</h2>
             <p className="text-sm text-muted-foreground">
               ⚽ Professional Football Player
               <br />

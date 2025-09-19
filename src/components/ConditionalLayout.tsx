@@ -30,7 +30,9 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
         isAuthPage ? "items-center justify-center" : ""
       }`}
     >
-      <div className={`${isAuthPage ? "none" : "block"} bg-background`}>
+      <div
+        className={`${isAuthPage ? "none" : "block"} bg-background w-[280px]`}
+      >
         <LeftSideBar />
       </div>
       <div className="w-full">{children}</div>

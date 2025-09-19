@@ -51,17 +51,17 @@ body {
   --font-geist-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono",
     "Courier New", monospace;
 
-  /* Light theme (RGB values) */
+  /* Light theme (hex values) */
   --color-background: #ffffff;
-  --color-foreground: 18 18 18;
+  --color-foreground: #121212;
 
-  --color-primary: 234 69 76;
-  --color-muted: 243 244 246;
-  --color-card: 255 255 255;
-  --color-border: 230 231 232;
-  --color-input: 251 251 251;
-  --color-ring: 14 165 233;
-  --color-highlight: 255 209 102;
+  --color-primary: #ea454c;
+  --color-muted: #f3f4f6;
+  --color-card: #ffffff;
+  --color-border: #e6e7e8;
+  --color-input: #fbfbfb;
+  --color-ring: #0ea5e9;
+  --color-highlight: #ffd166;
 
   --radius: 12px;
 
@@ -73,16 +73,16 @@ body {
 
 /* Dark theme override */
 .dark {
-  --color-background: 15 23 32;
-  --color-foreground: 230 238 248;
+  --color-background: #0f1720;
+  --color-foreground: #e6eef8;
 
-  --color-primary: 255 107 107;
-  --color-muted: 11 18 32;
-  --color-card: 11 16 20;
-  --color-border: 24 32 42;
-  --color-input: 13 17 21;
-  --color-ring: 56 189 248;
-  --color-highlight: 255 215 143;
+  --color-primary: #ff6b6b;
+  --color-muted: #0b1220;
+  --color-card: #0b1014;
+  --color-border: #18202a;
+  --color-input: #0d1115;
+  --color-ring: #38bdf8;
+  --color-highlight: #ffd78f;
 
   --radius: 12px;
 }

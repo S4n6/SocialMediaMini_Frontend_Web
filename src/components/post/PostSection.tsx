@@ -2,6 +2,7 @@
 
 import React from "react";
 import { PostCard } from "./PostCard";
+import { ImageItem } from "../ui/image-list-custom";
 
 export interface Post {
   id: string;
@@ -12,12 +13,13 @@ export interface Post {
     avatar?: string;
   };
   content: string;
-  images?: string[];
+  images?: ImageItem[];
   likes: number;
   comments: number;
   timestamp: string;
   isLiked?: boolean;
   isBookmarked?: boolean;
+  shares?: number;
 }
 
 interface PostSectionProps {
@@ -47,7 +49,7 @@ export default function PostSection({
   }
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full">
       {posts.map((post) => (
         <PostCard
           key={post.id}

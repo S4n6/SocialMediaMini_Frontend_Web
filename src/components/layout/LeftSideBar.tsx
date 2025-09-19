@@ -1,4 +1,6 @@
 import React from "react";
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { GoHome } from "react-icons/go";
 import { IoSearchOutline } from "react-icons/io5";
 import { MdOutlineExplore } from "react-icons/md";
@@ -41,31 +43,46 @@ const mockUserSearchResults = [
 ];
 
 const menuItems = [
-  { icon: GoHome, label: "Home", id: 0 },
-  { icon: IoSearchOutline, label: "Search", id: 1 },
-  { icon: MdOutlineExplore, label: "Explore", id: 2 },
-  { icon: TfiVideoClapper, label: "Reels", id: 3 },
-  { icon: PiMessengerLogo, label: "Messages", id: 4 },
-  { icon: IoIosNotificationsOutline, label: "Notifications", id: 5 },
-  { icon: MdAddCircleOutline, label: "Create", id: 6 },
-  { icon: "", label: "Profile", id: 7 },
-  { icon: CgDetailsMore, label: "More", id: 8 },
+  { icon: GoHome, label: "Home", id: 0, path: "/" },
+  { icon: IoSearchOutline, label: "Search", id: 1, path: "/search" },
+  { icon: MdOutlineExplore, label: "Explore", id: 2, path: "/explore" },
+  { icon: TfiVideoClapper, label: "Reels", id: 3, path: "/reels" },
+  { icon: PiMessengerLogo, label: "Messages", id: 4, path: "/messages" },
+  {
+    icon: IoIosNotificationsOutline,
+    label: "Notifications",
+    id: 5,
+    path: "/notifications",
+  },
+  { icon: MdAddCircleOutline, label: "Create", id: 6, path: "/create" },
+  { icon: "", label: "Profile", id: 7, path: "/profile" },
+  { icon: CgDetailsMore, label: "More", id: 8, path: "/more" },
 ];
 
 export default function LeftSideBar() {
-  const [isActive, setIsActive] = React.useState(0);
+  const pathname = usePathname();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [isLogoutPopoverOpen, setIsLogoutPopoverOpen] = React.useState(false);
   const { mutate: logout } = useLogout();
+  const router = useRouter();
+
+  // Function to check if a menu item is active based on current path
+  const isItemActive = (itemPath: string) => {
+    if (itemPath === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(itemPath);
+  };
 
   return (
-    <div className="p-4 bg-[#f59e0b] flex flex-col gap-4 min-h-screen border-r border-gray-300 dark:border-gray-600">
+    <div className="p-4 flex flex-col gap-4 min-h-screen border-r border-gray-300 dark:border-gray-600">
       {/* Logo */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-primary text-background">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-400 bg-clip-text text-transparent font-serif tracking-tight">
           SocialMini
         </h1>
+        <div className="w-16 h-0.5 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-400 mt-1 rounded-full"></div>
       </div>
 
       {/* Navigation Menu */}
@@ -84,10 +101,10 @@ export default function LeftSideBar() {
                   <Button
                     variant="ghost"
                     className={cn(
-                      "justify-start h-12 px-3 py-2 hover:bg-accent",
-                      isActive === item.id && "bg-accent"
+                      "justify-start h-12 px-3 py-2 hover:bg-accent transition-colors",
+                      isItemActive(item.path) &&
+                        "bg-accent border-l-4 border-blue-500 font-semibold"
                     )}
-                    onClick={() => setIsActive(item.id)}
                   >
                     <Icon className="w-6 h-6 mr-4" />
                     <span className="hidden lg:block">{item.label}</span>
@@ -157,17 +174,22 @@ export default function LeftSideBar() {
 
           if (item.label === "Profile") {
             return (
-              <Button
-                key={item.id}
-                variant="ghost"
-                className="justify-start h-12 px-3 py-2 hover:bg-accent"
-              >
-                <Avatar className="w-6 h-6 mr-2">
-                  <AvatarImage src="https://bit.ly/sage-adebayo" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <span className="hidden lg:block">Profile</span>
-              </Button>
+              <Link key={item.id} href={item.path}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "justify-start h-12 px-3 py-2 hover:bg-accent w-full transition-colors",
+                    isItemActive(item.path) &&
+                      "bg-accent border-l-4 border-blue-500 font-semibold"
+                  )}
+                >
+                  <Avatar className="w-6 h-6 mr-2">
+                    <AvatarImage src="https://bit.ly/sage-adebayo" />
+                    <AvatarFallback>JD</AvatarFallback>
+                  </Avatar>
+                  <span className="hidden lg:block">Profile</span>
+                </Button>
+              </Link>
             );
           }
 
@@ -175,11 +197,12 @@ export default function LeftSideBar() {
             <Button
               key={item.id}
               variant="ghost"
+              onClick={() => router.push(item.path)}
               className={cn(
-                "justify-start h-12 px-3 py-2 hover:bg-accent",
-                isActive === item.id && "bg-accent"
+                "justify-start h-12 px-3 py-2 hover:bg-accent w-full transition-colors",
+                isItemActive(item.path) &&
+                  "bg-accent border-l-4 border-blue-500 font-semibold"
               )}
-              onClick={() => setIsActive(item.id)}
             >
               <Icon className="w-6 h-6 mr-4" />
               <span className="hidden lg:block">{item.label}</span>

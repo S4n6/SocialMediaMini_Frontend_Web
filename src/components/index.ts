@@ -9,7 +9,7 @@ export { default as RightSideBar } from "./layout/RightSideBar";
 // Post Components
 export { PostCard } from "./post/PostCard";
 export { default as PostSection } from "./post/PostSection";
-export { default as ImageList } from "./post/ImageList";
+export { default as ImageList } from "./ui/image-list-custom";
 
 // Story Components
 export { default as StoryCard } from "./story/StoryCard";
