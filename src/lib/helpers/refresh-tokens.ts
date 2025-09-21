@@ -1,6 +1,4 @@
 import axios from "axios";
-import { TokenManager } from "@/lib/tokenManager";
-import { isTokenExpired } from "@/lib/utils/jwt";
 
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
@@ -13,26 +11,22 @@ export async function performTokenRefresh(): Promise<string | null> {
     try {
       const base =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:3107/api";
-      const resp = await axios.post(
+      await axios.post(
         `${base}/auth/refresh`,
         {},
         { withCredentials: true, timeout: 10000 }
       );
-      const data = resp.data.data || resp.data;
-      const newAccessToken = data.accessToken || data.access_token;
-      if (!newAccessToken)
-        throw new Error("No access token in refresh response");
 
-      await TokenManager.setToken(newAccessToken, {
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-      });
+      // With HTTP-only cookies, the token is automatically stored in cookies
+      // No need to manually store the access token
+      console.log("Token refresh successful via HTTP-only cookies");
 
-      return newAccessToken;
+      return "token-refreshed"; // Return a success indicator
     } catch (err) {
-      // Clear tokens but do NOT force a hard redirect here.
-      // Let the caller (e.g. app-level code or hooks) decide how to handle navigation.
-      await TokenManager.clearTokens();
+      // Clear any client-side token references
+      // The actual HTTP-only cookies will be cleared by the server
+      console.error("Token refresh failed:", err);
+
       // Preserve original error for upstream handling
       throw err instanceof Error ? err : new Error("Refresh failed");
     } finally {
@@ -46,11 +40,10 @@ export async function performTokenRefresh(): Promise<string | null> {
 
 export async function refreshTokenIfNeeded(): Promise<void> {
   try {
-    const token = await TokenManager.getToken();
-    if (!token) return;
-    if (isTokenExpired(token)) {
-      await performTokenRefresh();
-    }
+    // With HTTP-only cookies, we can't check token expiration client-side
+    // The server will handle token validation and refresh automatically
+    // This function can be simplified or removed in HTTP-only cookie implementation
+    console.log("Token management handled by HTTP-only cookies");
   } catch {
     console.warn("refreshTokenIfNeeded failed");
   }

@@ -6,7 +6,7 @@ import type {
   LoginFormData,
   RegisterFormData,
 } from "@/lib/validations/schemas";
-import { TokenManager } from "@/lib/tokenManager";
+import { useAuthContext } from "@/providers/AuthProvider";
 import { useRouter } from "next/navigation";
 
 export const authKeys = {
@@ -14,8 +14,12 @@ export const authKeys = {
   currentUser: () => [...authKeys.all, "currentUser"] as const,
 };
 
+/**
+ * Hook để get current user data
+ */
 export const useCurrentUser = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+
   return useQuery({
     queryKey: authKeys.currentUser(),
     queryFn: authService.getCurrentUser,
@@ -23,168 +27,256 @@ export const useCurrentUser = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: (failureCount, error: unknown) => {
       // Don't retry on 401 (auth errors)
-      if (
-        (error as { response?: { status?: number } })?.response?.status === 401
-      )
-        return false;
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 401) return false;
       return failureCount < 2;
     },
   });
 };
 
+/**
+ * Hook cho login functionality
+ * Chỉ thực hiện API call, KHÔNG redirect (middleware sẽ lo)
+ */
 export const useLogin = () => {
-  const router = useRouter();
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
+  const { refetchUser } = useAuthContext();
 
   return useMutation({
-    mutationFn: (credentials: LoginFormData) => {
+    mutationFn: async (credentials: LoginFormData) => {
       return authService.login(credentials);
     },
-    onSuccess: async (response) => {
-      console.log("Login response:", response);
 
+    onSuccess: async (response) => {
       if (
         "requiresEmailVerification" in response.data &&
         response.data.requiresEmailVerification
       ) {
-        console.log("Email verification required");
+        // Email verification case - không update auth state
         return;
       }
 
-      const { user, accessToken } = response.data;
-      console.log("Login successful:", user, accessToken);
+      if ("user" in response.data && response.data.user) {
+        // Login thành công - update state
+        dispatch(
+          loginSuccess({
+            user: response.data.user,
+            token: "http-only-cookie",
+          })
+        );
 
-      // Use TokenManager instead of direct localStorage
-      await TokenManager.setToken(accessToken);
+        // Refresh user data để đảm bảo state sync
+        await refetchUser();
 
-      // Update Redux state
-      dispatch(loginSuccess({ user, token: accessToken }));
+        // Invalidate queries
+        queryClient.invalidateQueries({ queryKey: authKeys.all });
 
-      // Invalidate and refetch user queries
-      queryClient.invalidateQueries({ queryKey: authKeys.all });
+        // Emit cross-tab sync event
+        window.dispatchEvent(
+          new CustomEvent("auth-sync", {
+            detail: { action: "login", user: response.data.user },
+          })
+        );
 
-      router.push("/");
+        // Trigger storage event for cross-tab sync
+        localStorage.setItem("auth-sync", Date.now().toString());
+        localStorage.removeItem("auth-sync");
+      }
     },
-    onError: (error: unknown) => {
-      console.error("Login error:", error);
+
+    onError: (error) => {
+      console.error("Login failed:", error);
     },
   });
 };
 
+/**
+ * Hook cho Google login functionality
+ */
 export const useGoogleLogin = () => {
-  const router = useRouter();
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
+  const { refetchUser } = useAuthContext();
 
   return useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       return authService.loginWithGoogle();
     },
+
     onSuccess: async (response) => {
-      console.log("Google login response:", response);
-
-      const { user, accessToken } = response;
-      console.log("Google login successful:", user, accessToken);
-
-      // Store token using TokenManager
-      TokenManager.setToken(accessToken);
+      const { user } = response;
 
       // Update Redux state
-      dispatch(loginSuccess({ user, token: accessToken }));
+      dispatch(
+        loginSuccess({
+          user,
+          token: "http-only-cookie",
+        })
+      );
 
-      // Invalidate and refetch user queries
+      // Refresh user data
+      await refetchUser();
       queryClient.invalidateQueries({ queryKey: authKeys.all });
 
-      // Redirect to home page
-      router.push("/");
+      // Cross-tab sync
+      window.dispatchEvent(
+        new CustomEvent("auth-sync", {
+          detail: { action: "login", user },
+        })
+      );
+
+      localStorage.setItem("auth-sync", Date.now().toString());
+      localStorage.removeItem("auth-sync");
     },
+
     onError: (error) => {
       console.error("Google login failed:", error);
-      // You can add toast notification here
     },
   });
 };
 
+/**
+ * Hook cho register functionality
+ */
 export const useRegister = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userData: RegisterFormData) => {
+    mutationFn: async (userData: RegisterFormData) => {
       return authService.register(userData);
     },
-    onSuccess: (data) => {
-      console.log("Registration response:", data);
+
+    onSuccess: () => {
+      // Registration thành công nhưng chưa verify email
+      // Không cần update auth state
       queryClient.invalidateQueries({ queryKey: authKeys.all });
-      if (data.data.requiresEmailVerification) {
-        window.location.href = "/login";
-      }
     },
-    onError: (error: unknown) => {
-      console.error("Registration error:", error);
+
+    onError: (error) => {
+      console.error("Registration failed:", error);
     },
   });
 };
 
+/**
+ * Hook cho logout functionality
+ */
 export const useLogout = () => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
-    mutationFn: authService.logout,
-    onSuccess: async () => {
-      await TokenManager.clearTokens();
-      dispatch(logout());
-      queryClient.clear();
-      window.location.href = "/login";
+    mutationFn: async () => {
+      return authService.logout();
     },
-    onError: async () => {
-      await TokenManager.clearTokens();
+
+    onSuccess: () => {
+      // Clear Redux state
+      dispatch(logout());
+
+      // Clear React Query cache
+      queryClient.clear();
+
+      // Emit cross-tab sync event
+      window.dispatchEvent(
+        new CustomEvent("auth-sync", {
+          detail: { action: "logout" },
+        })
+      );
+
+      // Trigger storage event for cross-tab sync
+      localStorage.setItem("auth-sync", Date.now().toString());
+      localStorage.removeItem("auth-sync");
+
+      // Middleware sẽ tự động redirect khi detect user đã logout
+      router.push("/login");
+    },
+
+    onError: (error) => {
+      console.error("Logout failed:", error);
+      // Vẫn clear local state ngay cả khi API call fail
       dispatch(logout());
       queryClient.clear();
-      window.location.href = "/login";
     },
   });
 };
 
-export const useVerifyEmail = () => {
-  return useMutation({
-    mutationFn: ({ token, password }: { token: string; password: string }) =>
-      authService.verifyEmail(token, password),
-  });
-};
-
+/**
+ * Hook cho forgot password
+ */
 export const useForgotPassword = () => {
   return useMutation({
-    mutationFn: (email: string) => authService.forgotPassword(email),
+    mutationFn: async (email: string) => {
+      return authService.forgotPassword(email);
+    },
+
+    onError: (error) => {
+      console.error("Forgot password failed:", error);
+    },
   });
 };
 
+/**
+ * Hook cho reset password
+ */
 export const useResetPassword = () => {
   return useMutation({
-    mutationFn: ({
-      token,
-      newPassword,
-      confirmPassword,
-    }: {
+    mutationFn: async (data: {
       token: string;
       newPassword: string;
       confirmPassword: string;
-    }) => authService.resetPassword(token, newPassword, confirmPassword),
+    }) => {
+      return authService.resetPassword(
+        data.token,
+        data.newPassword,
+        data.confirmPassword
+      );
+    },
+
+    onError: (error) => {
+      console.error("Reset password failed:", error);
+    },
   });
 };
 
-export const useResendVerificationEmail = () => {
+/**
+ * Hook cho verify email
+ */
+export const useVerifyEmail = () => {
   const queryClient = useQueryClient();
+  const { refetchUser } = useAuthContext();
 
   return useMutation({
-    mutationFn: (email: string) => authService.resendVerification(email),
-    onSuccess: (response) => {
-      console.log("Resend verification response:", response);
+    mutationFn: async (data: { token: string; password: string }) => {
+      return authService.verifyEmail(data.token, data.password);
+    },
+
+    onSuccess: async () => {
+      // Email verified thành công - có thể auto login
+      // Refetch user để update state
+      await refetchUser();
       queryClient.invalidateQueries({ queryKey: authKeys.all });
     },
+
     onError: (error) => {
-      console.error("Resend verification error:", error);
+      console.error("Email verification failed:", error);
+    },
+  });
+};
+
+/**
+ * Hook để resend verification email
+ */
+export const useResendVerification = () => {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      return authService.resendVerification(email);
+    },
+
+    onError: (error) => {
+      console.error("Resend verification failed:", error);
     },
   });
 };

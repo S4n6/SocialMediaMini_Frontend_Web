@@ -1,33 +1,29 @@
 "use client";
+
 import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { store, persistor } from "@/store";
+import { AuthProvider } from "@/providers/AuthProvider";
 import { ClientThemeProvider } from "@/providers/ClientThemeProvider";
-import { store } from "@/store";
 import { queryClient } from "@/lib/react-query/queryClient";
-import { Toaster } from "sonner";
+import { Loading } from "@/components";
 
-interface ProvidersProps {
-  children: React.ReactNode;
-}
-
-export function Providers({ children }: ProvidersProps) {
+export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <ClientThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster richColors />
-          {process.env.NODE_ENV === "development" && (
-            <ReactQueryDevtools initialIsOpen={false} />
-          )}
-        </ClientThemeProvider>
-      </QueryClientProvider>
+      <PersistGate
+        loading={<Loading text="Loading..." />}
+        persistor={persistor}
+      >
+        <QueryClientProvider client={queryClient}>
+          <ClientThemeProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </ClientThemeProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </PersistGate>
     </Provider>
   );
 }

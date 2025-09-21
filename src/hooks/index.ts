@@ -1,4 +1,3 @@
-export { useLocalStorage } from "./useLocalStorage";
 export { useAppDispatch, useAppSelector } from "./redux";
 export {
   useCurrentUser,

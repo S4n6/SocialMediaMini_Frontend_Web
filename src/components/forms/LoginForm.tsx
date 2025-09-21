@@ -16,8 +16,10 @@ import ForgotPasswordModal from "../forgot-password";
 import { useForgotPassword } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { ThemeToggle } from "../ui/theme-toggle";
+import { useRouter } from "next/navigation";
 
 export function LoginForm() {
+  const router = useRouter();
   const [isResendEmail, setIsResendEmail] = React.useState(false);
   const [isDisabledResendEmail, setIsDisabledResendEmail] =
     React.useState(false);
@@ -32,7 +34,7 @@ export function LoginForm() {
     mode: "onChange",
   });
 
-  const { mutate: loginUser, isPending } = useLogin();
+  const { mutate: loginUser, isPending: isLoginPending } = useLogin();
 
   const { mutate: loginWithGoogle, isPending: isGoogleLoginPending } =
     useGoogleLogin();
@@ -83,6 +85,11 @@ export function LoginForm() {
           );
           return;
         }
+
+        toast.success("Login successful! Redirecting...");
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
       },
       onError: (error) => {
         // Try to detect HTTP status from common error shapes (Axios, fetch wrappers, etc.)
@@ -93,7 +100,8 @@ export function LoginForm() {
             status?: number;
             statusCode?: number;
           };
-          status = errObj.response?.status ?? errObj.status ?? errObj.statusCode;
+          status =
+            errObj.response?.status ?? errObj.status ?? errObj.statusCode;
         }
 
         if (status === 401) {
@@ -200,9 +208,9 @@ export function LoginForm() {
                 type="submit"
                 className="w-full bg-[#EA454C] hover:bg-[#d63384] active:bg-[#b02a37] rounded-xl text-white text-sm shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                 size="lg"
-                disabled={isPending || isSubmitting}
+                disabled={isLoginPending || isSubmitting}
               >
-                {isPending || isSubmitting ? "Signing in..." : "Sign In"}
+                {isLoginPending || isSubmitting ? "Signing in..." : "Sign In"}
               </Button>
 
               <Button

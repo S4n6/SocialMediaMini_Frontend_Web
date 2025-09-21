@@ -1,6 +1,10 @@
 // Layout Components
 export { default as LeftSideBar } from "./layout/LeftSideBar";
 export { default as RightSideBar } from "./layout/RightSideBar";
+export { Footer } from "./layout/Footer";
+
+// UI Components
+export { Loading, LoadingSkeleton, PageLoading } from "./ui/loading";
 
 // Form Components
 // export { default as LoginForm } from "./forms/LoginForm";
@@ -19,4 +23,4 @@ export { StoriesSection } from "./story/StoriesSection";
 export { ConditionalLayout } from "./ConditionalLayout";
 
 // Providers
-export { Providers } from "../providers/Providers";
+export { default as Providers } from "../providers/Providers";

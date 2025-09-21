@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { ThemeToggle } from "../ui/theme-toggle";
 import { FiLogOut } from "react-icons/fi";
 import { useLogout } from "@/hooks";
+import { Loading } from "@/components/ui/loading";
 
 const mockUserSearchResults = [
   {
@@ -64,7 +65,10 @@ export default function LeftSideBar() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [isLogoutPopoverOpen, setIsLogoutPopoverOpen] = React.useState(false);
-  const { mutate: logout } = useLogout();
+  const {
+    mutate: logout,
+    isPending: isLoggingOut,
+  } = useLogout();
   const router = useRouter();
 
   // Function to check if a menu item is active based on current path
@@ -73,6 +77,16 @@ export default function LeftSideBar() {
       return pathname === "/";
     }
     return pathname.startsWith(itemPath);
+  };
+
+  const handleLogout = () => {
+    try {
+      setIsLogoutPopoverOpen(false);
+      logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+      setIsLogoutPopoverOpen(true);
+    }
   };
 
   return (
@@ -240,16 +254,18 @@ export default function LeftSideBar() {
                     Hủy
                   </Button>
                   <Button
-                    className="flex-1 bg-destructive text-white"
-                    onClick={() => {
-                      try {
-                        logout();
-                      } finally {
-                        setIsLogoutPopoverOpen(false);
-                      }
-                    }}
+                    className="flex-1 text-white"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
                   >
-                    Đăng xuất
+                    {isLoggingOut ? (
+                      <div className="flex items-center gap-2">
+                        <Loading size="sm" variant="spinner" />
+                        Đang xử lý...
+                      </div>
+                    ) : (
+                      "Đăng xuất"
+                    )}
                   </Button>
                 </div>
               </div>

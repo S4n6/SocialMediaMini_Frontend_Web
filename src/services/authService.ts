@@ -163,6 +163,7 @@ export const authService = {
   refreshToken: async (): Promise<ApiResponse<{ token: string }>> => {
     const response = await api.post("/auth/refresh", undefined, {
       headers: { "x-skip-refresh": "1" },
+      withCredentials: true, // Ensure cookies are sent
     });
     return response.data;
   },

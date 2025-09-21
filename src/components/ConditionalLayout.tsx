@@ -21,9 +21,15 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
     "/verify-email",
     "/reset-password",
   ];
-  const isAuthPage = authPages.some((route) => pathname.startsWith(route));
-  // Always render the same DOM structure to avoid hydration mismatches.
-  // Visually hide or center elements via classes instead of removing them from the tree.
+  const isAuthPage = authPages.some((route) => pathname.includes(route));
+  if (isAuthPage) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center">
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div
       className={`min-h-screen transition-all duration-300 flex w-full ${

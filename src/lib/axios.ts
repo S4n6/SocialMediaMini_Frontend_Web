@@ -3,11 +3,7 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
 } from "axios";
-import { TokenManager } from "./tokenManager";
-import {
-  performTokenRefresh,
-  refreshTokenIfNeeded,
-} from "@/lib/helpers/refresh-tokens";
+import { performTokenRefresh } from "@/lib/helpers/refresh-tokens";
 
 /**
  * Extended Axios Request Config with metadata
@@ -56,7 +52,9 @@ export const api = axios.create({
   timeout: 30000, // 30 seconds for social media uploads
   headers: {
     "Content-Type": "application/json",
+    "x-client-type": "web",
   },
+  withCredentials: true, // Important: Include cookies in requests
 });
 
 const PUBLIC_ENDPOINTS = [
@@ -79,30 +77,10 @@ function isPublicRequest(url?: string) {
 }
 
 /**
- * Request Interceptor - Add auth token and handle common request logic
+ * Request Interceptor - Add common request logic (no manual token handling needed)
  */
 api.interceptors.request.use(
   async (config: ExtendedAxiosRequestConfig) => {
-    const url = config.url ?? "";
-    const headers = config.headers as Record<string, unknown> | undefined;
-    const skipRefreshHeader =
-      headers && (headers["x-skip-refresh"] || headers["X-Skip-Refresh"]);
-
-    // Proactive token refresh check (skip for public endpoints or when explicitly requested)
-    if (!skipRefreshHeader && !isPublicRequest(url)) {
-      await refreshTokenIfNeeded();
-    }
-
-    // Add authentication token (TokenManager methods are async)
-    try {
-      const token = await TokenManager.getToken();
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch {
-      // ignore token retrieval errors - proceed without auth header
-    }
-
     // Add request timestamp for debugging
     config.metadata = { startTime: Date.now() };
 
@@ -153,39 +131,27 @@ api.interceptors.response.use(
     if (error.response) {
       const { status, data } = error.response;
 
-      // Token expired - attempt refresh (skip for public requests or when header present)
+      // Token expired - attempt refresh
       if (status === 401 && !originalRequest._retry) {
         const reqUrl = originalRequest.url ?? "";
-        const reqHeaders = originalRequest.headers as
-          | Record<string, unknown>
-          | undefined;
-        const skipRefreshHeader =
-          reqHeaders &&
-          (reqHeaders["x-skip-refresh"] || reqHeaders["X-Skip-Refresh"]);
         const publicReq = isPublicRequest(reqUrl);
 
-        if (!skipRefreshHeader && !publicReq) {
+        if (!publicReq) {
           originalRequest._retry = true;
 
           try {
-            // Use centralized refresh logic to prevent race conditions
-            const newAccessToken = await performTokenRefresh();
+            await performTokenRefresh();
 
-            if (newAccessToken && originalRequest.headers) {
-              // Update the failed request with new token
-              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
-              // Retry the original request
-              console.log("Retrying request with new token");
-              return api(originalRequest);
-            }
+            console.log("Retrying request after token refresh");
+            return api(originalRequest);
           } catch (refreshError) {
-            // Refresh failed, performTokenRefresh handles token clearing; bubble up
             console.error("Token refresh failed");
+            if (typeof window !== "undefined") {
+              window.location.href = "/login";
+            }
             return Promise.reject(refreshError);
           }
         }
-        // If we reach here it was a public request or explicitly skipped - do not attempt refresh
       }
 
       // Forbidden - show error message
