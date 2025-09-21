@@ -27,7 +27,8 @@ export const useCurrentUser = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: (failureCount, error: unknown) => {
       // Don't retry on 401 (auth errors)
-      const status = (error as { response?: { status?: number } })?.response?.status;
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
       if (status === 401) return false;
       return failureCount < 2;
     },

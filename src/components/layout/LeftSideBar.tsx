@@ -65,10 +65,7 @@ export default function LeftSideBar() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [isLogoutPopoverOpen, setIsLogoutPopoverOpen] = React.useState(false);
-  const {
-    mutate: logout,
-    isPending: isLoggingOut,
-  } = useLogout();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const router = useRouter();
 
   // Function to check if a menu item is active based on current path

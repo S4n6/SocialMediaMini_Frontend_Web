@@ -84,12 +84,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         error instanceof Error ? error.message : "Authentication failed";
       setError(errorMessage);
 
-      if ((error as { response?: { status?: number } })?.response?.status === 401) {
+      if (
+        (error as { response?: { status?: number } })?.response?.status === 401
+      ) {
         dispatch(logout());
       }
     }
   }, [dispatch]);
-
 
   const initializeAuth = useCallback(async () => {
     if (hasInitialized.current) return;
