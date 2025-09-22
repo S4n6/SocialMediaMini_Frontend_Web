@@ -202,8 +202,8 @@ export default function EditProfilePage() {
                         className="w-full"
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        In most cases, you&#39;ll be able to change your username
-                        back to uprox_ for another 14 days.
+                        In most cases, you&#39;ll be able to change your
+                        username back to uprox_ for another 14 days.
                         <button className="text-blue-500 hover:underline ml-1">
                           Learn more
                         </button>
@@ -268,8 +268,8 @@ export default function EditProfilePage() {
                     </h3>
                     <p className="text-xs text-gray-500">
                       Provide your personal information, even if the account is
-                      used for a business, a pet or something else. This won&#39;t
-                      be a part of your public profile.
+                      used for a business, a pet or something else. This
+                      won&#39;t be a part of your public profile.
                     </p>
                   </div>
 
