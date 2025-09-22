@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     domains: [
       "buffer.com",
       "bit.ly",
+      "picsum.photos",
       "images.unsplash.com",
       "randomuser.me",
       "media.vov.vn",

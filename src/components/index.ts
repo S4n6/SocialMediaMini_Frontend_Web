@@ -1,6 +1,7 @@
 // Layout Components
 export { default as LeftSideBar } from "./layout/LeftSideBar";
 export { default as RightSideBar } from "./layout/RightSideBar";
+export { default as SearchDrawer } from "./layout/SearchDrawer";
 export { Footer } from "./layout/Footer";
 
 // UI Components
