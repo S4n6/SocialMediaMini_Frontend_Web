@@ -14,15 +14,19 @@ interface ConditionalLayoutProps {
 export function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
 
-  const authPages = [
+  const publicPages = [
     "/login",
     "/signup",
     "/register",
     "/verify-email",
     "/reset-password",
+    "/forgot-password",
+    "/not-found",
+    "/404",
+    "/500",
   ];
-  const isAuthPage = authPages.some((route) => pathname.includes(route));
-  if (isAuthPage) {
+  const isPublicPage = publicPages.some((route) => pathname.includes(route));
+  if (isPublicPage) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         {children}
@@ -33,12 +37,10 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
   return (
     <div
       className={`min-h-screen transition-all duration-300 flex w-full ${
-        isAuthPage ? "items-center justify-center" : ""
+        isPublicPage ? "items-center justify-center" : ""
       }`}
     >
-      <div
-        className={`${isAuthPage ? "none" : "block"} bg-background w-[280px]`}
-      >
+      <div className={`${isPublicPage ? "none" : "block"} w-[280px]`}>
         <LeftSideBar />
       </div>
       <div className="w-full">{children}</div>

@@ -77,9 +77,9 @@ export default function SearchDrawer({
       <div
         ref={drawerRef}
         className={cn(
-          "fixed top-0 left-0 bg-background h-screen z-20 border-r border-gray-200 w-96 transition-all duration-300 ease-in-out overflow-y-auto",
+          "fixed top-0 left-0 h-screen z-20 border-r border-gray-200 w-96 transition-all duration-300 ease-in-out overflow-y-auto",
           isOpen
-            ? "translate-x-0 opacity-100"
+            ? "translate-x-0 opacity-100 bg-[var(--color-background)]"
             : "-translate-x-full opacity-0 pointer-events-none"
         )}
         style={{
@@ -89,7 +89,7 @@ export default function SearchDrawer({
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Tìm kiếm</h2>
+            <h2 className="text-2xl font-bold">Search</h2>
             <Button
               variant="ghost"
               size="sm"
@@ -104,7 +104,7 @@ export default function SearchDrawer({
           <div className="relative mb-6">
             <LuSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Tìm kiếm"
+              placeholder="Search"
               className="pl-10 rounded-lg border py-2"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -126,12 +126,12 @@ export default function SearchDrawer({
           {/* Recent Searches */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-semibold">Mới đây</h3>
+              <h3 className="text-base font-semibold">Recent</h3>
               <Button
                 variant="ghost"
                 className="text-blue-500 text-sm p-0 h-auto"
               >
-                Xóa tất cả
+                Clear all
               </Button>
             </div>
 

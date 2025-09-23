@@ -60,8 +60,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   ].some((path) => pathname.startsWith(path));
 
   /**
-   * Fetch user data từ server và update Redux state
-   * Chỉ quản lý state, KHÔNG redirect
+   * Fetch user data from the server and update Redux state
+   * Only manage state here; DO NOT perform redirects
    */
   const fetchUserData = useCallback(async () => {
     try {
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const initializeAuth = useCallback(async () => {
     if (hasInitialized.current) return;
 
-    // Trên auth pages, chỉ set loading = false, không fetch user
+    // On auth pages, only set loading = false and do not fetch user
     if (isAuthPage) {
       setIsLoading(false);
       hasInitialized.current = true;

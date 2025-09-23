@@ -106,17 +106,17 @@ export function LoginForm() {
 
         if (status === 401) {
           // 401 -> incorrect credentials
-          toast.error("Thông tin đăng nhập không chính xác.");
+          toast.error("Incorrect login credentials.");
           return;
         }
 
         if (typeof error === "object" && error !== null && "message" in error) {
           const msg = (error as { message?: string }).message;
-          toast.error((msg ?? "") + " khi đăng nhập.");
+          toast.error((msg ?? "") + " when logging in.");
           return;
         }
 
-        toast.error("Đã xảy ra lỗi khi đăng nhập.");
+        toast.error("An error occurred while logging in.");
       },
     });
   };
@@ -125,7 +125,6 @@ export function LoginForm() {
     <div className="w-[1080px] h-[650px] flex">
       {/* Left side */}
       <div className="w-1/2 flex justify-center items-center flex-col">
-        <ThemeToggle />
         <div className="flex flex-col w-full justify-center items-center mt-16">
           <h1 className="text-2xl mb-4 font-bold">SOCIAL MEDIA ST</h1>
           <p className="text-sm mb-4 text-muted-foreground">

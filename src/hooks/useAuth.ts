@@ -15,7 +15,7 @@ export const authKeys = {
 };
 
 /**
- * Hook để get current user data
+ * Hook to get current user data
  */
 export const useCurrentUser = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -36,8 +36,8 @@ export const useCurrentUser = () => {
 };
 
 /**
- * Hook cho login functionality
- * Chỉ thực hiện API call, KHÔNG redirect (middleware sẽ lo)
+ * Hook for login functionality
+ * Only perform API calls here; DO NOT redirect (middleware handles redirects)
  */
 export const useLogin = () => {
   const dispatch = useAppDispatch();
@@ -54,12 +54,12 @@ export const useLogin = () => {
         "requiresEmailVerification" in response.data &&
         response.data.requiresEmailVerification
       ) {
-        // Email verification case - không update auth state
+        // Email verification case - do not update auth state
         return;
       }
 
       if ("user" in response.data && response.data.user) {
-        // Login thành công - update state
+        // Login successful - update state
         dispatch(
           loginSuccess({
             user: response.data.user,
@@ -67,7 +67,7 @@ export const useLogin = () => {
           })
         );
 
-        // Refresh user data để đảm bảo state sync
+        // Refresh user data to ensure state sync
         await refetchUser();
 
         // Invalidate queries
@@ -149,8 +149,8 @@ export const useRegister = () => {
     },
 
     onSuccess: () => {
-      // Registration thành công nhưng chưa verify email
-      // Không cần update auth state
+      // Registration succeeded but email not yet verified
+      // No need to update auth state here
       queryClient.invalidateQueries({ queryKey: authKeys.all });
     },
 
@@ -161,7 +161,7 @@ export const useRegister = () => {
 };
 
 /**
- * Hook cho logout functionality
+ * Hook for logout functionality
  */
 export const useLogout = () => {
   const dispatch = useAppDispatch();
@@ -191,7 +191,7 @@ export const useLogout = () => {
       localStorage.setItem("auth-sync", Date.now().toString());
       localStorage.removeItem("auth-sync");
 
-      // Middleware sẽ tự động redirect khi detect user đã logout
+      // Middleware will automatically redirect when it detects the user logged out
       router.push("/login");
     },
 

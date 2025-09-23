@@ -49,7 +49,7 @@ export default function PostSection({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full space-x-4">
       {posts.map((post) => (
         <PostCard
           key={post.id}

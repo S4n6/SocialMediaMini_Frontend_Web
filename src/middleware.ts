@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
   );
 
   const authToken =
-    request.cookies.get("access_token") || request.cookies.get("refresh_token");
+    request.cookies.get("access_token") && request.cookies.get("refresh_token");
   const isAuthenticated = Boolean(authToken?.value);
 
   if (!isAuthenticated && !isPublicPath) {

@@ -19,7 +19,7 @@ export default function FeedLoading() {
       ))}
 
       <div className="text-center">
-        <Loading variant="spinner" text="Đang tải bài viết..." />
+        <Loading variant="spinner" text="Loading posts..." />
       </div>
     </div>
   );

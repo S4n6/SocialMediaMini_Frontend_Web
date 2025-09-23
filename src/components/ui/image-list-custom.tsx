@@ -55,7 +55,7 @@ export default function ImageList({
     const container = carouselRef.current;
     const containerWidth = container.clientWidth;
     const gap = 8; // gap-2 = 8px
-    const itemWidth = containerWidth - gap; // Đầy đủ một item minus gap
+    const itemWidth = containerWidth - gap; // Full item width minus gap
 
     if (direction === "left") {
       container.scrollBy({ left: -(itemWidth + gap), behavior: "smooth" });

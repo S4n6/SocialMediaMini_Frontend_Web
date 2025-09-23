@@ -6,15 +6,15 @@ export function Footer() {
           {/* Navigation Links */}
           <div className="flex flex-wrap justify-center gap-2 text-sm text-muted-foreground">
             <a href="#" className="hover:text-foreground transition-colors">
-              Giới thiệu
+              About
             </a>
             <span>·</span>
             <a href="#" className="hover:text-foreground transition-colors">
-              Trợ giúp
+              Help
             </a>
             <span>·</span>
             <a href="#" className="hover:text-foreground transition-colors">
-              Báo chí
+              Press
             </a>
             <span>·</span>
             <a href="#" className="hover:text-foreground transition-colors">
@@ -22,29 +22,29 @@ export function Footer() {
             </a>
             <span>·</span>
             <a href="#" className="hover:text-foreground transition-colors">
-              Việc làm
+              Jobs
             </a>
           </div>
 
           <div className="flex flex-wrap justify-center gap-2 text-sm text-muted-foreground">
             <a href="#" className="hover:text-foreground transition-colors">
-              Quyền riêng tư
+              Privacy
             </a>
             <span>·</span>
             <a href="#" className="hover:text-foreground transition-colors">
-              Điều khoản
+              Terms
             </a>
             <span>·</span>
             <a href="#" className="hover:text-foreground transition-colors">
-              Vị trí
+              Location
             </a>
             <span>·</span>
             <a href="#" className="hover:text-foreground transition-colors">
-              Ngôn ngữ
+              Language
             </a>
             <span>·</span>
             <a href="#" className="hover:text-foreground transition-colors">
-              Meta với xác minh
+              Meta Verified
             </a>
           </div>
 

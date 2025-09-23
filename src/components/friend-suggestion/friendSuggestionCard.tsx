@@ -22,7 +22,7 @@ export default function FriendSuggestionCard({
           </span>
         </div>
       </div>
-      <Button variant="outline" size="sm" className="p-0">
+      <Button variant="ghost" size="sm" className="p-0">
         Follow
       </Button>
     </div>
