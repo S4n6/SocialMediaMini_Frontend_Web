@@ -132,7 +132,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         <ProfileInfo
           avatarUrl={mockProfileData.avatarUrl}
           avatarAlt={mockProfileData.displayName}
-          avatarFallback="MK"
           stats={mockProfileData.stats}
           displayName={mockProfileData.displayName}
           bio={mockProfileData.bio}

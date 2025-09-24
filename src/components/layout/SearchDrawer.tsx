@@ -40,6 +40,19 @@ export default function SearchDrawer({
   const [searchQuery, setSearchQuery] = React.useState("");
   const router = useRouter();
   const drawerRef = React.useRef<HTMLDivElement>(null);
+  const [recentSearches, setRecentSearches] = React.useState<
+    typeof mockUserSearchResults
+  >(mockUserSearchResults);
+
+  const handleRemoteRecentSearch = (username: string) => {
+    setRecentSearches((prev) =>
+      prev.filter((user) => user.username !== username)
+    );
+  };
+
+  const handleClearAllRecentSearches = () => {
+    setRecentSearches([]);
+  };
 
   // Handle click outside to close drawer
   React.useEffect(() => {
@@ -130,13 +143,14 @@ export default function SearchDrawer({
               <Button
                 variant="ghost"
                 className="text-blue-500 text-sm p-0 h-auto"
+                onClick={handleClearAllRecentSearches}
               >
                 Clear all
               </Button>
             </div>
 
             <div className="space-y-1">
-              {mockUserSearchResults.map((user, index) => (
+              {recentSearches.map((user, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer group"
@@ -160,7 +174,7 @@ export default function SearchDrawer({
                     className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 p-0"
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log("Remove from recent");
+                      handleRemoteRecentSearch(user.username);
                     }}
                   >
                     <IoClose className="w-4 h-4" />

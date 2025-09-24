@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,48 +13,80 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { useUpdateUser } from "@/hooks/useUser";
+import { toast } from "sonner";
+
+const sidebarItems = [
+  { id: "edit-profile", label: "Edit profile", active: true },
+  { id: "professional", label: "Professional account", active: false },
+  { id: "change-password", label: "Change password", active: false },
+  { id: "apps-websites", label: "Apps and websites", active: false },
+  { id: "email-notifications", label: "Email notifications", active: false },
+  { id: "push-notifications", label: "Push notifications", active: false },
+  { id: "manage-contacts", label: "Manage contacts", active: false },
+  { id: "privacy-security", label: "Privacy and security", active: false },
+  { id: "ads", label: "Ads", active: false },
+  { id: "supervision", label: "Supervision", active: false },
+  { id: "login-activity", label: "Login activity", active: false },
+  { id: "emails-instagram", label: "Emails from Instagram", active: false },
+  { id: "help", label: "Help", active: false },
+];
 
 export default function EditProfilePage() {
+  const user = useSelector((state: RootState) => state.auth.user);
   const [activeTab, setActiveTab] = useState("edit-profile");
   const [formData, setFormData] = useState({
-    name: "Uprox",
-    username: "uprox_",
-    website: "",
-    bio: "",
-    email: "",
-    phone: "+91 971",
-    gender: "prefer-not-to-say",
-    showSimilarAccounts: true,
+    fullName: user?.fullName || "",
+    userName: user?.userName || "",
+    websiteUrl: user?.websiteUrl || "",
+    bio: user?.bio || "",
+    email: user?.email || "",
+    phoneNumber: user?.phoneNumber || "+91 971",
+    gender: user?.gender || "prefer-not-to-say",
   });
 
-  const sidebarItems = [
-    { id: "edit-profile", label: "Edit profile", active: true },
-    { id: "professional", label: "Professional account", active: false },
-    { id: "change-password", label: "Change password", active: false },
-    { id: "apps-websites", label: "Apps and websites", active: false },
-    { id: "email-notifications", label: "Email notifications", active: false },
-    { id: "push-notifications", label: "Push notifications", active: false },
-    { id: "manage-contacts", label: "Manage contacts", active: false },
-    { id: "privacy-security", label: "Privacy and security", active: false },
-    { id: "ads", label: "Ads", active: false },
-    { id: "supervision", label: "Supervision", active: false },
-    { id: "login-activity", label: "Login activity", active: false },
-    { id: "emails-instagram", label: "Emails from Instagram", active: false },
-    { id: "help", label: "Help", active: false },
-  ];
+  const { mutate: updateProfile, isPending } = useUpdateUser();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = () => {
-    console.log("Form submitted:", formData);
+    const payload = { ...formData };
+    updateProfile(payload, {
+      onSuccess: () => {
+        toast.success("Profile updated successfully!");
+      },
+      onError: (error) => {
+        toast.error(
+          typeof error === "object" && error !== null && "message" in error
+            ? (error as { message?: string }).message +
+                " when updating profile."
+            : "An error occurred while updating profile."
+        );
+      },
+    });
   };
 
   const handleDeactivate = () => {
     console.log("Temporarily deactivate account");
   };
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        fullName: user?.fullName || "",
+        userName: user?.userName || "",
+        websiteUrl: user?.websiteUrl || "",
+        bio: user?.bio || "",
+        email: user?.email || "",
+        phoneNumber: user?.phoneNumber || "+91 971",
+        gender: user?.gender || "prefer-not-to-say",
+      });
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen w-full flex justify-center my-4">
@@ -167,9 +199,9 @@ export default function EditProfilePage() {
                     <div className="col-span-2">
                       <Input
                         id="name"
-                        value={formData.name}
+                        value={formData.fullName}
                         onChange={(e) =>
-                          handleInputChange("name", e.target.value)
+                          handleInputChange("fullName", e.target.value)
                         }
                         className="w-full"
                       />
@@ -195,9 +227,9 @@ export default function EditProfilePage() {
                     <div className="col-span-2">
                       <Input
                         id="username"
-                        value={formData.username}
+                        value={formData.userName}
                         onChange={(e) =>
-                          handleInputChange("username", e.target.value)
+                          handleInputChange("userName", e.target.value)
                         }
                         className="w-full"
                       />
@@ -223,9 +255,9 @@ export default function EditProfilePage() {
                       <Input
                         id="website"
                         placeholder="Website"
-                        value={formData.website}
+                        value={formData.websiteUrl}
                         onChange={(e) =>
-                          handleInputChange("website", e.target.value)
+                          handleInputChange("websiteUrl", e.target.value)
                         }
                         className="w-full"
                       />
@@ -300,9 +332,9 @@ export default function EditProfilePage() {
                     <div className="col-span-2">
                       <Input
                         id="phone"
-                        value={formData.phone}
+                        value={formData.phoneNumber}
                         onChange={(e) =>
-                          handleInputChange("phone", e.target.value)
+                          handleInputChange("phoneNumber", e.target.value)
                         }
                         className="w-full"
                       />
@@ -314,7 +346,7 @@ export default function EditProfilePage() {
                     <Label htmlFor="gender" className="text-right font-medium">
                       Gender
                     </Label>
-                    <div className="col-span-2">
+                    <div className="col-span-2 ">
                       <Select
                         value={formData.gender}
                         onValueChange={(value) =>
@@ -324,7 +356,7 @@ export default function EditProfilePage() {
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-gray-200">
                           <SelectItem value="prefer-not-to-say">
                             Prefer not to say
                           </SelectItem>
@@ -336,31 +368,7 @@ export default function EditProfilePage() {
                     </div>
                   </div>
 
-                  {/* Show account suggestions */}
-                  <div className="grid grid-cols-3 gap-4 items-start">
-                    <Label className="pt-2 font-medium">
-                      Show account suggestions on profiles
-                    </Label>
-                    <div className="col-span-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="suggestions"
-                          checked={formData.showSimilarAccounts}
-                          onCheckedChange={(checked) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              showSimilarAccounts: checked as boolean,
-                            }))
-                          }
-                        />
-                        <Label htmlFor="suggestions" className="text-sm">
-                          Choose whether people can see similar account
-                          suggestions on your profile, and whether your account
-                          can be suggested on other profiles.
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
+                  {/* removed: show account suggestions */}
 
                   {/* Submit Button */}
                   <div className="grid grid-cols-3 gap-4 pt-6">
@@ -369,8 +377,9 @@ export default function EditProfilePage() {
                       <Button
                         onClick={handleSubmit}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2"
+                        disabled={isPending}
                       >
-                        Submit
+                        {isPending ? "Updating..." : "Submit"}
                       </Button>
                     </div>
                   </div>

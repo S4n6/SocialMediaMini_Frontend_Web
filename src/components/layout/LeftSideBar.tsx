@@ -1,6 +1,7 @@
 ﻿import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { GoHome, GoHomeFill } from "react-icons/go";
+import type { IconType } from "react-icons";
 import { IoSearchOutline, IoSearch } from "react-icons/io5";
 import { MdOutlineExplore, MdExplore } from "react-icons/md";
 import { TfiVideoClapper } from "react-icons/tfi";
@@ -22,8 +23,18 @@ import { cn } from "@/lib/utils";
 import { ThemeToggle } from "../ui/theme-toggle";
 import { useLogout } from "@/hooks";
 import SearchDrawer from "./SearchDrawer";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
-const menuItems = [
+type MenuItem = {
+  icon: IconType;
+  filledIcon?: IconType;
+  label: string;
+  id: number;
+  path?: string;
+};
+
+const menuItems: MenuItem[] = [
   { icon: GoHome, filledIcon: GoHomeFill, label: "Home", id: 0, path: "/" },
   {
     icon: IoSearchOutline,
@@ -70,6 +81,7 @@ export default function LeftSideBar() {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const router = useRouter();
+  const user = useSelector((state: RootState) => state.auth.user);
 
   const isItemActive = (itemPath?: string) => {
     if (!itemPath) return false;
@@ -131,11 +143,8 @@ export default function LeftSideBar() {
           {menuItems.map((item) => {
             const active = isItemActive(item.path);
             // Prefer filledIcon when active (if provided)
-            // @ts-ignore - dynamic icon component
             const Icon =
-              active && (item as any).filledIcon
-                ? (item as any).filledIcon
-                : item.icon;
+              active && item.filledIcon ? item.filledIcon : item.icon;
 
             if (item.label === "Search") {
               return (
@@ -276,8 +285,8 @@ export default function LeftSideBar() {
             onClick={() => router.push("/profile/me")}
           >
             <Avatar className={cn("w-6 h-6", !isCollapsed && "mr-4")}>
-              <AvatarImage src="https://bit.ly/sage-adebayo" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarImage src={user?.avatar || ""} />
+              <AvatarFallback>{user?.fullName?.charAt(0)}</AvatarFallback>
             </Avatar>
             {!isCollapsed && <span>Profile</span>}
           </Button>

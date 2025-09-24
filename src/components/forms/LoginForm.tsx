@@ -15,7 +15,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ForgotPasswordModal from "../forgot-password";
 import { useForgotPassword } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ThemeToggle } from "../ui/theme-toggle";
 import { useRouter } from "next/navigation";
 
 export function LoginForm() {
@@ -89,7 +88,7 @@ export function LoginForm() {
         toast.success("Login successful! Redirecting...");
         setTimeout(() => {
           router.push("/");
-        }, 1500);
+        }, 1000);
       },
       onError: (error) => {
         // Try to detect HTTP status from common error shapes (Axios, fetch wrappers, etc.)

@@ -6,39 +6,39 @@ import { Button } from "../ui/button";
 import { IoPersonAddOutline, IoSettingsOutline } from "react-icons/io5";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { useRouter } from "next/navigation";
-
-interface ProfileStats {
-  posts: number;
-  followers: number;
-  following: number;
-}
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 interface ProfileInfoProps {
-  avatarUrl?: string;
-  avatarAlt?: string;
-  avatarFallback?: string;
-  stats: ProfileStats;
-  displayName: string;
-  bio?: string;
-  website?: string;
   followedBy?: string;
   hasStoryRing?: boolean;
   isOwnProfile?: boolean;
+  // optional props to allow page to pass mocked or server data
+  avatarUrl?: string;
+  avatarAlt?: string;
+  stats?: {
+    posts: number;
+    followers: number;
+    following: number;
+  };
+  displayName?: string;
+  bio?: string;
+  website?: string;
 }
 
 export default function ProfileInfo({
+  followedBy,
+  hasStoryRing = false,
+  isOwnProfile = false,
   avatarUrl,
-  avatarAlt = "Profile",
-  avatarFallback = "U",
+  avatarAlt,
   stats,
   displayName,
   bio,
   website,
-  followedBy,
-  hasStoryRing = false,
-  isOwnProfile = false,
 }: ProfileInfoProps) {
   const router = useRouter();
+  const user = useSelector((state: RootState) => state.auth.user);
   const [isFollowing, setIsFollowing] = React.useState(false);
 
   const handleFollowClick = () => {
@@ -73,20 +73,20 @@ export default function ProfileInfo({
           }
         >
           <AvatarImage
-            src={avatarUrl}
-            alt={avatarAlt}
+            src={avatarUrl ?? user?.avatar ?? ""}
+            alt={avatarAlt ?? user?.fullName ?? "Profile"}
             className="object-cover w-full h-full rounded-full"
             style={hasStoryRing ? { border: "2px solid white" } : {}}
           />
           <AvatarFallback className="text-lg font-semibold">
-            {avatarFallback}
+            {(displayName ?? user?.fullName)?.charAt(0) ?? "U"}
           </AvatarFallback>
         </Avatar>
       </div>
       <div className="flex flex-col items-start gap-6">
         {/* Action buttons */}
         <div className="flex items-center gap-2">
-          <span className="font-semibold mr-4">{displayName}</span>
+          <span className="font-semibold mr-4">{user?.userName}</span>
           {isOwnProfile ? (
             // Own profile buttons
             <>
@@ -163,19 +163,19 @@ export default function ProfileInfo({
           <div className="w-full flex justify-around text-center gap-4">
             <div>
               <div className="font-semibold text-lg">
-                {formatNumber(stats.posts)}
+                {formatNumber(stats?.posts ?? user?._count?.posts ?? 0)}
               </div>
               <span className="text-sm text-gray-500">posts</span>
             </div>
             <div>
               <div className="font-semibold text-lg">
-                {formatNumber(stats.followers)}
+                {formatNumber(stats?.followers ?? user?._count?.followers ?? 0)}
               </div>
               <span className="text-sm text-gray-500">followers</span>
             </div>
             <div>
               <div className="font-semibold text-lg">
-                {formatNumber(stats.following)}
+                {formatNumber(stats?.following ?? user?._count?.following ?? 0)}
               </div>
               <span className="text-sm text-gray-500">following</span>
             </div>
@@ -184,15 +184,17 @@ export default function ProfileInfo({
 
         {/* Bio Section */}
         <div className="mt-4">
-          <div className="font-semibold text-sm">{displayName}</div>
-          {bio && (
+          <div className="font-semibold text-sm">
+            {displayName ?? user?.fullName}
+          </div>
+          {(bio ?? user?.bio) && (
             <div className="text-sm text-gray-600 mt-1 whitespace-pre-line">
-              {bio}
+              {bio ?? user?.bio}
             </div>
           )}
-          {website && (
+          {(website ?? user?.websiteUrl) && (
             <div className="text-sm text-blue-600 mt-1 hover:underline cursor-pointer">
-              {website}
+              {website ?? user?.websiteUrl}
             </div>
           )}
           {followedBy && (
