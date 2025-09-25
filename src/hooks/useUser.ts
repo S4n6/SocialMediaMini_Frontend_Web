@@ -58,3 +58,16 @@ export function useSearchUsers(query: string) {
     staleTime: 1000 * 60 * 5,
   });
 }
+
+export function useGetUserById(userId: string) {
+  return useQuery<User, Error>({
+    queryKey: ["users", userId] as QueryKey,
+    queryFn: async () => {
+      if (!userId) throw new Error("No userId provided");
+      const res = await UserService.getUserById(userId);
+      return res.data as User;
+    },
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 5,
+  });
+}

@@ -15,7 +15,7 @@ export const UserService = {
   },
 
   getUserById: async (userId: string) => {
-    const response = await api.get<{ user: User }>(`/users/${userId}`);
-    return response.data;
+    const response = await api.get<ApiResponse<User>>(`/users/${userId}`);
+    return response.data; // ApiResponse transformed in axios interceptor
   },
 };

@@ -73,6 +73,11 @@ export default function SearchDrawer({
     setRecentSearches([]);
   };
 
+  const handleClickSearchResult = (userId: string) => {
+    router.push(`/profile/${userId}`);
+    onClose();
+  };
+
   // Handle click outside to close drawer
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -176,7 +181,7 @@ export default function SearchDrawer({
                       <div
                         key={user.id || index}
                         className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer group"
-                        onClick={() => router.push(`/profile/${user.userName}`)}
+                        onClick={() => handleClickSearchResult(user.id)}
                       >
                         <Avatar className="w-12 h-12">
                           <AvatarImage src={user.avatar || ""} />

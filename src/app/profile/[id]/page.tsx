@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import {
   ProfileInfo,
   StoryHighlights,
@@ -10,31 +11,9 @@ import {
   type Highlight,
   type Post,
 } from "@/components/profile";
-
-interface ProfilePageProps {
-  params: Promise<{
-    id: string;
-  }>;
-}
-
-// Mock data - in real app, this would come from API
-const mockProfileData = {
-  username: "mkbhd",
-  isVerified: true,
-  isFollowing: true,
-  displayName: "Marques Brownlee",
-  bio: "I promise I won't overdo the filters.",
-  website: "mkbhd.com",
-  followedBy: "kurgezagt",
-  avatarUrl:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/20180610_FIFA_Friendly_Match_Austria_vs._Brazil_Neymar_850_1705.jpg/500px-20180610_FIFA_Friendly_Match_Austria_vs._Brazil_Neymar_850_1705.jpg",
-  hasStoryRing: true,
-  stats: {
-    posts: 1861,
-    followers: 4000000,
-    following: 454,
-  },
-};
+import { useAppSelector } from "@/hooks";
+import { User } from "@/types";
+import { useGetUserById } from "@/hooks/useUser";
 
 const mockHighlights: Highlight[] = [
   {
@@ -98,18 +77,16 @@ const mockPosts: Post[] = [
   },
 ];
 
-export default function ProfilePage({ params }: ProfilePageProps) {
-  const [id, setId] = useState<string>("");
+export default function ProfilePage() {
+  const params = useParams() as { id?: string } | null;
+  const userRedux: User | null = useAppSelector((state) => state.auth.user);
   const [activeTab, setActiveTab] = useState<TabType>("posts");
   const [loading, setLoading] = useState(false);
+  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const id = params?.id ?? "me";
 
-  useEffect(() => {
-    params.then((resolvedParams) => {
-      setId(resolvedParams.id);
-    });
-  }, [params]);
-
-  const isOwnProfile = id === "me" || id === "own" || id === "self";
+  const queryId = id === "me" ? "" : id;
+  const { data: user, isLoading, isError } = useGetUserById(queryId);
 
   const handleHighlightClick = (highlight: Highlight) => {
     console.log("Highlight clicked:", highlight.name);
@@ -125,20 +102,33 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     setTimeout(() => setLoading(false), 500);
   };
 
+  useEffect(() => {
+    if (id === "me" && userRedux) {
+      console.log("Setting profile user from Redux", userRedux);
+      setProfileUser(userRedux);
+    } else if (id !== "me" && user) {
+      console.log("Setting profile user from fetched data", user);
+      setProfileUser(user as User);
+    }
+  }, [id, user, userRedux]);
+
   return (
     <div className="min-h-screen w-full flex justify-center my-4">
       <div className="w-[80%]">
         {/* Profile Info */}
         <ProfileInfo
-          avatarUrl={mockProfileData.avatarUrl}
-          avatarAlt={mockProfileData.displayName}
-          stats={mockProfileData.stats}
-          displayName={mockProfileData.displayName}
-          bio={mockProfileData.bio}
-          website={mockProfileData.website}
-          followedBy={mockProfileData.followedBy}
-          hasStoryRing={mockProfileData.hasStoryRing}
-          isOwnProfile={isOwnProfile}
+          avatarUrl={profileUser?.avatar || ""}
+          avatarAlt={profileUser?.userName || ""}
+          userName={profileUser?.userName || ""}
+          stats={
+            profileUser?._count ?? { posts: 0, followers: 0, following: 0 }
+          }
+          displayName={profileUser?.fullName || ""}
+          bio={profileUser?.bio || ""}
+          website={profileUser?.websiteUrl || ""}
+          followedBy={"Khabib, Elon, Jeff"}
+          hasStoryRing={false}
+          isOwnProfile={id === "me" || id === userRedux?.id}
         />
 
         {/* Story Highlights */}

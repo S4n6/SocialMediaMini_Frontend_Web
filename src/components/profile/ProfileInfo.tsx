@@ -24,6 +24,7 @@ interface ProfileInfoProps {
   displayName?: string;
   bio?: string;
   website?: string;
+  userName?: string;
 }
 
 export default function ProfileInfo({
@@ -36,6 +37,7 @@ export default function ProfileInfo({
   displayName,
   bio,
   website,
+  userName,
 }: ProfileInfoProps) {
   const router = useRouter();
   const user = useSelector((state: RootState) => state.auth.user);
@@ -73,9 +75,9 @@ export default function ProfileInfo({
           }
         >
           <AvatarImage
-            src={avatarUrl ?? user?.avatar ?? ""}
-            alt={avatarAlt ?? user?.fullName ?? "Profile"}
-            className="object-cover w-full h-full rounded-full"
+            src={(isOwnProfile && user?.avatar) || avatarUrl || ""}
+            alt={avatarAlt || user?.userName || "User Avatar"}
+            className="object-cover w-full h-full rounded-full bg-gray-300"
             style={hasStoryRing ? { border: "2px solid white" } : {}}
           />
           <AvatarFallback className="text-lg font-semibold">
@@ -86,7 +88,9 @@ export default function ProfileInfo({
       <div className="flex flex-col items-start gap-6">
         {/* Action buttons */}
         <div className="flex items-center gap-2">
-          <span className="font-semibold mr-4">{user?.userName}</span>
+          <span className="font-semibold mr-4">
+            {userName || user?.userName}
+          </span>
           {isOwnProfile ? (
             // Own profile buttons
             <>

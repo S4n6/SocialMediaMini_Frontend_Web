@@ -278,7 +278,7 @@ export default function LeftSideBar() {
             variant="ghost"
             className={cn(
               "justify-start h-12 px-3 py-2 hover:bg-accent w-full transition-all duration-200",
-              isItemActive("/profile") &&
+              isItemActive("/profile/me") &&
                 "bg-accent border-l-4 border-blue-500 font-semibold",
               isCollapsed ? "justify-center" : ""
             )}
