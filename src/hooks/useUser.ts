@@ -43,3 +43,18 @@ export function useUpdateUser() {
     },
   });
 }
+
+export function useSearchUsers(query: string) {
+  return useQuery<User[], Error>({
+    queryKey: ["users", "search", query] as QueryKey,
+    queryFn: async () => {
+      if (!query) return [];
+      const results = await UserService.searchUsers(query);
+      // results has shape { data: User[], message, success, pagination }
+      console.log("Search results------:", results);
+      return results.data ?? [];
+    },
+    enabled: query.length > 0,
+    staleTime: 1000 * 60 * 5,
+  });
+}

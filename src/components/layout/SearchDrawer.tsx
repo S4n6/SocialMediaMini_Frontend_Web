@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { useSearchUsers } from "@/hooks/useUser";
 
 const mockUserSearchResults = [
   {
@@ -38,11 +39,29 @@ export default function SearchDrawer({
   onClose,
 }: SearchDrawerProps) {
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [debouncedQuery, setDebouncedQuery] = React.useState("");
   const router = useRouter();
   const drawerRef = React.useRef<HTMLDivElement>(null);
   const [recentSearches, setRecentSearches] = React.useState<
     typeof mockUserSearchResults
   >(mockUserSearchResults);
+
+  // Debounce the search query
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // Use the search hook with debounced query
+  const {
+    data: searchResults = [],
+    isLoading,
+    isError,
+    error,
+  } = useSearchUsers(debouncedQuery);
 
   const handleRemoteRecentSearch = (username: string) => {
     setRecentSearches((prev) =>
@@ -136,52 +155,96 @@ export default function SearchDrawer({
 
           <Separator className="mb-6" />
 
-          {/* Recent Searches */}
+          {/* Search Results or Recent Searches */}
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-semibold">Recent</h3>
-              <Button
-                variant="ghost"
-                className="text-blue-500 text-sm p-0 h-auto"
-                onClick={handleClearAllRecentSearches}
-              >
-                Clear all
-              </Button>
-            </div>
-
-            <div className="space-y-1">
-              {recentSearches.map((user, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer group"
-                  onClick={() => router.push(`/profile/${user.username}`)}
-                >
-                  <Avatar className="w-11 h-11">
-                    <AvatarImage src={user.avatarUrl} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {user.username}
-                    </p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {user.name}
-                    </p>
-                  </div>
+            {debouncedQuery ? (
+              <>
+                <h3 className="text-base font-semibold mb-4">Results</h3>
+                <div className="space-y-1">
+                  {isLoading ? (
+                    <div className="text-sm text-gray-500">Searching...</div>
+                  ) : isError ? (
+                    <div className="text-sm text-red-500">
+                      Error: {error?.message || "Something went wrong"}
+                    </div>
+                  ) : searchResults.length === 0 ? (
+                    <div className="text-sm text-gray-500">
+                      No results found
+                    </div>
+                  ) : (
+                    searchResults.map((user, index) => (
+                      <div
+                        key={user.id || index}
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer group"
+                        onClick={() => router.push(`/profile/${user.userName}`)}
+                      >
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage src={user.avatar || ""} />
+                          <AvatarFallback>
+                            {(user.fullName || user.userName)?.charAt(0) || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {user.userName}
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {user.fullName}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-semibold">Recent</h3>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoteRecentSearch(user.username);
-                    }}
+                    className="text-blue-500 text-sm p-0 h-auto"
+                    onClick={handleClearAllRecentSearches}
                   >
-                    <IoClose className="w-4 h-4" />
+                    Clear all
                   </Button>
                 </div>
-              ))}
-            </div>
+
+                <div className="space-y-1">
+                  {recentSearches.map((user, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer group"
+                      onClick={() => router.push(`/profile/${user.username}`)}
+                    >
+                      <Avatar className="w-11 h-11">
+                        <AvatarImage src={user.avatarUrl} />
+                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {user.username}
+                        </p>
+                        <p className="text-sm text-gray-500 truncate">
+                          {user.name}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoteRecentSearch(user.username);
+                        }}
+                      >
+                        <IoClose className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
