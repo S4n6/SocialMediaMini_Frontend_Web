@@ -6,6 +6,7 @@ export { Footer } from "./layout/Footer";
 
 // UI Components
 export { Loading, LoadingSkeleton, PageLoading } from "./ui/loading";
+export { FollowButton } from "./ui/FollowButton";
 
 // Form Components
 // export { default as LoginForm } from "./forms/LoginForm";

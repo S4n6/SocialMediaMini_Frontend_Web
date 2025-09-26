@@ -1,12 +1,20 @@
 import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { FollowButton } from "@/components/ui/FollowButton";
+
+interface FriendSuggestionCardProps {
+  userId: string;
+  name?: string;
+  username?: string;
+  avatarUrl?: string;
+}
 
 export default function FriendSuggestionCard({
-  name = "Segun Adebayo",
-  username = "segun.adebayo",
-  avatarUrl = "https://bit.ly/sage-adebayo",
-}) {
+  userId,
+  name = "User",
+  username = "username",
+  avatarUrl,
+}: FriendSuggestionCardProps) {
   return (
     <div className="flex w-full items-center justify-between">
       <div className="flex items-center gap-3">
@@ -16,15 +24,10 @@ export default function FriendSuggestionCard({
         </Avatar>
         <div className="text-sm font-bold flex flex-col">
           <span>{name}</span>
-          <span className="text-muted-foreground font-normal">
-            {" "}
-            @{username}
-          </span>
+          <span className="text-muted-foreground font-normal">@{username}</span>
         </div>
       </div>
-      <Button variant="ghost" size="sm" className="p-0">
-        Follow
-      </Button>
+      <FollowButton targetUserId={userId} variant="ghost" size="sm" />
     </div>
   );
 }

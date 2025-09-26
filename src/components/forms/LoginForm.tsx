@@ -88,7 +88,7 @@ export function LoginForm() {
         toast.success("Login successful! Redirecting...");
         setTimeout(() => {
           router.push("/");
-        }, 1000);
+        }, 500);
       },
       onError: (error) => {
         // Try to detect HTTP status from common error shapes (Axios, fetch wrappers, etc.)

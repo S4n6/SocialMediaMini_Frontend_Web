@@ -117,6 +117,7 @@ export default function ProfilePage() {
       <div className="w-[80%]">
         {/* Profile Info */}
         <ProfileInfo
+          profileUser={profileUser || undefined}
           avatarUrl={profileUser?.avatar || ""}
           avatarAlt={profileUser?.userName || ""}
           userName={profileUser?.userName || ""}
@@ -128,7 +129,7 @@ export default function ProfilePage() {
           website={profileUser?.websiteUrl || ""}
           followedBy={"Khabib, Elon, Jeff"}
           hasStoryRing={false}
-          isOwnProfile={id === "me" || id === userRedux?.id}
+          isOwnProfile={id === "me"}
         />
 
         {/* Story Highlights */}

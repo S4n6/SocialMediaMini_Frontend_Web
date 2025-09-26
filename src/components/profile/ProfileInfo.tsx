@@ -3,17 +3,22 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "../ui/button";
+import { FollowButton } from "../ui/FollowButton";
 import { IoPersonAddOutline, IoSettingsOutline } from "react-icons/io5";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { useUserStats } from "@/hooks";
+import type { User } from "@/types";
 
 interface ProfileInfoProps {
+  // Profile user data - for viewing other users' profiles
+  profileUser?: User;
   followedBy?: string;
   hasStoryRing?: boolean;
   isOwnProfile?: boolean;
-  // optional props to allow page to pass mocked or server data
+  // optional props to allow page to pass mocked or server data (legacy support)
   avatarUrl?: string;
   avatarAlt?: string;
   stats?: {
@@ -28,9 +33,11 @@ interface ProfileInfoProps {
 }
 
 export default function ProfileInfo({
+  profileUser,
   followedBy,
   hasStoryRing = false,
   isOwnProfile = false,
+  // Legacy props for backward compatibility
   avatarUrl,
   avatarAlt,
   stats,
@@ -40,12 +47,15 @@ export default function ProfileInfo({
   userName,
 }: ProfileInfoProps) {
   const router = useRouter();
-  const user = useSelector((state: RootState) => state.auth.user);
-  const [isFollowing, setIsFollowing] = React.useState(false);
+  const currentUser = useSelector((state: RootState) => state.auth.user);
 
-  const handleFollowClick = () => {
-    setIsFollowing((prev) => !prev);
-  };
+  // Use profileUser if provided, otherwise fall back to currentUser for own profile
+  const displayedUser = profileUser || currentUser;
+
+  // Get real-time stats if we have a user ID
+  const { data: userStatsData } = useUserStats(
+    profileUser?.id || (!isOwnProfile ? undefined : currentUser?.id)
+  );
   const handleMessageClick = () => {
     console.log("Message clicked");
   };
@@ -75,13 +85,13 @@ export default function ProfileInfo({
           }
         >
           <AvatarImage
-            src={(isOwnProfile && user?.avatar) || avatarUrl || ""}
-            alt={avatarAlt || user?.userName || "User Avatar"}
+            src={displayedUser?.avatar || avatarUrl || ""}
+            alt={avatarAlt || displayedUser?.userName || "User Avatar"}
             className="object-cover w-full h-full rounded-full bg-gray-300"
             style={hasStoryRing ? { border: "2px solid white" } : {}}
           />
           <AvatarFallback className="text-lg font-semibold">
-            {(displayName ?? user?.fullName)?.charAt(0) ?? "U"}
+            {(displayName ?? displayedUser?.fullName)?.charAt(0) ?? "U"}
           </AvatarFallback>
         </Avatar>
       </div>
@@ -89,10 +99,9 @@ export default function ProfileInfo({
         {/* Action buttons */}
         <div className="flex items-center gap-2">
           <span className="font-semibold mr-4">
-            {userName || user?.userName}
+            {userName || displayedUser?.userName}
           </span>
           {isOwnProfile ? (
-            // Own profile buttons
             <>
               <Button
                 variant="outline"
@@ -120,20 +129,14 @@ export default function ProfileInfo({
               </Button>
             </>
           ) : (
-            // Other user profile buttons
             <>
-              <Button
-                variant={isFollowing ? "outline" : "default"}
-                size="sm"
-                className={`text-sm font-medium px-4 ${
-                  isFollowing
-                    ? "bg-white border-gray-300 text-black hover:bg-gray-50"
-                    : "bg-blue-500 hover:bg-blue-600 text-white border-0"
-                }`}
-                onClick={handleFollowClick}
-              >
-                {isFollowing ? "Following" : "Follow"}
-              </Button>
+              {profileUser?.id && (
+                <FollowButton
+                  targetUserId={profileUser.id}
+                  variant="default"
+                  size="sm"
+                />
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -167,19 +170,31 @@ export default function ProfileInfo({
           <div className="w-full flex justify-around text-center gap-4">
             <div>
               <div className="font-semibold text-lg">
-                {formatNumber(stats?.posts ?? user?._count?.posts ?? 0)}
+                {formatNumber(
+                  stats?.posts ?? displayedUser?._count?.posts ?? 0
+                )}
               </div>
               <span className="text-sm text-gray-500">posts</span>
             </div>
             <div>
               <div className="font-semibold text-lg">
-                {formatNumber(stats?.followers ?? user?._count?.followers ?? 0)}
+                {formatNumber(
+                  stats?.followers ??
+                    userStatsData?.data?.followersCount ??
+                    displayedUser?._count?.followers ??
+                    0
+                )}
               </div>
               <span className="text-sm text-gray-500">followers</span>
             </div>
             <div>
               <div className="font-semibold text-lg">
-                {formatNumber(stats?.following ?? user?._count?.following ?? 0)}
+                {formatNumber(
+                  stats?.following ??
+                    userStatsData?.data?.followingCount ??
+                    displayedUser?._count?.following ??
+                    0
+                )}
               </div>
               <span className="text-sm text-gray-500">following</span>
             </div>
@@ -189,16 +204,16 @@ export default function ProfileInfo({
         {/* Bio Section */}
         <div className="mt-4">
           <div className="font-semibold text-sm">
-            {displayName ?? user?.fullName}
+            {displayName ?? displayedUser?.fullName}
           </div>
-          {(bio ?? user?.bio) && (
+          {(bio ?? displayedUser?.bio) && (
             <div className="text-sm text-gray-600 mt-1 whitespace-pre-line">
-              {bio ?? user?.bio}
+              {bio ?? displayedUser?.bio}
             </div>
           )}
-          {(website ?? user?.websiteUrl) && (
+          {(website ?? displayedUser?.websiteUrl) && (
             <div className="text-sm text-blue-600 mt-1 hover:underline cursor-pointer">
-              {website ?? user?.websiteUrl}
+              {website ?? displayedUser?.websiteUrl}
             </div>
           )}
           {followedBy && (
