@@ -4,7 +4,7 @@ import { GoHome, GoHomeFill } from "react-icons/go";
 import type { IconType } from "react-icons";
 import { IoSearchOutline, IoSearch } from "react-icons/io5";
 import { MdOutlineExplore, MdExplore } from "react-icons/md";
-import { TfiVideoClapper } from "react-icons/tfi";
+import { PiVideoLight, PiVideoFill } from "react-icons/pi";
 import { IoIosNotificationsOutline, IoIosNotifications } from "react-icons/io";
 import { MdAddCircleOutline, MdAddCircle } from "react-icons/md";
 import { CgDetailsMore } from "react-icons/cg";
@@ -19,10 +19,11 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn-tailwind";
 import { ThemeToggle } from "../ui/theme-toggle";
 import { useLogout } from "@/hooks";
 import SearchDrawer from "../search-drawer/SearchDrawer";
+import CreatePostDialog from "../post/create/CreatePostDialog";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 
@@ -50,7 +51,13 @@ const menuItems: MenuItem[] = [
     id: 2,
     path: "/explore",
   },
-  { icon: TfiVideoClapper, label: "Reels", id: 3, path: "/reels" },
+  {
+    icon: PiVideoLight,
+    filledIcon: PiVideoFill,
+    label: "Reels",
+    id: 3,
+    path: "/reels",
+  },
   {
     icon: PiMessengerLogo,
     filledIcon: RiMessengerFill,
@@ -79,17 +86,36 @@ export default function LeftSideBar() {
   const pathname = usePathname();
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [isCreatePostOpen, setIsCreatePostOpen] = React.useState(false);
+  const [isNavigating, setIsNavigating] = React.useState(false);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const router = useRouter();
   const user = useSelector((state: RootState) => state.auth.user);
 
-  const isItemActive = (itemPath?: string) => {
-    if (!itemPath) return false;
-    if (itemPath === "/") {
-      return pathname === "/";
-    }
-    return pathname.startsWith(itemPath);
-  };
+  // Memoize navigation handler to prevent unnecessary re-renders
+  const handleNavigation = React.useCallback(
+    (path?: string) => {
+      if (path && !isNavigating) {
+        setIsNavigating(true);
+        router.push(path);
+        // Reset navigation state after a short delay
+        setTimeout(() => setIsNavigating(false), 500);
+      }
+    },
+    [router, isNavigating]
+  );
+
+  // Memoize active state calculation to prevent unnecessary re-calculations
+  const isItemActive = React.useCallback(
+    (itemPath?: string) => {
+      if (!itemPath) return false;
+      if (itemPath === "/") {
+        return pathname === "/";
+      }
+      return pathname.startsWith(itemPath);
+    },
+    [pathname]
+  );
 
   const handleSearchClick = () => {
     console.log("Search clicked", isSearchOpen);
@@ -242,11 +268,32 @@ export default function LeftSideBar() {
               );
             }
 
+            if (item.label === "Create") {
+              return (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  onClick={() => setIsCreatePostOpen(true)}
+                  className={cn(
+                    "justify-start h-12 px-3 py-2 hover:bg-accent w-full transition-all duration-200",
+                    isCollapsed ? "justify-center" : ""
+                  )}
+                >
+                  <Icon className="w-6 h-6 text-muted-foreground" />
+                  {!isCollapsed && (
+                    <span className="ml-4 text-sm text-muted-foreground">
+                      {item.label}
+                    </span>
+                  )}
+                </Button>
+              );
+            }
+
             return (
               <Button
                 key={item.id}
                 variant="ghost"
-                onClick={() => item.path && router.push(item.path)}
+                onClick={() => handleNavigation(item.path)}
                 className={cn(
                   "justify-start h-12 px-3 py-2 hover:bg-accent w-full transition-all duration-200",
                   active ? "font-bold" : "",
@@ -282,7 +329,7 @@ export default function LeftSideBar() {
                 "bg-accent border-l-4 border-blue-500 font-semibold",
               isCollapsed ? "justify-center" : ""
             )}
-            onClick={() => router.push("/profile/me")}
+            onClick={() => handleNavigation("/profile/me")}
           >
             <Avatar className={cn("w-6 h-6", !isCollapsed && "mr-4")}>
               <AvatarImage src={user?.avatar || ""} />
@@ -299,6 +346,11 @@ export default function LeftSideBar() {
         isOpen={isSearchOpen}
         isCollapsed={isCollapsed}
         onClose={handleCloseSearch}
+      />
+
+      <CreatePostDialog
+        open={isCreatePostOpen}
+        onOpenChange={setIsCreatePostOpen}
       />
     </>
   );

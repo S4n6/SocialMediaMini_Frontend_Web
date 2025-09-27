@@ -103,6 +103,86 @@ html[data-theme="dark"] {
   --radius: 12px;
 }
 
+/* Form Controls Styling for Better Contrast */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+textarea,
+.input-base {
+  color: #374151 !important; /* Gray-700 for light mode */
+}
+
+/* Dark mode form controls */
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] input[type="email"],
+html[data-theme="dark"] input[type="password"],
+html[data-theme="dark"] input[type="search"],
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] .input-base {
+  color: #f4f3f6 !important; /* Gray-100 for dark mode */
+}
+
+/* Placeholder text contrast */
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important; /* Gray-400 for light mode */
+  opacity: 1;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #6b7280 !important; /* Gray-500 for dark mode */
+}
+
+/* Focus states for better accessibility */
+input:focus,
+textarea:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Theme Helper Classes - Using CSS Variables for Automatic Theme Switching */
+.bg-theme {
+  background-color: var(--color-background);
+}
+
+.bg-card {
+  background-color: var(--color-card);
+}
+
+.bg-muted {
+  background-color: var(--color-muted);
+}
+
+.bg-input {
+  background-color: var(--color-input);
+}
+
+.text-theme {
+  color: var(--color-foreground);
+}
+
+.border-theme {
+  border-color: var(--color-border);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.bg-accent-gradient {
+  background: var(--color-accent-gradient);
+}
+
 /* Utility classes */
 .scrollbar-hide {
   -ms-overflow-style: none;

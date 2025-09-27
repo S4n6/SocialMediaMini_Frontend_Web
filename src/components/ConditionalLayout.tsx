@@ -36,7 +36,7 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
 
   return (
     <div
-      className={`min-h-screen transition-all duration-300 flex w-full ${
+      className={`min-h-screen flex w-full ${
         isPublicPage ? "items-center justify-center" : ""
       }`}
     >
