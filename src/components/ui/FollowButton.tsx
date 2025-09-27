@@ -22,7 +22,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
   followingText = "Following",
   showLoading = true,
 }) => {
-  const { isFollowing, isLoading, toggleFollow, error } =
+  const { isFollowing, isLoading, toggleFollow } =
     useFollowActions(targetUserId);
 
   const getButtonStyle = () => {

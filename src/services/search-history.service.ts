@@ -2,7 +2,6 @@ import { ApiResponse, api } from "@/lib/axios";
 import {
   SearchHistoryResponse,
   AddSearchHistoryDto,
-  SearchHistoryItem,
 } from "@/types/search-history";
 
 /**

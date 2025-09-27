@@ -48,7 +48,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   if (results.length === 0) {
     return (
       <div className={`text-sm text-gray-500 text-center py-4 ${className}`}>
-        No users found for "{query}"
+        No users found for &quot;{query}&quot;
       </div>
     );
   }

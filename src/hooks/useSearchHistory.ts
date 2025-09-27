@@ -1,10 +1,7 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import SearchHistoryService from "@/services/search-history.service";
-import {
-  SearchHistoryItem,
-  SearchHistoryResponse,
-} from "@/types/search-history";
+import { SearchHistoryItem } from "@/types/search-history";
 import { toast } from "sonner";
 
 /**

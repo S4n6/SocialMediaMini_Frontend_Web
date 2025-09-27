@@ -86,7 +86,7 @@ export default function ProfilePage() {
   const id = params?.id ?? "me";
 
   const queryId = id === "me" ? "" : id;
-  const { data: user, isLoading, isError } = useGetUserById(queryId);
+  const { data: user } = useGetUserById(queryId);
 
   const handleHighlightClick = (highlight: Highlight) => {
     console.log("Highlight clicked:", highlight.name);

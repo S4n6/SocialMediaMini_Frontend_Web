@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Clock, X } from "lucide-react";
+import { X } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { SearchHistoryItem as SearchHistoryItemType } from "@/types/search-history";
 
@@ -20,12 +21,14 @@ export const SearchHistoryItem: React.FC<SearchHistoryItemProps> = ({
 }) => {
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer group">
-      <div className="w-11 h-11">
+      <div className="w-11 h-11 relative">
         {item.user.avatar ? (
-          <img
+          <Image
             src={item.user.avatar}
-            alt={item.user.fullName}
-            className="w-11 h-11 rounded-full object-cover"
+            alt={item.user.fullName || item.user.userName}
+            className="rounded-full object-cover"
+            fill
+            sizes="44px"
           />
         ) : (
           <div
