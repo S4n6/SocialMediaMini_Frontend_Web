@@ -22,7 +22,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "../ui/theme-toggle";
 import { useLogout } from "@/hooks";
-import SearchDrawer from "./SearchDrawer";
+import SearchDrawer from "../search-drawer/SearchDrawer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 

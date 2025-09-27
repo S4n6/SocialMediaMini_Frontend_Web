@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { authService } from "@/services/authService";
+import { authService } from "@/services/auth.service";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import type {

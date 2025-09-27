@@ -4,7 +4,7 @@ import {
   useQueryClient,
   useInfiniteQuery,
 } from "@tanstack/react-query";
-import { postsService } from "@/services/postsService";
+import { postsService } from "@/services/posts.service";
 import { useAppDispatch } from "@/hooks/redux";
 import {
   addPost,

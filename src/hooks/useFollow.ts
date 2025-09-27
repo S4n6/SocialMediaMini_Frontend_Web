@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { followService } from "@/services/followService";
-import type { FollowStats, FollowStatus } from "@/services/followService";
+import { followService } from "@/services/follow.service";
+import type { FollowStats, FollowStatus } from "@/services/follow.service";
 
 // Query keys
 export const followKeys = {

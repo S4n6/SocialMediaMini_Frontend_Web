@@ -25,3 +25,4 @@ export {
   useUnfollowUser,
   useFollowActions,
 } from "./useFollow";
+export { useSearchHistory } from "./useSearchHistory";

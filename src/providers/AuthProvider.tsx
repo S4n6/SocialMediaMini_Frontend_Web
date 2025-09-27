@@ -11,7 +11,7 @@ import {
 import { usePathname } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
-import { authService } from "@/services/authService";
+import { authService } from "@/services/auth.service";
 import { User } from "@/types/user";
 
 interface AuthContextType {

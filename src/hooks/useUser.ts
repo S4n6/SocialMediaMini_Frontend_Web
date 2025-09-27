@@ -4,9 +4,9 @@ import {
   useQueryClient,
   QueryKey,
 } from "@tanstack/react-query";
-import { authService } from "@/services/authService";
+import { authService } from "@/services/auth.service";
 import { User } from "@/types";
-import { UserService } from "@/services/usersService";
+import { UserService } from "@/services/users.service";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateUser as updateUserAction } from "@/store/slices/authSlice";
 
