@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       "images.unsplash.com",
       "randomuser.me",
       "media.vov.vn",
+      "encrypted-tbn3.gstatic.com",
     ],
   },
 };

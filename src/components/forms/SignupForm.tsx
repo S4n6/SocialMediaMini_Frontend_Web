@@ -7,7 +7,7 @@ import * as yup from "yup";
 import Image from "next/image";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
-import { useRegister, useGoogleLogin } from "@/hooks";
+import { useAuth } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,8 +56,15 @@ export function SignupForm() {
     resolver: yupResolver(signupSchema),
   });
 
-  const registerMutation = useRegister();
-  const googleLogin = useGoogleLogin();
+  const {
+    registerUser,
+    loginWithGoogle,
+    isRegistering,
+    isLoggingInWithGoogle,
+    registerError,
+    googleLoginError,
+    registerMutation,
+  } = useAuth();
 
   const onSubmit = async (data: SignupFormData) => {
     try {
@@ -112,7 +119,7 @@ export function SignupForm() {
   };
 
   const handleGoogleSignup = () => {
-    googleLogin.mutate();
+    loginWithGoogle();
   };
 
   return (
@@ -146,7 +153,7 @@ export function SignupForm() {
               className="w-full h-9 flex items-center justify-center gap-2 text-sm"
               type="button"
               onClick={handleGoogleSignup}
-              disabled={googleLogin.isPending}
+              disabled={isLoggingInWithGoogle}
             >
               <FcGoogle className="h-4 w-4" />
               Sign up with Google
@@ -237,7 +244,7 @@ export function SignupForm() {
               </div>
             </div>
 
-            {registerMutation.isError && (
+            {registerError && (
               <div className="text-sm text-red-500 text-center">
                 Something went wrong. Please try again.
               </div>
@@ -246,13 +253,13 @@ export function SignupForm() {
             <Button
               type="submit"
               className={`w-full h-10 my-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow rounded-md ${
-                isSubmitting || registerMutation.isPending
+                isSubmitting || isRegistering
                   ? "opacity-80 cursor-not-allowed shadow-none"
                   : "cursor-pointer"
               }`}
-              disabled={isSubmitting || registerMutation.isPending}
+              disabled={isSubmitting || isRegistering}
             >
-              {isSubmitting || registerMutation.isPending
+              {isSubmitting || isRegistering
                 ? "Creating account..."
                 : "Create Account"}
             </Button>

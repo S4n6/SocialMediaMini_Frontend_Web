@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { IoClose } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useSearchUsers } from "@/hooks/useUser";
-import { useSearchHistory } from "@/hooks/useSearchHistory";
+import { useLegacyUser as useUser } from "@/hooks/user";
+import { useSearchHistory } from "@/hooks";
 import { SearchHistoryItem } from "@/types/search-history";
 import SearchInput from "./SearchInput";
 import SearchSuggestions from "./SearchSuggestions";
@@ -50,11 +50,12 @@ export default function SearchDrawer({
 
   // Use the search hook with debounced query
   const {
-    data: searchResults = [],
-    isLoading,
-    isError,
-    error,
-  } = useSearchUsers(debouncedQuery);
+    searchResults = [],
+    isLoadingSearch: isLoading,
+    searchError: error,
+  } = useUser({ searchQuery: debouncedQuery });
+
+  const isError = !!error;
 
   // Event handlers
   const handleSearchInputChange = (value: string) => {

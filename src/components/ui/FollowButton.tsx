@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useFollowActions } from "@/hooks";
+import { useFollow } from "@/hooks";
 import { Loader2 } from "lucide-react";
 
 interface FollowButtonProps {
@@ -22,8 +22,9 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
   followingText = "Following",
   showLoading = true,
 }) => {
+  const { getFollowActions } = useFollow({ targetUserId });
   const { isFollowing, isLoading, toggleFollow } =
-    useFollowActions(targetUserId);
+    getFollowActions(targetUserId);
 
   const getButtonStyle = () => {
     if (variant === "ghost") {

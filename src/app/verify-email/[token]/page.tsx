@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { ResendVerificationModal } from "@/components/ui/resend-verification-modal";
-import { useVerifyEmail } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 
 // Password setup schema
 const passwordSetupSchema = yup.object({
@@ -42,7 +42,7 @@ export default function PasswordSetupPage() {
     resolver: yupResolver(passwordSetupSchema),
   });
 
-  const { mutate: verifyEmail, isPending } = useVerifyEmail();
+  const { verifyEmailMutation, isVerifyingEmail } = useAuth();
 
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
@@ -76,7 +76,7 @@ export default function PasswordSetupPage() {
         toast.error("Invalid or missing token. Please try again.");
         return;
       }
-      verifyEmail(
+      verifyEmailMutation.mutate(
         { token, password: data.password },
         {
           onSuccess: () => {
@@ -85,7 +85,7 @@ export default function PasswordSetupPage() {
               router.push("/login");
             }, 1500);
           },
-          onError: (error) => {
+          onError: (error: any) => {
             console.error("Email verification error:", error);
             toast.error("An error occurred. Please try again.");
           },
@@ -152,7 +152,7 @@ export default function PasswordSetupPage() {
               <div className="mt-3">
                 <div className="h-3 rounded-full bg-gray-200 overflow-hidden">
                   <div
-                    className={`h-3 rounded-full origin-left transform-gpu transition-transform transition-colors duration-200 ease-linear`}
+                    className={`h-3 rounded-full origin-left transform-gpu transition-all duration-200 ease-linear`}
                     style={{
                       transform: `scaleX(${strength.score / 4})`,
                       backgroundColor: strength.colorHex,
@@ -206,9 +206,9 @@ export default function PasswordSetupPage() {
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-black py-3 rounded-md font-medium"
-              disabled={isSubmitting || isPending}
+              disabled={isSubmitting || isVerifyingEmail}
             >
-              {isSubmitting || isPending
+              {isSubmitting || isVerifyingEmail
                 ? "Setting up..."
                 : "Set Password & Continue"}
             </Button>

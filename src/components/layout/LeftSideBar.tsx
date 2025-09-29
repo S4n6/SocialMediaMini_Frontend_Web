@@ -21,7 +21,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils/cn-tailwind";
 import { ThemeToggle } from "../ui/theme-toggle";
-import { useLogout } from "@/hooks";
+import { useAuth } from "@/hooks";
 import SearchDrawer from "../search-drawer/SearchDrawer";
 import CreatePostDialog from "../post/create/CreatePostDialog";
 import { useSelector } from "react-redux";
@@ -88,7 +88,7 @@ export default function LeftSideBar() {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isCreatePostOpen, setIsCreatePostOpen] = React.useState(false);
   const [isNavigating, setIsNavigating] = React.useState(false);
-  const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const { logoutUser, isLoggingOut } = useAuth();
   const router = useRouter();
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -136,7 +136,7 @@ export default function LeftSideBar() {
   const handleLogout = () => {
     // Immediately trigger logout (no confirmation)
     try {
-      logout();
+      logoutUser();
     } catch (error) {
       console.error("Logout failed:", error);
     }

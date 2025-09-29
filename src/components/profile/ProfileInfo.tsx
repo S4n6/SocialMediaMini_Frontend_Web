@@ -9,7 +9,7 @@ import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { useUserStats } from "@/hooks";
+import { useFollow } from "@/hooks";
 import type { User } from "@/types";
 
 interface ProfileInfoProps {
@@ -53,9 +53,9 @@ export default function ProfileInfo({
   const displayedUser = profileUser || currentUser;
 
   // Get real-time stats if we have a user ID
-  const { data: userStatsData } = useUserStats(
-    profileUser?.id || (!isOwnProfile ? undefined : currentUser?.id)
-  );
+  const { userStats: userStatsData } = useFollow({
+    userId: profileUser?.id || (!isOwnProfile ? undefined : currentUser?.id),
+  });
   const handleMessageClick = () => {
     console.log("Message clicked");
   };
@@ -180,7 +180,7 @@ export default function ProfileInfo({
               <div className="font-semibold text-lg">
                 {formatNumber(
                   stats?.followers ??
-                    userStatsData?.data?.followersCount ??
+                    userStatsData?.followersCount ??
                     displayedUser?._count?.followers ??
                     0
                 )}
@@ -191,7 +191,7 @@ export default function ProfileInfo({
               <div className="font-semibold text-lg">
                 {formatNumber(
                   stats?.following ??
-                    userStatsData?.data?.followingCount ??
+                    userStatsData?.followingCount ??
                     displayedUser?._count?.following ??
                     0
                 )}

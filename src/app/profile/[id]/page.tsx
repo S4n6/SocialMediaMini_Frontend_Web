@@ -13,7 +13,7 @@ import {
 } from "@/components/profile";
 import { useAppSelector } from "@/hooks";
 import { User } from "@/types";
-import { useGetUserById } from "@/hooks/useUser";
+import { useLegacyUser as useUser } from "@/hooks/user";
 
 const mockHighlights: Highlight[] = [
   {
@@ -86,7 +86,7 @@ export default function ProfilePage() {
   const id = params?.id ?? "me";
 
   const queryId = id === "me" ? "" : id;
-  const { data: user } = useGetUserById(queryId);
+  const { user } = useUser({ userId: queryId });
 
   const handleHighlightClick = (highlight: Highlight) => {
     console.log("Highlight clicked:", highlight.name);

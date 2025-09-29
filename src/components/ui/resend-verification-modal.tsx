@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Mail, Send, CheckCircle } from "lucide-react";
-import { useResendVerification } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 
 const emailSchema = yup.object({
   email: yup
@@ -49,7 +49,7 @@ export function ResendVerificationModal({
     resolver: yupResolver(emailSchema),
   });
 
-  const { mutateAsync: resendVerificationAsync } = useResendVerification();
+  const { resendVerificationMutation } = useAuth();
 
   // Reset success state when modal opens/closes
   React.useEffect(() => {
@@ -72,13 +72,10 @@ export function ResendVerificationModal({
     try {
       setStatus("sending");
       setServerError(null);
-      await resendVerificationAsync(data.email, {
-        onSuccess() {
-          setStatus("success");
-          setCountdown(30);
-          toast.success("Verification email sent! Please check your inbox.");
-        },
-      });
+      await resendVerificationMutation.mutateAsync(data.email);
+      setStatus("success");
+      setCountdown(30);
+      toast.success("Verification email sent! Please check your inbox.");
     } catch (err: unknown) {
       console.error("Resend verification error:", err);
       const payload = err as {

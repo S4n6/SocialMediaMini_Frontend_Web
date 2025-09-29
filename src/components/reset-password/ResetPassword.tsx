@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { useResetPassword } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { toast } from "sonner";
 
 type Form = {
@@ -36,7 +36,7 @@ export default function ResetPasswordClient() {
     watch,
   } = useForm<Form>({ mode: "onChange" });
 
-  const { mutate: resetPassword, isPending } = useResetPassword();
+  const { resetPasswordMutation, isResetPasswordPending } = useAuth();
 
   React.useEffect(() => {
     if (!token) {
@@ -108,14 +108,14 @@ export default function ResetPasswordClient() {
   async function onSubmit() {
     if (!token) return;
     if (password !== confirmPassword) return;
-    resetPassword(
+    resetPasswordMutation.mutate(
       { token, newPassword: password, confirmPassword },
       {
         onSuccess: () => {
           toast.success("Password has been reset successfully!");
           router.push("/login");
         },
-        onError: (error) => {
+        onError: (error: any) => {
           console.error("Reset password error:", error);
           toast.error("Failed to reset password.");
         },
@@ -237,10 +237,10 @@ export default function ResetPasswordClient() {
             <div>
               <Button
                 type="submit"
-                disabled={isSubmitting || isPending || !isValid}
+                disabled={isSubmitting || isResetPasswordPending || !isValid}
                 className="cursor-pointer"
               >
-                {(isSubmitting || isPending) && (
+                {(isSubmitting || isResetPasswordPending) && (
                   <svg
                     className="animate-spin size-4"
                     viewBox="0 0 24 24"
@@ -263,7 +263,7 @@ export default function ResetPasswordClient() {
                     />
                   </svg>
                 )}
-                {isSubmitting || isPending
+                {isSubmitting || isResetPasswordPending
                   ? "Setting password..."
                   : "Set password"}
               </Button>

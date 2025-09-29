@@ -7,13 +7,12 @@ import { loginSchema, type LoginFormData } from "@/lib/validations/schemas";
 import Image from "next/image";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
-import { useLogin, useGoogleLogin } from "@/hooks";
+import { useAuth } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import ForgotPasswordModal from "../forgot-password";
-import { useForgotPassword } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -33,23 +32,26 @@ export function LoginForm() {
     mode: "onChange",
   });
 
-  const { mutate: loginUser, isPending: isLoginPending } = useLogin();
-
-  const { mutate: loginWithGoogle, isPending: isGoogleLoginPending } =
-    useGoogleLogin();
-
-  const { mutate: forgotPassword } = useForgotPassword();
+  const {
+    loginUser,
+    loginWithGoogle,
+    forgotPassword,
+    isLoggingIn,
+    isLoggingInWithGoogle,
+    loginMutation,
+    forgotPasswordMutation,
+  } = useAuth();
 
   const handleForgotPassword = async (email: string) => {
     console.log("Forgot password requested for email:", email);
-    forgotPassword(email, {
+    forgotPasswordMutation.mutate(email, {
       onSuccess: () => {
         toast.success(
           "Password reset email sent! Please check your inbox for further instructions."
         );
         setIsForgotPasswordOpen(false);
       },
-      onError: (error) => {
+      onError: (error: any) => {
         console.error("Forgot password error:", error);
         toast.error(
           typeof error === "object" && error !== null && "message" in error
@@ -73,8 +75,8 @@ export function LoginForm() {
   };
 
   const onSubmit = (data: LoginFormData) => {
-    loginUser(data, {
-      onSuccess: (data) => {
+    loginMutation.mutate(data, {
+      onSuccess: (data: any) => {
         if (
           "requiresEmailVerification" in data.data &&
           data.data.requiresEmailVerification
@@ -90,7 +92,7 @@ export function LoginForm() {
           router.push("/");
         }, 500);
       },
-      onError: (error) => {
+      onError: (error: any) => {
         // Try to detect HTTP status from common error shapes (Axios, fetch wrappers, etc.)
         let status: number | undefined;
         if (error && typeof error === "object" && error !== null) {
@@ -206,9 +208,9 @@ export function LoginForm() {
                 type="submit"
                 className="w-full bg-[#EA454C] hover:bg-[#d63384] active:bg-[#b02a37] rounded-xl text-white text-sm shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                 size="lg"
-                disabled={isLoginPending || isSubmitting}
+                disabled={isLoggingIn || isSubmitting}
               >
-                {isLoginPending || isSubmitting ? "Signing in..." : "Sign In"}
+                {isLoggingIn || isSubmitting ? "Signing in..." : "Sign In"}
               </Button>
 
               <Button
@@ -217,7 +219,7 @@ export function LoginForm() {
                 className="w-full rounded-xl mt-2 shadow-sm"
                 type="button"
                 onClick={() => loginWithGoogle()}
-                disabled={isGoogleLoginPending}
+                disabled={isLoggingInWithGoogle}
               >
                 <FcGoogle size="20" className="mr-2" />
                 <span className="text-foreground text-sm">
