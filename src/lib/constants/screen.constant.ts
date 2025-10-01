@@ -6,10 +6,11 @@ export const SCREEN_SIZES = {
   "2xl": "96em",
 };
 
-export const SCREEN_BREAKPOINTS = {
-  sm: `(min-width: ${SCREEN_SIZES.sm})`,
-  md: `(min-width: ${SCREEN_SIZES.md})`,
-  lg: `(min-width: ${SCREEN_SIZES.lg})`,
-  xl: `(min-width: ${SCREEN_SIZES.xl})`,
-  "2xl": `(min-width: ${SCREEN_SIZES["2xl"]})`,
-};
+// TODO: Currently unused - consider removing if not needed
+// export const SCREEN_BREAKPOINTS = {
+//   sm: `(min-width: ${SCREEN_SIZES.sm})`,
+//   md: `(min-width: ${SCREEN_SIZES.md})`,
+//   lg: `(min-width: ${SCREEN_SIZES.lg})`,
+//   xl: `(min-width: ${SCREEN_SIZES.xl})`,
+//   "2xl": `(min-width: ${SCREEN_SIZES["2xl"]})`,
+// };

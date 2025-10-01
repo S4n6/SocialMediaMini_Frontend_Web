@@ -4,15 +4,40 @@ import {
   createContext,
   useContext,
   useEffect,
-  useState,
+  useReducer,
   useCallback,
   useRef,
 } from "react";
 import { usePathname } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
-import { authService } from "@/services/auth.service";
+import { authService } from "@/services/api.service";
 import { User } from "@/types/user";
+
+// Auth state types
+interface AuthState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type AuthAction =
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "SET_ERROR"; payload: string | null }
+  | { type: "CLEAR_ERROR" };
+
+// Auth reducer
+function authReducer(state: AuthState, action: AuthAction): AuthState {
+  switch (action.type) {
+    case "SET_LOADING":
+      return { ...state, isLoading: action.payload };
+    case "SET_ERROR":
+      return { ...state, error: action.payload };
+    case "CLEAR_ERROR":
+      return { ...state, error: null };
+    default:
+      return state;
+  }
+}
 
 interface AuthContextType {
   user: User | null;
@@ -42,12 +67,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const pathname = usePathname();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, authDispatch] = useReducer(authReducer, {
+    isLoading: true,
+    error: null,
+  });
   const hasInitialized = useRef(false);
 
   const clearError = useCallback(() => {
-    setError(null);
+    authDispatch({ type: "CLEAR_ERROR" });
   }, []);
 
   // Check if current page is auth page
@@ -65,7 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const fetchUserData = useCallback(async () => {
     try {
-      setError(null);
+      authDispatch({ type: "SET_ERROR", payload: null });
 
       const response = await authService.getCurrentUser();
 
@@ -82,7 +109,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Authentication failed";
-      setError(errorMessage);
+      authDispatch({ type: "SET_ERROR", payload: errorMessage });
 
       if (
         (error as { response?: { status?: number } })?.response?.status === 401
@@ -97,14 +124,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // On auth pages, only set loading = false and do not fetch user
     if (isAuthPage) {
-      setIsLoading(false);
+      authDispatch({ type: "SET_LOADING", payload: false });
       hasInitialized.current = true;
       return;
     }
 
-    setIsLoading(true);
+    authDispatch({ type: "SET_LOADING", payload: true });
     await fetchUserData();
-    setIsLoading(false);
+    authDispatch({ type: "SET_LOADING", payload: false });
     hasInitialized.current = true;
   }, [fetchUserData, isAuthPage]);
 
@@ -112,9 +139,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
    * Public method để manually refetch user data
    */
   const refetchUser = useCallback(async () => {
-    setIsLoading(true);
+    authDispatch({ type: "SET_LOADING", payload: true });
     await fetchUserData();
-    setIsLoading(false);
+    authDispatch({ type: "SET_LOADING", payload: false });
   }, [fetchUserData]);
 
   // Initialize auth state on mount
@@ -157,8 +184,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const contextValue: AuthContextType = {
     user,
     isAuthenticated,
-    isLoading,
-    error,
+    isLoading: state.isLoading,
+    error: state.error,
     refetchUser,
     clearError,
   };

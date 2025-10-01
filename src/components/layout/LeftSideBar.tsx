@@ -3,6 +3,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { GoHome, GoHomeFill } from "react-icons/go";
 import type { IconType } from "react-icons";
 import { IoSearchOutline, IoSearch } from "react-icons/io5";
+import { MdOutlineFeed, MdFeed } from "react-icons/md";
 import { MdOutlineExplore, MdExplore } from "react-icons/md";
 import { PiVideoLight, PiVideoFill } from "react-icons/pi";
 import { IoIosNotificationsOutline, IoIosNotifications } from "react-icons/io";
@@ -21,9 +22,9 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils/cn-tailwind";
 import { ThemeToggle } from "../ui/theme-toggle";
-import { useAuth } from "@/hooks";
-import SearchDrawer from "../search-drawer/SearchDrawer";
-import CreatePostDialog from "../post/create/CreatePostDialog";
+import { useAuth } from "@/features/auth/hooks";
+import { SearchDrawer } from "@/features/search";
+import { CreatePostDialog } from "@/features/posts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 
@@ -38,38 +39,45 @@ type MenuItem = {
 const menuItems: MenuItem[] = [
   { icon: GoHome, filledIcon: GoHomeFill, label: "Home", id: 0, path: "/" },
   {
+    icon: MdOutlineFeed,
+    filledIcon: MdFeed,
+    label: "Feed",
+    id: 1,
+    path: "/feed",
+  },
+  {
     icon: IoSearchOutline,
     filledIcon: IoSearch,
     label: "Search",
-    id: 1,
+    id: 2,
     path: "/search",
   },
   {
     icon: MdOutlineExplore,
     filledIcon: MdExplore,
     label: "Explore",
-    id: 2,
+    id: 3,
     path: "/explore",
   },
   {
     icon: PiVideoLight,
     filledIcon: PiVideoFill,
     label: "Reels",
-    id: 3,
+    id: 4,
     path: "/reels",
   },
   {
     icon: PiMessengerLogo,
     filledIcon: RiMessengerFill,
     label: "Messages",
-    id: 4,
+    id: 5,
     path: "/messages",
   },
   {
     icon: IoIosNotificationsOutline,
     filledIcon: IoIosNotifications,
     label: "Notifications",
-    id: 5,
+    id: 6,
     path: "/notifications",
   },
   {

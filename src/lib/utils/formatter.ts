@@ -1,3 +1,4 @@
+// TODO: Currently unused but useful utility - consider using or removing
 export function formatDate(date: string | Date): string {
   const now = new Date();
   const targetDate = new Date(date);

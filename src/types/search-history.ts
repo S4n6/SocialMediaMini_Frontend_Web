@@ -1,27 +1,19 @@
-export interface UserInfo {
-  id: string;
-  userName: string;
-  fullName: string;
-  avatar: string | null;
-}
+// Search history types
 
 export interface SearchHistoryItem {
+  id: string;
   userId: string;
+  searchedUserId: string;
   searchedAt: string;
-  user: UserInfo;
+  user: {
+    id: string;
+    userName: string;
+    fullName?: string;
+    avatar?: string;
+  };
 }
 
 export interface SearchHistoryResponse {
-  history: SearchHistoryItem[];
+  items: SearchHistoryItem[];
   total: number;
-}
-
-export interface AddSearchHistoryDto {
-  searchedUserId: string;
-}
-
-export interface SearchHistoryApiResponse {
-  data: SearchHistoryResponse;
-  message: string;
-  success: boolean;
 }

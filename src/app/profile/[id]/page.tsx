@@ -1,123 +1,123 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useParams } from "next/navigation";
 import {
   ProfileInfo,
   StoryHighlights,
   ProfileTabs,
   PostsGrid,
-  type TabType,
+  ProfileErrorState,
   type Highlight,
   type Post,
-} from "@/components/profile";
-import { useAppSelector } from "@/hooks";
-import { User } from "@/types";
-import { useLegacyUser as useUser } from "@/hooks/user";
-
-const mockHighlights: Highlight[] = [
-  {
-    id: "1",
-    name: "BTS",
-    imageUrl: "https://picsum.photos/80/80?random=10",
-  },
-  {
-    id: "2",
-    name: "Frisbee",
-    imageUrl: "https://picsum.photos/80/80?random=11",
-  },
-];
-
-const mockPosts: Post[] = [
-  {
-    id: "1",
-    imageUrl: "https://picsum.photos/400/400?random=1",
-    isVideo: false,
-    likes: 1234,
-    comments: 89,
-    caption: "Beautiful sunset at the beach",
-  },
-  {
-    id: "2",
-    imageUrl: "https://picsum.photos/400/400?random=2",
-    isVideo: true,
-    likes: 2156,
-    comments: 178,
-    caption: "Training session highlights",
-  },
-  {
-    id: "3",
-    imageUrl: "https://picsum.photos/400/400?random=3",
-    isVideo: false,
-    isCarousel: true,
-    likes: 892,
-    comments: 45,
-    caption: "Team celebration after victory",
-  },
-  {
-    id: "4",
-    imageUrl: "https://picsum.photos/400/400?random=4",
-    isVideo: false,
-    likes: 1567,
-    comments: 234,
-  },
-  {
-    id: "5",
-    imageUrl: "https://picsum.photos/400/400?random=5",
-    isVideo: true,
-    likes: 3421,
-    comments: 567,
-  },
-  {
-    id: "6",
-    imageUrl: "https://picsum.photos/400/400?random=6",
-    isVideo: false,
-    likes: 987,
-    comments: 123,
-  },
-];
+} from "@/features/profile";
+import { useProfilePage } from "@/features/profile/hooks/useProfilePage";
+import {
+  mockHighlights,
+  mockPosts,
+  getVideosPosts,
+  getTaggedPosts,
+} from "@/data/profile-mock";
+import { ProfilePageSkeleton } from "@/components/skeletons/ProfilePageSkeleton";
+import {
+  useProfileRealtimeUpdates,
+  useFollowActions,
+  usePresence,
+} from "@/hooks/useSimpleRealtimeFeatures";
+import { useEventBus } from "@/lib/events/EventBus";
 
 export default function ProfilePage() {
   const params = useParams() as { id?: string } | null;
-  const userRedux: User | null = useAppSelector((state) => state.auth.user);
-  const [activeTab, setActiveTab] = useState<TabType>("posts");
-  const [loading, setLoading] = useState(false);
-  const [profileUser, setProfileUser] = useState<User | null>(null);
-  const id = params?.id ?? "me";
+  const profileId = params?.id ?? "me";
 
-  const queryId = id === "me" ? "" : id;
-  const { user } = useUser({ userId: queryId });
+  const {
+    profileUser,
+    activeTab,
+    loading,
+    error,
+    isOwnProfile,
+    isLoadingUser,
+    handleTabChange,
+    refetchProfile,
+  } = useProfilePage({ profileId });
+
+  // Real-time features
+  useProfileRealtimeUpdates(profileId);
+  useFollowActions();
+  usePresence();
+
+  // Convert profile user to domain user type
+  const convertToDomainUser = (user: unknown) => {
+    if (!user || typeof user !== "object") return undefined;
+    const userObj = user as Record<string, unknown>;
+    return {
+      ...userObj,
+      fullName: userObj.fullName || undefined,
+      bio: userObj.bio || undefined,
+      website: userObj.website || undefined,
+      location: userObj.location || undefined,
+      phoneNumber: userObj.phoneNumber || undefined,
+      dateOfBirth: userObj.dateOfBirth || undefined,
+      birthDate: userObj.birthDate || undefined,
+      googleId: userObj.googleId || undefined,
+    };
+  };
+
+  // Event bus for cross-component communication
+  useEventBus(
+    "profile:viewed",
+    (data) => {
+      if (data.profileId === profileId) {
+        console.log("Profile was viewed:", data);
+      }
+    },
+    [profileId]
+  );
 
   const handleHighlightClick = (highlight: Highlight) => {
-    console.log("Highlight clicked:", highlight.name);
+    console.log("Highlight clicked:", highlight.name || highlight.id);
   };
 
   const handlePostClick = (post: Post) => {
     console.log("Post clicked:", post.id);
   };
 
-  const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
-    setLoading(true);
-    setTimeout(() => setLoading(false), 500);
+  // Get filtered posts based on active tab
+  const getFilteredPosts = () => {
+    switch (activeTab) {
+      case "posts":
+        return mockPosts;
+      case "reels":
+        return getVideosPosts();
+      case "tagged":
+        return getTaggedPosts();
+      default:
+        return mockPosts;
+    }
   };
 
-  useEffect(() => {
-    if (id === "me" && userRedux) {
-      console.log("Setting profile user from Redux", userRedux);
-      setProfileUser(userRedux);
-    } else if (id !== "me" && user) {
-      console.log("Setting profile user from fetched data", user);
-      setProfileUser(user as User);
-    }
-  }, [id, user, userRedux]);
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <ProfileErrorState
+        error={error}
+        onRetry={refetchProfile}
+        type={error.includes("not found") ? "user-not-found" : "network-error"}
+      />
+    );
+  }
+
+  // Show loading skeleton while loading user data
+  if (isLoadingUser && !profileUser) {
+    return <ProfilePageSkeleton />;
+  }
 
   return (
     <div className="min-h-screen w-full flex justify-center my-4">
       <div className="w-[80%]">
         {/* Profile Info */}
         <ProfileInfo
-          profileUser={profileUser || undefined}
+          profileUser={convertToDomainUser(profileUser) as any}
           avatarUrl={profileUser?.avatar || ""}
           avatarAlt={profileUser?.userName || ""}
           userName={profileUser?.userName || ""}
@@ -129,7 +129,7 @@ export default function ProfilePage() {
           website={profileUser?.websiteUrl || ""}
           followedBy={"Khabib, Elon, Jeff"}
           hasStoryRing={false}
-          isOwnProfile={id === "me"}
+          isOwnProfile={isOwnProfile}
         />
 
         {/* Story Highlights */}
@@ -148,29 +148,11 @@ export default function ProfilePage() {
         />
 
         {/* Content based on active tab */}
-        {activeTab === "posts" && (
-          <PostsGrid
-            posts={mockPosts}
-            onPostClick={handlePostClick}
-            loading={loading}
-          />
-        )}
-
-        {activeTab === "reels" && (
-          <PostsGrid
-            posts={mockPosts.filter((p) => p.isVideo)}
-            onPostClick={handlePostClick}
-            loading={loading}
-          />
-        )}
-
-        {activeTab === "tagged" && (
-          <PostsGrid
-            posts={[]}
-            onPostClick={handlePostClick}
-            loading={loading}
-          />
-        )}
+        <PostsGrid
+          posts={getFilteredPosts()}
+          onPostClick={handlePostClick}
+          loading={loading}
+        />
       </div>
     </div>
   );

@@ -1,26 +1,8 @@
-import type { User } from "./user";
-
-// Post types
+// Legacy post type - will be deprecated after migration to domain types
 export interface Post {
   id: string;
   content: string;
-  author: User;
-  images?: string[];
-  likesCount: number;
-  commentsCount: number;
-  isLiked: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Comment types
-export interface Comment {
-  id: string;
-  content: string;
-  author: User;
-  postId: string;
-  likesCount: number;
-  isLiked: boolean;
+  authorId: string;
   createdAt: string;
   updatedAt: string;
 }
