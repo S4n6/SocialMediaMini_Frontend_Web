@@ -29,3 +29,29 @@ export const useAuthQueries = () => {
     // Add more queries as needed
   };
 };
+
+/**
+ * Hook for email validation
+ */
+export const useEmailCheck = (email: string) => {
+  return useQuery({
+    queryKey: ["auth", "email-exists", email],
+    queryFn: () => authService.checkEmailExists(email),
+    select: (res: any) => (res && res.data ? res.data : null),
+    enabled: !!email && email.includes("@"),
+    staleTime: 30000, // 30 seconds
+  });
+};
+
+/**
+ * Hook for username validation
+ */
+export const useUsernameCheck = (userName: string) => {
+  return useQuery({
+    queryKey: ["auth", "username-exists", userName],
+    queryFn: () => authService.checkUsernameExists(userName),
+    select: (res: any) => (res && res.data ? res.data : null),
+    enabled: !!userName && userName.length > 2,
+    staleTime: 30000, // 30 seconds
+  });
+};

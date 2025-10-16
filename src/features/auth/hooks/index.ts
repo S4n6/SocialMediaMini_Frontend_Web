@@ -24,7 +24,7 @@ export const useAuth = () => {
   const mutations = useAuthMutations();
 
   // Create action methods
-  const actions: AuthActions = {
+  const actions = {
     login: useCallback(
       async (credentials: LoginFormData) => {
         return mutations.login.mutateAsync(credentials);

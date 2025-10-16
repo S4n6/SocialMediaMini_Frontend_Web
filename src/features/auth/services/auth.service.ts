@@ -9,9 +9,6 @@ export const authService = {
   ): Promise<
     ApiResponse<{
       user: User;
-      accessToken?: string;
-      refreshToken?: string;
-      token?: string;
       email?: string;
       requiresEmailVerification?: boolean;
       isEmailVerified?: boolean;

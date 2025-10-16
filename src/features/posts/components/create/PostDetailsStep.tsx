@@ -1,14 +1,26 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { MediaFile, PostData } from "./CreatePostDialog";
+import React, { useState } from 'react';
+import { useAuthContext } from '@/providers/AuthProvider';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  MediaFile,
+  PostFormData,
+  PostPrivacy,
+} from '../../types/create-post.types';
 import {
   MapPin,
   Hash,
@@ -21,13 +33,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Smile,
-} from "lucide-react";
-import { cn } from "@/lib/utils/cn-tailwind";
+} from 'lucide-react';
 
 interface PostDetailsStepProps {
   mediaFiles: MediaFile[];
-  postData: PostData;
-  onPostDataChange: (data: PostData) => void;
+  postData: PostFormData;
+  onPostDataChange: (data: PostFormData) => void;
 }
 
 export default function PostDetailsStep({
@@ -37,18 +48,20 @@ export default function PostDetailsStep({
 }: PostDetailsStepProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
-  const [tagInput, setTagInput] = useState("");
+  const [tagInput, setTagInput] = useState('');
 
-  // Mock user data - replace with actual user data
-  const user = {
-    id: "1",
-    username: "user123",
-    fullName: "John Doe",
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facepad&facepad=2&w=256&h=256&q=80",
+  // Use current authenticated user from context
+  const { user } = useAuthContext();
+
+  // Provide a small fallback for server rendering / unauthenticated state
+  const displayUser = user ?? {
+    id: '0',
+    userName: 'guest',
+    fullName: 'Guest',
+    avatar: undefined,
   };
 
-  const updatePostData = (updates: Partial<PostData>) => {
+  const updatePostData = (updates: Partial<PostFormData>) => {
     onPostDataChange({ ...postData, ...updates });
   };
 
@@ -57,12 +70,12 @@ export default function PostDetailsStep({
       updatePostData({
         tags: [...postData.tags, tagInput.trim()],
       });
-      setTagInput("");
+      setTagInput('');
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       e.preventDefault();
       handleAddTag();
     }
@@ -83,14 +96,20 @@ export default function PostDetailsStep({
             {/* User Info */}
             <div className="flex items-center gap-4">
               <Avatar className="w-12 h-12">
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
+                <AvatarImage
+                  src={displayUser.avatar}
+                  alt={displayUser.fullName}
+                  className="object-cover"
+                />
+                <AvatarFallback>
+                  {displayUser.fullName?.charAt(0)}
+                </AvatarFallback>
               </Avatar>
               <div>
                 <p className="font-bold text-base text-theme">
-                  {user.username}
+                  {displayUser.userName}
                 </p>
-                <p className="text-theme/70 text-sm">{user.fullName}</p>
+                <p className="text-theme/70 text-sm">{displayUser.fullName}</p>
               </div>
             </div>
 
@@ -112,6 +131,44 @@ export default function PostDetailsStep({
               </div>
             </div>
 
+            {/* Privacy */}
+            <div className="space-y-4">
+              <Label className="text-base font-semibold flex items-center gap-2 text-theme">
+                <Eye className="w-5 h-5" />
+                Who can see this?
+              </Label>
+              <Select
+                value={postData.privacy}
+                onValueChange={(value: PostPrivacy) =>
+                  updatePostData({ privacy: value })
+                }
+              >
+                <SelectTrigger className="border-theme rounded-lg p-4 focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary bg-input text-base">
+                  <SelectValue placeholder="Select privacy setting" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span>Public</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="followers">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span>Followers</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="private">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                      <span>Private</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Location */}
             <div className="space-y-4">
               <Label className="text-base font-semibold flex items-center gap-2 text-theme">
@@ -120,9 +177,9 @@ export default function PostDetailsStep({
               </Label>
               <Input
                 placeholder="Search locations..."
-                value={postData.location || ""}
+                value={postData.location || ''}
                 onChange={(e) => updatePostData({ location: e.target.value })}
-                className="border-theme rounded-lg p-4 focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary bg-input text-base"
+                className="border-theme rounded-lg p-4 focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary bg-input text-base text-theme placeholder:text-theme/60"
               />
             </div>
 
@@ -159,11 +216,14 @@ export default function PostDetailsStep({
                   {postData.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-full text-sm font-medium cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors duration-200"
-                      onClick={() => removeTag(tag)}
+                      className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium cursor-pointer hover:bg-blue-700 transition-colors duration-200"
                     >
-                      #{tag}
-                      <button className="ml-1 hover:text-red-500 text-lg font-bold">
+                      <span className="select-none">#{tag}</span>
+                      <button
+                        aria-label={`Remove ${tag}`}
+                        onClick={() => removeTag(tag)}
+                        className="ml-2 text-white hover:text-red-200 text-sm font-semibold"
+                      >
                         ×
                       </button>
                     </span>
@@ -180,7 +240,7 @@ export default function PostDetailsStep({
               </Label>
               <Textarea
                 placeholder="Write alt text..."
-                value={postData.accessibility || ""}
+                value={postData.accessibility || ''}
                 onChange={(e) =>
                   updatePostData({ accessibility: e.target.value })
                 }

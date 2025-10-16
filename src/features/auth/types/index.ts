@@ -2,7 +2,7 @@ import { User } from "@/types/user";
 
 // Form Data Types
 export interface LoginFormData {
-  email: string;
+  identifier: string;
   password: string;
   rememberMe?: boolean;
 }

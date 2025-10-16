@@ -1,13 +1,13 @@
 // Components
-export { PostCard } from "./components/PostCard";
-export { default as PostSection } from "./components/PostSection";
-export * from "./components/create";
+export { PostCard } from './components/PostCard';
+export { default as PostSection } from './components/PostSection';
+export * from './components/create';
 
 // Hooks
-export * from "./hooks";
+export * from './hooks';
 
 // Services
-export * from "./services/posts.service";
+export * from './services/post.service';
 
 // Types
-export * from "./types/post";
+export * from './types/post';

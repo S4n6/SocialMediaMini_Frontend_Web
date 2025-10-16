@@ -13,7 +13,7 @@ import {
 import { CheckCircle, XCircle, Loader2, Mail, RefreshCw } from "lucide-react";
 import { ComponentErrorBoundary } from "@/components/error-boundary";
 import { RequestLoadingWrapper } from "@/components/loading";
-import { useAuth } from "../hooks/use-auth";
+import { useAuth } from "../hooks";
 import { useErrorHandler } from "@/hooks";
 
 type VerificationStatus = "pending" | "success" | "error" | "expired";
@@ -37,7 +37,7 @@ export const EmailVerification: React.FC = () => {
       }
 
       try {
-        await verifyEmail(token);
+        await verifyEmail({ token, password: "" }); // Password might not be needed in some cases
         setStatus("success");
 
         // Start countdown for redirect

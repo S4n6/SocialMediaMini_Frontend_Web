@@ -3,10 +3,8 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  resetPasswordSchema,
-  type ResetPasswordFormData,
-} from "@/lib/validations/schemas";
+import { resetPasswordSchema } from "@/lib/validations/schemas";
+import type { ResetPasswordFormData } from "@/lib/validations/schemas";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +19,7 @@ import {
 import { Loader2, Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
 import { ComponentErrorBoundary } from "@/components/error-boundary";
 import { RequestLoadingWrapper } from "@/components/loading";
-import { useAuth } from "../hooks/use-auth";
+import { useAuth } from "../hooks";
 import { useErrorHandler, useFormErrorHandler } from "@/hooks";
 
 export const ResetPasswordForm: React.FC = () => {
@@ -33,7 +31,7 @@ export const ResetPasswordForm: React.FC = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const { resetPassword, isResettingPassword } = useAuth();
+  const { resetPassword, isResetPasswordPending } = useAuth();
   const { handleError } = useErrorHandler();
   const { handleValidationError, handleSubmitError } =
     useFormErrorHandler("ResetPasswordForm");
@@ -59,7 +57,7 @@ export const ResetPasswordForm: React.FC = () => {
     try {
       await resetPassword({
         token,
-        password: data.password,
+        newPassword: data.password,
         confirmPassword: data.confirmPassword,
       });
       setIsSuccess(true);
@@ -100,7 +98,7 @@ export const ResetPasswordForm: React.FC = () => {
 
   // Create request state for loading wrapper
   const requestState = {
-    isLoading: isResettingPassword || isSubmitting,
+    isLoading: isResetPasswordPending || isSubmitting,
     error: null,
     isSuccess,
   };
@@ -201,7 +199,7 @@ export const ResetPasswordForm: React.FC = () => {
                           ? "border-red-500 focus:ring-red-500"
                           : ""
                       }`}
-                      disabled={isResettingPassword}
+                      disabled={isResetPasswordPending}
                     />
                     <Button
                       type="button"
@@ -209,7 +207,7 @@ export const ResetPasswordForm: React.FC = () => {
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
-                      disabled={isResettingPassword}
+                      disabled={isResetPasswordPending}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -250,7 +248,7 @@ export const ResetPasswordForm: React.FC = () => {
                           ? "border-red-500 focus:ring-red-500"
                           : ""
                       }`}
-                      disabled={isResettingPassword}
+                      disabled={isResetPasswordPending}
                     />
                     <Button
                       type="button"
@@ -260,7 +258,7 @@ export const ResetPasswordForm: React.FC = () => {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      disabled={isResettingPassword}
+                      disabled={isResetPasswordPending}
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -281,9 +279,9 @@ export const ResetPasswordForm: React.FC = () => {
                   type="submit"
                   className="w-full bg-[#EA454C] hover:bg-[#d63384] active:bg-[#b02a37]"
                   size="lg"
-                  disabled={isResettingPassword || isSubmitting}
+                  disabled={isResetPasswordPending || isSubmitting}
                 >
-                  {isResettingPassword || isSubmitting ? (
+                  {isResetPasswordPending || isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Updating Password...
@@ -300,7 +298,7 @@ export const ResetPasswordForm: React.FC = () => {
                   size="lg"
                   className="w-full"
                   onClick={() => router.push("/login")}
-                  disabled={isResettingPassword}
+                  disabled={isResetPasswordPending}
                 >
                   Back to Login
                 </Button>

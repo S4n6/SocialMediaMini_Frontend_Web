@@ -1,4 +1,4 @@
-import { User } from "@/types/user";
+import { User } from '@/types/user';
 
 export interface Post {
   id: string;
@@ -58,5 +58,8 @@ export interface PostFilters {
   tags?: string[];
   dateFrom?: string;
   dateTo?: string;
-  sortBy?: "newest" | "oldest" | "popular";
+  sortBy?: 'newest' | 'oldest' | 'popular';
 }
+
+// Export create post types
+export * from './create-post.types';

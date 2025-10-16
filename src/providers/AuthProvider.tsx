@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   createContext,
@@ -7,12 +7,12 @@ import {
   useReducer,
   useCallback,
   useRef,
-} from "react";
-import { usePathname } from "next/navigation";
-import { useAppSelector, useAppDispatch } from "@/hooks/redux";
-import { loginSuccess, logout } from "@/store/slices/authSlice";
-import { authService } from "@/services/api.service";
-import { User } from "@/types/user";
+} from 'react';
+import { usePathname } from 'next/navigation';
+import { useAppSelector, useAppDispatch } from '@/hooks/redux';
+import { loginSuccess, logout } from '@/store/slices/authSlice';
+import { authService } from '@/services/api.service';
+import { User } from '@/types/user';
 
 // Auth state types
 interface AuthState {
@@ -21,18 +21,18 @@ interface AuthState {
 }
 
 type AuthAction =
-  | { type: "SET_LOADING"; payload: boolean }
-  | { type: "SET_ERROR"; payload: string | null }
-  | { type: "CLEAR_ERROR" };
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'CLEAR_ERROR' };
 
 // Auth reducer
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
-    case "SET_LOADING":
+    case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
-    case "SET_ERROR":
+    case 'SET_ERROR':
       return { ...state, error: action.payload };
-    case "CLEAR_ERROR":
+    case 'CLEAR_ERROR':
       return { ...state, error: null };
     default:
       return state;
@@ -53,7 +53,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function useAuthContext() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuthContext must be used within an AuthProvider");
+    throw new Error('useAuthContext must be used within an AuthProvider');
   }
   return context;
 }
@@ -74,16 +74,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const hasInitialized = useRef(false);
 
   const clearError = useCallback(() => {
-    authDispatch({ type: "CLEAR_ERROR" });
+    authDispatch({ type: 'CLEAR_ERROR' });
   }, []);
 
   // Check if current page is auth page
   const isAuthPage = [
-    "/login",
-    "/signup",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
+    '/login',
+    '/signup',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
   ].some((path) => pathname.startsWith(path));
 
   /**
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const fetchUserData = useCallback(async () => {
     try {
-      authDispatch({ type: "SET_ERROR", payload: null });
+      authDispatch({ type: 'SET_ERROR', payload: null });
 
       const response = await authService.getCurrentUser();
 
@@ -100,16 +100,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         dispatch(
           loginSuccess({
             user: response.data,
-            token: "http-only-cookie",
-          })
+            token: 'http-only-cookie',
+          }),
         );
       } else {
         dispatch(logout());
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Authentication failed";
-      authDispatch({ type: "SET_ERROR", payload: errorMessage });
+        error instanceof Error ? error.message : 'Authentication failed';
+      authDispatch({ type: 'SET_ERROR', payload: errorMessage });
 
       if (
         (error as { response?: { status?: number } })?.response?.status === 401
@@ -124,14 +124,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // On auth pages, only set loading = false and do not fetch user
     if (isAuthPage) {
-      authDispatch({ type: "SET_LOADING", payload: false });
+      authDispatch({ type: 'SET_LOADING', payload: false });
       hasInitialized.current = true;
       return;
     }
 
-    authDispatch({ type: "SET_LOADING", payload: true });
+    authDispatch({ type: 'SET_LOADING', payload: true });
     await fetchUserData();
-    authDispatch({ type: "SET_LOADING", payload: false });
+    authDispatch({ type: 'SET_LOADING', payload: false });
     hasInitialized.current = true;
   }, [fetchUserData, isAuthPage]);
 
@@ -139,9 +139,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
    * Public method để manually refetch user data
    */
   const refetchUser = useCallback(async () => {
-    authDispatch({ type: "SET_LOADING", payload: true });
+    authDispatch({ type: 'SET_LOADING', payload: true });
     await fetchUserData();
-    authDispatch({ type: "SET_LOADING", payload: false });
+    authDispatch({ type: 'SET_LOADING', payload: false });
   }, [fetchUserData]);
 
   // Initialize auth state on mount
@@ -155,28 +155,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "auth-sync") {
+      if (event.key === 'auth-sync') {
         // Another tab has updated auth state, sync here
         refetchUser();
       }
     };
 
     const handleAuthSyncEvent = (event: CustomEvent) => {
-      if (event.detail?.action === "logout") {
+      if (event.detail?.action === 'logout') {
         dispatch(logout());
-      } else if (event.detail?.action === "login") {
+      } else if (event.detail?.action === 'login') {
         refetchUser();
       }
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("auth-sync", handleAuthSyncEvent as EventListener);
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('auth-sync', handleAuthSyncEvent as EventListener);
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener(
-        "auth-sync",
-        handleAuthSyncEvent as EventListener
+        'auth-sync',
+        handleAuthSyncEvent as EventListener,
       );
     };
   }, [dispatch, refetchUser]);

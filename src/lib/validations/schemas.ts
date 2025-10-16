@@ -2,10 +2,10 @@ import * as yup from "yup";
 
 // Login form validation
 export const loginSchema = yup.object({
-  email: yup
+  identifier: yup
     .string()
-    .email("Please enter a valid email address")
-    .required("Email is required"),
+    .min(3, "Email or username must be at least 3 characters")
+    .required("Email or username is required"),
   password: yup
     .string()
     .min(6, "Password must be at least 6 characters")

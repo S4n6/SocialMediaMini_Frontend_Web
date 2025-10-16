@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { FaHeart, FaComment, FaShare, FaBookmark } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
-import type { LegacyPost as Post } from "@/types";
-import ImageList from "@/components/ui/image-list-custom";
+import React, { useEffect, useState } from 'react';
+import { FaHeart, FaComment, FaShare, FaBookmark } from 'react-icons/fa';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
+import type { LegacyPost as Post } from '@/types';
+import ImageList from '@/components/ui/image-list-custom';
 
 interface PostProps {
   post: Post;
@@ -18,7 +18,7 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
   const [isLiked, setIsLiked] = useState(post.isLiked || false);
   const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked || false);
   const [likes, setLikes] = useState<number>(post.likes);
-  const [commentText, setCommentText] = useState("");
+  const [commentText, setCommentText] = useState('');
 
   const handleLike = () => {
     const newIsLiked = !isLiked;
@@ -47,17 +47,13 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
   };
 
   const handleComment = () => {
-    console.log("Comment button clicked");
+    console.log('Comment button clicked');
   };
 
   const handleShare = () => {
     // Implement share functionality
-    console.log("Share post:", post.id);
+    console.log('Share post:', post.id);
   };
-
-  useEffect(() => {
-    console.log("Post updated:", post);
-  }, [post]);
 
   return (
     <Card className="w-full max-w-lg mx-auto border-none shadow-none">
@@ -89,16 +85,16 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
           <ImageList
             images={post.images.map((img: any) => ({
               id: img.id,
-              imageUrl: img.imageUrl || img.url || "",
-              likes: typeof img.likes === "number" ? img.likes : 0,
-              comments: typeof img.comments === "number" ? img.comments : 0,
+              imageUrl: img.imageUrl || img.url || '',
+              likes: typeof img.likes === 'number' ? img.likes : 0,
+              comments: typeof img.comments === 'number' ? img.comments : 0,
               isVideo: !!img.isVideo,
               duration: img.duration,
               caption: img.caption,
               author: img.author,
               isCarousel: !!img.isCarousel,
               viewCount:
-                typeof img.viewCount === "number" ? img.viewCount : undefined,
+                typeof img.viewCount === 'number' ? img.viewCount : undefined,
             }))}
           />
         )}
@@ -127,7 +123,7 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
               size="sm"
               onClick={handleLike}
               className={`flex items-center gap-2 ${
-                isLiked ? "text-red-500" : "text-muted-foreground"
+                isLiked ? 'text-red-500' : 'text-muted-foreground'
               }`}
             >
               <FaHeart className="w-4 h-4" />
@@ -157,7 +153,7 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
             size="sm"
             onClick={handleBookmark}
             className={`flex items-center gap-2 ${
-              isBookmarked ? "text-blue-500" : "text-muted-foreground"
+              isBookmarked ? 'text-blue-500' : 'text-muted-foreground'
             }`}
           >
             <FaBookmark className="w-4 h-4" />
@@ -176,8 +172,8 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
               <Button
                 onClick={() => {
                   // Handle post comment
-                  console.log("Posting comment:", commentText);
-                  setCommentText("");
+                  console.log('Posting comment:', commentText);
+                  setCommentText('');
                 }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 h-8 px-3 text-sm bg-blue-500 hover:bg-blue-600 text-white"
               >

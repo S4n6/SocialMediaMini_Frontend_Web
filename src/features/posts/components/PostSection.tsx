@@ -23,23 +23,23 @@ export default function PostSection({
   onLoadMore,
   hasMore,
 }: PostSectionProps) {
-  if (error) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <p className="text-red-500 mb-2">Error loading posts</p>
-          <p className="text-sm text-muted-foreground">{error}</p>
-        </div>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="flex items-center justify-center p-8">
+  //       <div className="text-center">
+  //         <p className="text-red-500 mb-2">Error loading posts</p>
+  //         <p className="text-sm text-muted-foreground">{error}</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (isLoading && posts.length === 0) {
     return <PostsSkeleton />;
   }
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 mt-8">
       {posts.map((post) => (
         <PostCard
           key={post.id}

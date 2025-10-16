@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authService } from "@/services/api.service";
 import { useAppDispatch } from "@/hooks/redux";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { useAuthContext } from "@/providers/AuthProvider";
@@ -13,6 +12,7 @@ import type {
   ResetPasswordData,
   VerifyEmailData,
 } from "./types";
+import { authService } from "../services/auth.service";
 
 // Create query keys for auth domain
 const authKeys = createQueryKeys.auth;
@@ -75,7 +75,7 @@ export const useAuthMutations = () => {
     mutationFn: () => authService.loginWithGoogle(),
     onSuccess: async (response) => {
       try {
-        const { user } = response.data;
+        const { user } = response;
 
         // Update Redux state
         dispatch(
@@ -111,10 +111,16 @@ export const useAuthMutations = () => {
     mutationFn: (userData: RegisterFormData) => {
       // Transform RegisterFormData to match API expected format
       const apiData = {
+        // API expects 'fullname' (lowercase) instead of 'fullName'
+        fullname: (userData as any).fullName ?? (userData as any).fullname ?? "",
+        // Normalize username field name
+        username: (userData as any).userName ?? (userData as any).username ?? "",
         email: userData.email,
-        password: userData.password,
-        username: userData.userName, // Convert userName to username
-        fullName: userData.fullName,
+        // Provide defaults for required API fields that may be optional in the form
+        birthDate: (userData as any).birthDate ?? "",
+        gender: (userData as any).gender ?? "",
+        // Keep password as an extra property in case the backend needs it at runtime
+        password: (userData as any).password,
       };
       return authService.register(apiData);
     },
@@ -168,11 +174,11 @@ export const useAuthMutations = () => {
    */
   const resetPasswordMutation = useMutation({
     mutationFn: (data: ResetPasswordData) =>
-      authService.resetPassword(
-        data.token,
-        data.newPassword,
-        data.confirmPassword
-      ),
+      authService.resetPassword({
+        token: data.token,
+        newPassword: data.newPassword,
+        confirmPassword: data.confirmPassword,
+      }),
     onSuccess: () => console.log("Password reset successful!"),
     onError: (error) => handleError(error, { action: "RESET_PASSWORD" }),
   });
@@ -182,7 +188,7 @@ export const useAuthMutations = () => {
    */
   const verifyEmailMutation = useMutation({
     mutationFn: (data: VerifyEmailData) =>
-      authService.verifyEmail(data.token, data.password),
+      authService.verifyEmail({ token: data.token, password: data.password }),
     onSuccess: async () => {
       await refetchUser();
       queryClient.invalidateQueries({ queryKey: authKeys.all() });

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Mail, CheckCircle, Loader2 } from "lucide-react";
-import { useAuth } from "../hooks/use-auth";
+import { useAuth } from "../hooks";
 import { useErrorHandler } from "@/hooks";
 import { ComponentErrorBoundary } from "@/components/error-boundary";
 

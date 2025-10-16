@@ -6,6 +6,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema } from "@/lib/validations/schemas";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComponentErrorBoundary } from "@/components/error-boundary";
 import { RequestLoadingWrapper } from "@/components/loading";
-import { useAuth } from "../hooks/use-auth";
+import { useAuth } from "../hooks";
 import { useErrorHandler, useFormErrorHandler } from "@/hooks";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
 import type { LoginFormData } from "../types";
@@ -28,7 +30,7 @@ export const LoginForm: React.FC = () => {
     isLoggingIn,
     isLoggingInWithGoogle,
     forgotPassword,
-    isForgettingPassword,
+    isForgotPasswordPending,
   } = useAuth();
 
   const { handleError } = useErrorHandler();
@@ -37,24 +39,55 @@ export const LoginForm: React.FC = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
     mode: "onChange",
   });
 
+  const router = useRouter();
+
   const onSubmit = async (data: LoginFormData) => {
     try {
+      // Gọi login và chờ kết quả
       await login(data);
-    } catch (error) {
-      handleSubmitError(error);
+
+      // Nếu đến đây nghĩa là login thành công
+      toast.success("Login successful! Redirecting...");
+
+      // Chờ 0.5s rồi chuyển trang
+      setTimeout(() => {
+        router.push("/");
+      }, 500);
+    } catch (error: any) {
+      // Xử lý lỗi từ server
+      console.error("Login error:", error);
+
+      // Nếu có lỗi field cụ thể từ server (như email/password sai)
+      if (error?.response?.data?.fieldErrors) {
+        const fieldErrors = error.response.data.fieldErrors;
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          setError(field as keyof LoginFormData, {
+            type: "server",
+            message: String(message),
+          });
+        });
+      } else if (error?.response?.data?.message) {
+        // Hiển thị lỗi chung từ server
+        toast.error(error.response.data.message);
+      } else if (error?.message) {
+        // Hiển thị lỗi từ client
+        toast.error(error.message);
+      } else {
+        // Lỗi không xác định
+        toast.error("Login failed. Please try again.");
+      }
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
-      // In a real app, this would integrate with Google OAuth
-      // For now, we'll show a placeholder implementation
       console.log("Google login clicked - integrate with Google OAuth");
       // await loginWithGoogle(googleCredential);
     } catch (error) {
@@ -97,24 +130,26 @@ export const LoginForm: React.FC = () => {
               loadingText="Signing you in..."
             >
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {/* Email Field */}
+                {/* Email or Username Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">
-                    Email
+                  <Label htmlFor="identifier" className="text-sm font-medium">
+                    Email or Username
                   </Label>
                   <Input
-                    {...register("email")}
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
+                    {...register("identifier")}
+                    id="identifier"
+                    type="text"
+                    placeholder="Enter your email or username"
                     className={`${
-                      errors.email ? "border-red-500 focus:ring-red-500" : ""
+                      errors.identifier
+                        ? "border-red-500 focus:ring-red-500"
+                        : ""
                     }`}
                     disabled={isLoggingIn}
                   />
-                  {errors.email && (
+                  {errors.identifier && (
                     <p className="text-red-500 text-sm">
-                      {errors.email.message}
+                      {errors.identifier.message}
                     </p>
                   )}
                 </div>
@@ -256,7 +291,7 @@ export const LoginForm: React.FC = () => {
           open={isForgotPasswordOpen}
           onOpenChange={setIsForgotPasswordOpen}
           onSubmit={handleForgotPassword}
-          isLoading={isForgettingPassword}
+          isLoading={isForgotPasswordPending}
         />
       </div>
     </ComponentErrorBoundary>

@@ -8,7 +8,7 @@ export const apiService = {
   // ============ AUTH ENDPOINTS ============
   auth: {
     login: async (credentials: {
-      email: string;
+      identifier: string;
       password: string;
     }): Promise<
       ApiResponse<{
