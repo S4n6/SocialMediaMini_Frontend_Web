@@ -1,5 +1,5 @@
-import type { User } from "@/types/user";
-import type { ApiResponse } from "@/types/api";
+import type { User } from '@/types/user';
+import type { ApiResponse } from '@/types/api';
 
 // Follow hook configuration
 export interface FollowConfig {

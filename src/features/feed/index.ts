@@ -1,12 +1,26 @@
 // Components
-export { default as FriendSuggestionCard } from "./components/friend-suggestion/friendSuggestionCard";
-export { default as FriendSuggestionSection } from "./components/friend-suggestion/friendSuggestionSection";
+export { default as FriendSuggestionCard } from './components/friend-suggestion/friendSuggestionCard';
+export { default as FriendSuggestionSection } from './components/friend-suggestion/friendSuggestionSection';
+export { FeedPage } from './components/FeedPage';
 
 // Hooks
-export * from "./hooks";
+export * from './hooks';
 
 // Services
-export * from "./services/follow.service";
+export * from './services';
 
-// Types
-export type { FollowStatus, FollowConfig, FollowState } from "./hooks/types";
+// Types - Export specific types to avoid conflicts
+export type {
+  // Feed types
+  GetTimelineFeedParams,
+  TimelineFeedResponse,
+  FeedConfig,
+  FeedState,
+  FeedActions,
+  FeedError,
+  // Follow types (re-export main ones)
+  FollowConfig as FeedFollowConfig,
+  FollowState as FeedFollowState,
+  FollowActions as FeedFollowActions,
+  FollowStatus as FeedFollowStatus,
+} from './types';
