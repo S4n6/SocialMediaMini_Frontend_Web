@@ -12,6 +12,7 @@ import type {
   FeedState,
   FeedActions,
 } from '../../types/feed.types';
+import type { PostsResponse } from '@/features/posts/types';
 
 /**
  * Main feed hook that combines queries and business logic
@@ -34,8 +35,34 @@ export const useFeed = (
   });
 
   // Flatten posts from infinite query pages
+  // Handle both API response formats: {data: Post[]} and {posts: Post[]}
   const allPosts =
-    infiniteTimelineFeed.data?.pages.flatMap((page) => page.data) || [];
+    infiniteTimelineFeed.data?.pages.flatMap((page) => {
+      const responseData = page.data as PostsResponse;
+
+      console.log('Processing page data:', responseData);
+
+      // Handle PostsResponse format with 'posts' property (actual API)
+      if (responseData?.posts && Array.isArray(responseData.posts)) {
+        console.log('Using posts array:', responseData.posts.length, 'items');
+        return responseData.posts;
+      }
+
+      // Handle PostsResponse format with 'data' property (expected format)
+      if (responseData?.data && Array.isArray(responseData.data)) {
+        console.log('Using data array:', responseData.data.length, 'items');
+        return responseData.data;
+      }
+
+      // Handle direct array response (fallback)
+      if (Array.isArray(page.data)) {
+        console.log('Using direct array:', page.data.length, 'items');
+        return page.data;
+      }
+
+      console.log('No posts found in page data');
+      return [];
+    }) || [];
 
   // Create action methods
   const actions: FeedActions = {

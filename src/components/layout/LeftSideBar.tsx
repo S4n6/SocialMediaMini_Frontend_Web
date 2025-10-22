@@ -39,13 +39,6 @@ type MenuItem = {
 const menuItems: MenuItem[] = [
   { icon: GoHome, filledIcon: GoHomeFill, label: 'Home', id: 0, path: '/' },
   {
-    icon: MdOutlineFeed,
-    filledIcon: MdFeed,
-    label: 'Feed',
-    id: 1,
-    path: '/feed',
-  },
-  {
     icon: IoSearchOutline,
     filledIcon: IoSearch,
     label: 'Search',

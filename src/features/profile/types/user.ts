@@ -8,7 +8,8 @@ export interface UserCount {
 export interface User {
   id: string;
   fullName?: string | null; // display name
-  userName: string; // API uses `userName`
+  username: string; // Standard field name
+  userName?: string; // API compatibility alias
   email: string;
   googleId?: string | null;
   dateOfBirth?: string | null; // API uses ISO date `dateOfBirth`

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { followService } from "@/services/api.service";
-import { useErrorHandler, createQueryKeys } from "../utils";
+import { createQueryKeys, useErrorHandler } from "../../utils";
 
 // Create query keys for follow domain
 const followKeys = createQueryKeys("follow");

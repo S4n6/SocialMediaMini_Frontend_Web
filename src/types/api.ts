@@ -1,36 +1,13 @@
-// Base API Response types
-export interface ApiResponse<T = any> {
-  data: T;
-  message: string;
-  success: boolean;
-  timestamp?: string;
-  code?: string;
-}
+// Import shared API types to avoid duplication
+import type {
+  ApiResponse,
+  ApiError,
+  PaginatedResponse,
+  PaginationInfo,
+} from './shared/common';
 
-export interface ApiError {
-  success: false;
-  message: string;
-  error?: {
-    code: string;
-    details?: string;
-    field?: string;
-  };
-  timestamp?: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-  message: string;
-  success: boolean;
-}
+// Re-export for convenience
+export type { ApiResponse, ApiError, PaginatedResponse, PaginationInfo };
 
 // Unified Response Type
 export type UnifiedResponse<T = any> = ApiResponse<T> | ApiError;
@@ -99,7 +76,7 @@ export interface ApiEndpoints {
 }
 
 // HTTP Methods
-export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 // Request Config
 export interface RequestConfig {

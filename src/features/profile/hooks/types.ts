@@ -1,4 +1,4 @@
-import { User } from "@/types";
+import { User } from '@/types';
 
 // ===== QUERY CONFIGURATIONS =====
 
@@ -79,7 +79,7 @@ export interface UserAvatarUpdate {
 export interface UserAccountSettings {
   /** Privacy settings */
   privacy?: {
-    profileVisibility?: "public" | "private" | "friends";
+    profileVisibility?: 'public' | 'private' | 'friends';
     allowSearchByEmail?: boolean;
     allowSearchByPhone?: boolean;
     showOnlineStatus?: boolean;
@@ -126,7 +126,7 @@ export interface UserSearchParams {
     recentlyActive?: number;
   };
   /** Sort results by */
-  sortBy?: "relevance" | "followers" | "recent" | "mutual";
+  sortBy?: 'relevance' | 'followers' | 'recent' | 'mutual';
   /** Page number for pagination */
   page?: number;
   /** Number of results per page */
@@ -142,14 +142,14 @@ export interface UserSearchResult extends User {
   /** Mutual connections with current user */
   mutualConnections?: {
     count: number;
-    users: Pick<User, "id" | "userName" | "fullName" | "avatar">[];
+    users: Pick<User, 'id' | 'username' | 'fullName' | 'avatar'>[];
   };
   /** Whether user is currently online */
   isOnline?: boolean;
   /** Last active timestamp */
   lastActive?: string;
   /** Follow status relative to current user */
-  followStatus?: "following" | "followers" | "mutual" | "none";
+  followStatus?: 'following' | 'followers' | 'mutual' | 'none';
 }
 
 /**
@@ -158,17 +158,17 @@ export interface UserSearchResult extends User {
 export interface UserSuggestion extends User {
   /** Reason for suggestion */
   suggestionReason:
-    | "mutual_friends"
-    | "location"
-    | "interests"
-    | "recent_activity"
-    | "popular";
+    | 'mutual_friends'
+    | 'location'
+    | 'interests'
+    | 'recent_activity'
+    | 'popular';
   /** Confidence score (0-100) */
   confidence: number;
   /** Mutual connections info */
   mutualConnections?: {
     count: number;
-    commonFriends: Pick<User, "id" | "userName" | "fullName" | "avatar">[];
+    commonFriends: Pick<User, 'id' | 'username' | 'fullName' | 'avatar'>[];
   };
 }
 
@@ -214,11 +214,11 @@ export interface UserStatistics {
 export interface UserActivityItem {
   id: string;
   type:
-    | "post_created"
-    | "post_liked"
-    | "user_followed"
-    | "profile_updated"
-    | "joined";
+    | 'post_created'
+    | 'post_liked'
+    | 'user_followed'
+    | 'profile_updated'
+    | 'joined';
   timestamp: string;
   data: Record<string, unknown>;
 }
@@ -247,7 +247,7 @@ export interface UserSearchResponse {
     hasPreviousPage: boolean;
   };
   filters: {
-    appliedFilters: Partial<UserSearchParams["filters"]>;
+    appliedFilters: Partial<UserSearchParams['filters']>;
     availableFilters: {
       locations: string[];
       categories: string[];
@@ -273,15 +273,15 @@ export interface UserSuggestionsResponse {
  * User-specific error types
  */
 export type UserErrorType =
-  | "user_not_found"
-  | "profile_update_failed"
-  | "avatar_upload_failed"
-  | "invalid_credentials"
-  | "password_update_failed"
-  | "search_failed"
-  | "suggestions_unavailable"
-  | "permission_denied"
-  | "rate_limit_exceeded";
+  | 'user_not_found'
+  | 'profile_update_failed'
+  | 'avatar_upload_failed'
+  | 'invalid_credentials'
+  | 'password_update_failed'
+  | 'search_failed'
+  | 'suggestions_unavailable'
+  | 'permission_denied'
+  | 'rate_limit_exceeded';
 
 /**
  * Enhanced error object for user operations
@@ -306,12 +306,12 @@ export interface UserQueryKeys {
   userWithStats: (id: string) => readonly string[];
   search: (params: UserSearchParams) => readonly (string | number | object)[];
   suggestions: (
-    config?: UserSuggestionConfig
+    config?: UserSuggestionConfig,
   ) => readonly (string | number | boolean)[];
   statistics: (userId: string) => readonly string[];
   activity: (
     userId: string,
-    options?: { limit?: number; offset?: number }
+    options?: { limit?: number; offset?: number },
   ) => readonly (string | number)[];
 }
 

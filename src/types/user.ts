@@ -1,7 +1,7 @@
 export interface User {
   id: string;
-  userName: string; // API uses userName
-  username?: string; // legacy alias for compatibility
+  username: string; // Standard field name
+  userName?: string; // API compatibility alias
   email: string;
   name?: string;
   fullName?: string;

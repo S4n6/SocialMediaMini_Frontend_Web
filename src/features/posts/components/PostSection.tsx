@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { PostCard } from "./PostCard";
-import PostsSkeleton from "./PostsSkeleton";
-import type { LegacyPost as Post, ImageItem } from "@/types";
+import React from 'react';
+import { PostCard } from './PostCard';
+import PostsSkeleton from './PostsSkeleton';
+import type { LegacyPost as Post, ImageItem } from '@/types';
 
 // Export DomainPost alias for compatibility imports
 // Note: Use consolidated domain types from @/types when migrating components.
@@ -23,20 +23,10 @@ export default function PostSection({
   onLoadMore,
   hasMore,
 }: PostSectionProps) {
-  // if (error) {
-  //   return (
-  //     <div className="flex items-center justify-center p-8">
-  //       <div className="text-center">
-  //         <p className="text-red-500 mb-2">Error loading posts</p>
-  //         <p className="text-sm text-muted-foreground">{error}</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   if (isLoading && posts.length === 0) {
     return <PostsSkeleton />;
   }
+  console.log('Rendering PostSection with posts:', posts);
 
   return (
     <div className="w-full space-y-4 mt-8">
@@ -45,7 +35,7 @@ export default function PostSection({
           key={post.id}
           post={post}
           onUpdate={(updatedPost) => {
-            console.log("Post updated:", updatedPost);
+            console.log('Post updated:', updatedPost);
           }}
         />
       ))}

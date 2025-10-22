@@ -1,7 +1,10 @@
 // Components
 export { default as FriendSuggestionCard } from './components/friend-suggestion/friendSuggestionCard';
 export { default as FriendSuggestionSection } from './components/friend-suggestion/friendSuggestionSection';
-export { FeedPage } from './components/FeedPage';
+export { FeedSection } from './components/FeedSection';
+export { HomePage } from '../../components/layout/HomePage';
+// Keep FeedPage export for backward compatibility
+export { HomePage as FeedPage } from '../../components/layout/HomePage';
 
 // Hooks
 export * from './hooks';

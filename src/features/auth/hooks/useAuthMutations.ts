@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAppDispatch } from "@/hooks/redux";
-import { loginSuccess, logout } from "@/store/slices/authSlice";
-import { useAuthContext } from "@/providers/AuthProvider";
-import { useRouter } from "next/navigation";
-import { useErrorHandler, createQueryKeys } from "../utils";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAppDispatch } from '@/hooks/redux';
+import { loginSuccess, logout } from '@/store/slices/authSlice';
+import { useAuthContext } from '@/providers/AuthProvider';
+import { useRouter } from 'next/navigation';
+import { useErrorHandler, createQueryKeys } from '../utils';
 import type {
   LoginFormData,
   RegisterFormData,
   ResetPasswordData,
   VerifyEmailData,
-} from "./types";
-import { authService } from "../services/auth.service";
+} from './types';
+import { authService } from '../services/auth.service';
 
 // Create query keys for auth domain
 const authKeys = createQueryKeys.auth;
@@ -34,18 +34,18 @@ export const useAuthMutations = () => {
     mutationFn: (credentials: LoginFormData) => authService.login(credentials),
     onSuccess: async (response) => {
       try {
-        if (response.data.requiresEmailVerification) {
+        if (response.data?.requiresEmailVerification) {
           // Email verification required - don't update auth state
           return;
         }
 
-        if (response.data.user) {
+        if (response.data?.user) {
           // Login successful - update state
           dispatch(
             loginSuccess({
               user: response.data.user,
-              token: "http-only-cookie",
-            })
+              token: 'http-only-cookie',
+            }),
           );
 
           // Refresh user data and invalidate queries
@@ -54,18 +54,18 @@ export const useAuthMutations = () => {
 
           // Cross-tab sync
           window.dispatchEvent(
-            new CustomEvent("auth-sync", {
-              detail: { action: "login", user: response.data.user },
-            })
+            new CustomEvent('auth-sync', {
+              detail: { action: 'login', user: response.data?.user },
+            }),
           );
 
-          console.log("Login successful!");
+          console.log('Login successful!');
         }
       } catch (error) {
-        handleError(error, { action: "LOGIN_SUCCESS_HANDLER" });
+        handleError(error, { action: 'LOGIN_SUCCESS_HANDLER' });
       }
     },
-    onError: (error) => handleError(error, { action: "LOGIN" }),
+    onError: (error) => handleError(error, { action: 'LOGIN' }),
   });
 
   /**
@@ -81,8 +81,8 @@ export const useAuthMutations = () => {
         dispatch(
           loginSuccess({
             user,
-            token: "http-only-cookie",
-          })
+            token: 'http-only-cookie',
+          }),
         );
 
         // Refresh user data and invalidate queries
@@ -91,17 +91,17 @@ export const useAuthMutations = () => {
 
         // Cross-tab sync
         window.dispatchEvent(
-          new CustomEvent("auth-sync", {
-            detail: { action: "login", user },
-          })
+          new CustomEvent('auth-sync', {
+            detail: { action: 'login', user },
+          }),
         );
 
-        console.log("Google login successful!");
+        console.log('Google login successful!');
       } catch (error) {
-        handleError(error, { action: "GOOGLE_LOGIN_SUCCESS_HANDLER" });
+        handleError(error, { action: 'GOOGLE_LOGIN_SUCCESS_HANDLER' });
       }
     },
-    onError: (error) => handleError(error, { action: "GOOGLE_LOGIN" }),
+    onError: (error) => handleError(error, { action: 'GOOGLE_LOGIN' }),
   });
 
   /**
@@ -112,13 +112,15 @@ export const useAuthMutations = () => {
       // Transform RegisterFormData to match API expected format
       const apiData = {
         // API expects 'fullname' (lowercase) instead of 'fullName'
-        fullname: (userData as any).fullName ?? (userData as any).fullname ?? "",
+        fullname:
+          (userData as any).fullName ?? (userData as any).fullname ?? '',
         // Normalize username field name
-        username: (userData as any).userName ?? (userData as any).username ?? "",
+        username:
+          (userData as any).userName ?? (userData as any).username ?? '',
         email: userData.email,
         // Provide defaults for required API fields that may be optional in the form
-        birthDate: (userData as any).birthDate ?? "",
-        gender: (userData as any).gender ?? "",
+        birthDate: (userData as any).birthDate ?? '',
+        gender: (userData as any).gender ?? '',
         // Keep password as an extra property in case the backend needs it at runtime
         password: (userData as any).password,
       };
@@ -126,9 +128,9 @@ export const useAuthMutations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authKeys.all() });
-      console.log("Registration successful! Please check your email.");
+      console.log('Registration successful! Please check your email.');
     },
-    onError: (error) => handleError(error, { action: "REGISTER" }),
+    onError: (error) => handleError(error, { action: 'REGISTER' }),
   });
 
   /**
@@ -143,20 +145,20 @@ export const useAuthMutations = () => {
 
       // Cross-tab sync
       window.dispatchEvent(
-        new CustomEvent("auth-sync", {
-          detail: { action: "logout" },
-        })
+        new CustomEvent('auth-sync', {
+          detail: { action: 'logout' },
+        }),
       );
 
       // Redirect to login
-      router.push("/login");
-      console.log("Logged out successfully");
+      router.push('/login');
+      console.log('Logged out successfully');
     },
     onError: (error) => {
       // Clear local state even on error
       dispatch(logout());
       queryClient.clear();
-      handleError(error, { action: "LOGOUT" });
+      handleError(error, { action: 'LOGOUT' });
     },
   });
 
@@ -165,8 +167,8 @@ export const useAuthMutations = () => {
    */
   const forgotPasswordMutation = useMutation({
     mutationFn: (email: string) => authService.forgotPassword(email),
-    onSuccess: () => console.log("Password reset email sent!"),
-    onError: (error) => handleError(error, { action: "FORGOT_PASSWORD" }),
+    onSuccess: () => console.log('Password reset email sent!'),
+    onError: (error) => handleError(error, { action: 'FORGOT_PASSWORD' }),
   });
 
   /**
@@ -179,8 +181,8 @@ export const useAuthMutations = () => {
         newPassword: data.newPassword,
         confirmPassword: data.confirmPassword,
       }),
-    onSuccess: () => console.log("Password reset successful!"),
-    onError: (error) => handleError(error, { action: "RESET_PASSWORD" }),
+    onSuccess: () => console.log('Password reset successful!'),
+    onError: (error) => handleError(error, { action: 'RESET_PASSWORD' }),
   });
 
   /**
@@ -192,9 +194,9 @@ export const useAuthMutations = () => {
     onSuccess: async () => {
       await refetchUser();
       queryClient.invalidateQueries({ queryKey: authKeys.all() });
-      console.log("Email verified successfully!");
+      console.log('Email verified successfully!');
     },
-    onError: (error) => handleError(error, { action: "VERIFY_EMAIL" }),
+    onError: (error) => handleError(error, { action: 'VERIFY_EMAIL' }),
   });
 
   /**
@@ -202,8 +204,8 @@ export const useAuthMutations = () => {
    */
   const resendVerificationMutation = useMutation({
     mutationFn: (email: string) => authService.resendVerification(email),
-    onSuccess: () => console.log("Verification email sent!"),
-    onError: (error) => handleError(error, { action: "RESEND_VERIFICATION" }),
+    onSuccess: () => console.log('Verification email sent!'),
+    onError: (error) => handleError(error, { action: 'RESEND_VERIFICATION' }),
   });
 
   return {

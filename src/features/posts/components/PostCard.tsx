@@ -63,10 +63,14 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10">
               <AvatarImage src={post.author.avatar} />
-              <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+              <AvatarFallback>
+                {post.author.fullName.toString().charAt(0)}
+              </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="font-semibold text-sm">{post.author.name}</span>
+              <span className="font-semibold text-sm">
+                {post.author.fullName}
+              </span>
               <span className="text-muted-foreground text-xs">
                 @{post.author.username} • {post.timestamp}
               </span>

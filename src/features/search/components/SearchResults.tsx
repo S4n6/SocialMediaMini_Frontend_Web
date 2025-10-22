@@ -1,11 +1,12 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import React from 'react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface User {
   id: string;
-  userName: string;
+  username: string;
+  userName?: string; // compatibility
   fullName?: string | null;
   avatar?: string | null;
 }
@@ -40,7 +41,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   if (isError) {
     return (
       <div className={`text-sm text-red-500 text-center py-4 ${className}`}>
-        Error: {error?.message || "Something went wrong"}
+        Error: {error?.message || 'Something went wrong'}
       </div>
     );
   }
@@ -62,13 +63,16 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
           onClick={() => onUserClick(user.id)}
         >
           <Avatar className="w-12 h-12">
-            <AvatarImage src={user.avatar || ""} />
+            <AvatarImage src={user.avatar || ''} />
             <AvatarFallback>
-              {(user.fullName || user.userName)?.charAt(0) || "U"}
+              {(user.fullName || user.username || user.userName)?.charAt(0) ||
+                'U'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user.userName}</p>
+            <p className="text-sm font-medium truncate">
+              {user.username || user.userName}
+            </p>
             <p className="text-sm text-gray-500 truncate">{user.fullName}</p>
           </div>
         </div>

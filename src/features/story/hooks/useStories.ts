@@ -1,15 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { storyService } from "../services/story.service";
-import type { Story, StoryCreateData } from "../types/story";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { storyService } from '../services/story.service';
+import type { Story, StoryCreateData } from '../types/story';
 
 // Query keys
 export const storyKeys = {
-  all: ["stories"] as const,
-  feed: () => [...storyKeys.all, "feed"] as const,
-  user: (userId: string) => [...storyKeys.all, "user", userId] as const,
-  story: (storyId: string) => [...storyKeys.all, "story", storyId] as const,
-  views: (storyId: string) => [...storyKeys.all, "views", storyId] as const,
-  archived: () => [...storyKeys.all, "archived"] as const,
+  all: ['stories'] as const,
+  feed: () => [...storyKeys.all, 'feed'] as const,
+  user: (userId: string) => [...storyKeys.all, 'user', userId] as const,
+  story: (storyId: string) => [...storyKeys.all, 'story', storyId] as const,
+  views: (storyId: string) => [...storyKeys.all, 'views', storyId] as const,
+  archived: () => [...storyKeys.all, 'archived'] as const,
 };
 
 // Get feed stories
@@ -60,16 +60,18 @@ export const useCreateStory = () => {
       });
 
       // Update user stories
-      queryClient.setQueryData(
-        storyKeys.user(newStory.data.userId),
-        (oldData: any) => {
-          if (!oldData?.data) return oldData;
-          return {
-            ...oldData,
-            data: [newStory.data, ...oldData.data],
-          };
-        }
-      );
+      if (newStory.data?.userId) {
+        queryClient.setQueryData(
+          storyKeys.user(newStory.data.userId),
+          (oldData: any) => {
+            if (!oldData?.data) return oldData;
+            return {
+              ...oldData,
+              data: [newStory.data, ...oldData.data],
+            };
+          },
+        );
+      }
     },
   });
 };
@@ -109,7 +111,7 @@ export const useViewStory = () => {
         return {
           ...oldData,
           data: oldData.data.map((story: Story) =>
-            story.id === storyId ? { ...story, isViewed: true } : story
+            story.id === storyId ? { ...story, isViewed: true } : story,
           ),
         };
       });

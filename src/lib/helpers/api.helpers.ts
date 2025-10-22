@@ -3,22 +3,33 @@ import {
   ApiError,
   UnifiedResponse,
   PaginatedResponse,
-} from "@/types/api";
+} from '@/types/api';
 
 /**
  * Type guard to check if response is successful
  */
 export function isApiSuccess<T>(
-  response: UnifiedResponse<T>
+  response: UnifiedResponse<T>,
 ): response is ApiResponse<T> {
-  return response.success === true && "data" in response;
+  return (
+    response &&
+    typeof response === 'object' &&
+    'success' in response &&
+    response.success === true &&
+    'data' in response
+  );
 }
 
 /**
  * Type guard to check if response is an error
  */
 export function isApiError(response: UnifiedResponse): response is ApiError {
-  return response.success === false;
+  return (
+    response &&
+    typeof response === 'object' &&
+    'success' in response &&
+    response.success === false
+  );
 }
 
 /**
@@ -26,7 +37,7 @@ export function isApiError(response: UnifiedResponse): response is ApiError {
  */
 export function extractApiData<T>(response: UnifiedResponse<T>): T | null {
   if (isApiSuccess(response)) {
-    return response.data;
+    return response.data ?? null;
   }
   return null;
 }
@@ -36,9 +47,9 @@ export function extractApiData<T>(response: UnifiedResponse<T>): T | null {
  */
 export function extractApiError(response: UnifiedResponse): string {
   if (isApiError(response)) {
-    return response.error?.details || response.message || "An error occurred";
+    return response.message || 'An error occurred';
   }
-  return "Unknown error";
+  return 'Unknown error';
 }
 
 /**
@@ -46,13 +57,12 @@ export function extractApiError(response: UnifiedResponse): string {
  */
 export function createSuccessResponse<T>(
   data: T,
-  message = "Success"
+  message = 'Success',
 ): ApiResponse<T> {
   return {
     success: true,
     data,
     message,
-    timestamp: new Date().toISOString(),
   };
 }
 
@@ -63,17 +73,13 @@ export function createErrorResponse(
   message: string,
   code?: string,
   details?: string,
-  field?: string
+  field?: string,
 ): ApiError {
   return {
     success: false,
     message,
-    error: {
-      code: code || "GENERIC_ERROR",
-      details,
-      field,
-    },
-    timestamp: new Date().toISOString(),
+    code: code || 'GENERIC_ERROR',
+    details,
   };
 }
 
@@ -84,13 +90,13 @@ export function transformPaginatedResponse<T>(
   data: T[],
   page: number,
   limit: number,
-  total: number
+  total: number,
 ): PaginatedResponse<T> {
   const totalPages = Math.ceil(total / limit);
 
   return {
     success: true,
-    message: "Data retrieved successfully",
+    message: 'Data retrieved successfully',
     data,
     pagination: {
       page,
@@ -122,9 +128,9 @@ export function handleApiResponseError(error: any): string {
     }
 
     if (responseData.error) {
-      return typeof responseData.error === "string"
+      return typeof responseData.error === 'string'
         ? responseData.error
-        : responseData.error.message || "Server error";
+        : responseData.error.message || 'Server error';
     }
   }
 
@@ -133,7 +139,7 @@ export function handleApiResponseError(error: any): string {
     return error.message;
   }
 
-  return "An unexpected error occurred";
+  return 'An unexpected error occurred';
 }
 
 /**
@@ -141,10 +147,10 @@ export function handleApiResponseError(error: any): string {
  */
 export function validateApiResponse(response: any): boolean {
   return (
-    typeof response === "object" &&
+    typeof response === 'object' &&
     response !== null &&
-    typeof response.success === "boolean" &&
-    typeof response.message === "string"
+    typeof response.success === 'boolean' &&
+    typeof response.message === 'string'
   );
 }
 
@@ -165,9 +171,9 @@ export function buildPaginationParams(page: number, limit: number = 10) {
 export function buildApiUrl(
   baseUrl: string,
   endpoint: string,
-  params?: Record<string, any>
+  params?: Record<string, any>,
 ): string {
-  let url = `${baseUrl.replace(/\/$/, "")}/${endpoint.replace(/^\//, "")}`;
+  let url = `${baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
 
   if (params && Object.keys(params).length > 0) {
     const searchParams = new URLSearchParams();

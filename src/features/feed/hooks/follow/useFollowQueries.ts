@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { followService } from "@/services/api.service";
-import { createQueryKeys } from "../utils";
-import type { FollowQueryOptions } from "./types";
+import { createQueryKeys } from "../../utils";
+import { FollowQueryOptions } from "../../types";
+
 
 // Create query keys for follow domain
 const followKeys = createQueryKeys("follow");

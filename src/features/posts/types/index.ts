@@ -42,8 +42,9 @@ export interface UpdatePostData extends Partial<CreatePostData> {
 }
 
 export interface PostsResponse {
-  data: Post[];
-  pagination: {
+  data?: Post[]; // Standard format
+  posts?: Post[]; // Alternative format used by actual API
+  pagination?: {
     page: number;
     limit: number;
     total: number;
@@ -51,6 +52,13 @@ export interface PostsResponse {
     hasNext: boolean;
     hasPrev: boolean;
   };
+  // Additional properties from actual API response
+  hasNextPage?: boolean;
+  hasNextPreviousPage?: boolean;
+  limit?: number;
+  page?: number;
+  total?: number;
+  totalPages?: number;
 }
 
 export interface PostFilters {

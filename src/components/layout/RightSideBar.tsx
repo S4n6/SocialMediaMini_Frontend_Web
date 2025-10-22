@@ -1,28 +1,18 @@
+'use client';
+
 import React from 'react';
-import { Footer } from './Footer';
+import { SidebarContent } from './SidebarContent';
+import FriendSuggestionSection from '@/features/feed/components/friend-suggestion/friendSuggestionSection';
 
-interface RightSideBarProps {
-  showFriendSuggestions?: boolean;
-}
-
-export default function RightSideBar() {
+export const RightSideBar: React.FC = () => {
   return (
-    <div className="w-full flex flex-col gap-6">
-      <div className="rounded-lg p-4">
-        <h3 className="text-lg font-semibold mb-4">Trending</h3>
-        <div className="space-y-3">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            #NextJS trending in Technology
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            #React trending in Programming
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            #TypeScript trending in Development
-          </div>
-        </div>
+    <div className="hidden lg:block lg:w-1/4 p-4 border-l border-gray-200 dark:border-gray-700">
+      <div className="sticky top-4 space-y-6">
+        <FriendSuggestionSection />
+        <SidebarContent />
       </div>
-      <Footer />
     </div>
   );
-}
+};
+
+export default RightSideBar;

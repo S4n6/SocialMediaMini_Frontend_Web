@@ -1,17 +1,17 @@
-import { User } from "@/features/profile";
-import { profileCache } from "@/lib/cache/profileCache";
+import { User } from '@/features/profile';
+import { profileCache } from '@/lib/cache/profileCache';
 
 interface PreloadOptions {
-  priority?: "high" | "low";
+  priority?: 'high' | 'low';
   timeout?: number;
 }
 
 // Preload profile data for better UX
 export const preloadProfile = async (
   userId: string,
-  options: PreloadOptions = {}
+  options: PreloadOptions = {},
 ): Promise<User | null> => {
-  const { priority = "low", timeout = 5000 } = options;
+  const { priority = 'low', timeout = 5000 } = options;
 
   // Check cache first
   const cachedProfile = profileCache.get(userId);
@@ -28,7 +28,8 @@ export const preloadProfile = async (
     // Simulate API call
     const mockUser: User = {
       id: userId,
-      userName: `user_${userId}`,
+      username: `user_${userId}`,
+      userName: `user_${userId}`, // compatibility
       fullName: `User ${userId}`,
       email: `${userId}@example.com`,
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
@@ -58,20 +59,20 @@ export const preloadProfile = async (
 // Preload multiple profiles
 export const preloadProfiles = async (
   userIds: string[],
-  options: PreloadOptions = {}
+  options: PreloadOptions = {},
 ): Promise<(User | null)[]> => {
   const promises = userIds.map((id) => preloadProfile(id, options));
   return Promise.allSettled(promises).then((results) =>
     results.map((result) =>
-      result.status === "fulfilled" ? result.value : null
-    )
+      result.status === 'fulfilled' ? result.value : null,
+    ),
   );
 };
 
 // Utility to preload profiles from a list of posts or interactions
 export const preloadProfilesFromPosts = async (
   posts: Array<{ userId?: string; authorId?: string }>,
-  options: PreloadOptions = {}
+  options: PreloadOptions = {},
 ): Promise<void> => {
   const userIds = posts
     .map((post) => post.userId || post.authorId)
