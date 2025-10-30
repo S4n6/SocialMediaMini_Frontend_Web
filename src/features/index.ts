@@ -1,5 +1,5 @@
 // Auth Feature
-export * from "./auth";
+export * from './auth';
 
 // Posts Feature
 export {
@@ -7,7 +7,7 @@ export {
   PostSection,
   CreatePostDialog,
   type Post as PostType,
-} from "./posts";
+} from './posts';
 
 // Profile Feature
 export {
@@ -22,10 +22,10 @@ export {
   type Post as ProfilePost,
   type ProfileStats,
   type ProfileData,
-} from "./profile";
+} from './profile';
 
 // Search Feature
-export * from "./search";
+export * from './search';
 
 // Feed Feature - explicit exports to avoid module resolution issues
 export {
@@ -34,7 +34,7 @@ export {
   type FollowStatus,
   type FollowConfig,
   type FollowState,
-} from "./feed/index";
+} from './feed/index';
 
 // Story Feature
 export {
@@ -47,4 +47,7 @@ export {
   useDeleteStory,
   useViewStory,
   storyKeys,
-} from "./story";
+} from './story';
+
+// Messages Feature
+export * from './messages/types';
