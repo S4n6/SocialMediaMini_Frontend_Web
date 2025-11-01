@@ -1,120 +1,133 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { storyService } from '../services/story.service';
-import type { Story, StoryCreateData } from '../types/story';
+import { useState, useEffect } from 'react';
+import { Story, CreateStoryRequest } from '../types/story';
+import { StoryService } from '../services/story.service';
+import { STORY_ERRORS } from '../constants';
 
-// Query keys
-export const storyKeys = {
-  all: ['stories'] as const,
-  feed: () => [...storyKeys.all, 'feed'] as const,
-  user: (userId: string) => [...storyKeys.all, 'user', userId] as const,
-  story: (storyId: string) => [...storyKeys.all, 'story', storyId] as const,
-  views: (storyId: string) => [...storyKeys.all, 'views', storyId] as const,
-  archived: () => [...storyKeys.all, 'archived'] as const,
+export const useStories = () => {
+  const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStories = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedStories = await StoryService.getStories();
+      setStories(fetchedStories);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : STORY_ERRORS.FETCH_FAILED;
+      setError(errorMessage);
+      console.error('Error fetching stories:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createStory = async (data: CreateStoryRequest) => {
+    try {
+      setError(null);
+      const newStory = await StoryService.createStory(data);
+      setStories((prev) => [newStory, ...prev]);
+      return newStory;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : STORY_ERRORS.UPLOAD_FAILED;
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
+
+  const viewStory = async (storyId: string) => {
+    try {
+      await StoryService.viewStory(storyId);
+      // Update story view count locally if needed
+      setStories((prev) =>
+        prev.map((story) =>
+          story.id === storyId
+            ? {
+                ...story,
+                viewCount: (story.viewCount || 0) + 1,
+                hasViewed: true,
+                viewedAt: new Date().toISOString(),
+              }
+            : story,
+        ),
+      );
+    } catch (err) {
+      // Silent fail for view tracking
+      console.warn('Failed to track story view:', err);
+    }
+  };
+
+  const deleteStory = async (storyId: string) => {
+    try {
+      setError(null);
+      await StoryService.deleteStory(storyId);
+      setStories((prev) => prev.filter((story) => story.id !== storyId));
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to delete story';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
+
+  const refreshStories = () => {
+    fetchStories();
+  };
+
+  useEffect(() => {
+    fetchStories();
+  }, []);
+
+  return {
+    stories,
+    loading,
+    error,
+    refetch: fetchStories,
+    refresh: refreshStories,
+    createStory,
+    viewStory,
+    deleteStory,
+  };
 };
 
-// Get feed stories
-export const useFeedStories = () => {
-  return useQuery({
-    queryKey: storyKeys.feed(),
-    queryFn: () => storyService.getFeedStories(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (new name for cacheTime)
-    retry: 2,
-  });
-};
-
-// Get user stories
-export const useUserStories = (userId: string) => {
-  return useQuery({
-    queryKey: storyKeys.user(userId),
-    queryFn: () => storyService.getUserStories(userId),
-    enabled: !!userId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-  });
-};
-
-// Get single story
+// Additional hook for single story
 export const useStory = (storyId: string) => {
-  return useQuery({
-    queryKey: storyKeys.story(storyId),
-    queryFn: () => storyService.getStory(storyId),
-    enabled: !!storyId,
-  });
-};
+  const [story, setStory] = useState<Story | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-// Create story mutation
-export const useCreateStory = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (storyData: StoryCreateData) =>
-      storyService.createStory(storyData),
-    onSuccess: (newStory) => {
-      // Update feed stories
-      queryClient.setQueryData(storyKeys.feed(), (oldData: any) => {
-        if (!oldData?.data) return oldData;
-        return {
-          ...oldData,
-          data: [newStory.data, ...oldData.data],
-        };
-      });
-
-      // Update user stories
-      if (newStory.data?.userId) {
-        queryClient.setQueryData(
-          storyKeys.user(newStory.data.userId),
-          (oldData: any) => {
-            if (!oldData?.data) return oldData;
-            return {
-              ...oldData,
-              data: [newStory.data, ...oldData.data],
-            };
-          },
-        );
+  const fetchStory = async (id: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const stories = await StoryService.getStories();
+      const foundStory = stories.find((s) => s.id === id);
+      if (!foundStory) {
+        throw new Error(STORY_ERRORS.STORY_NOT_FOUND);
       }
-    },
-  });
-};
+      setStory(foundStory);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : STORY_ERRORS.STORY_NOT_FOUND;
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-// Delete story mutation
-export const useDeleteStory = () => {
-  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (storyId) {
+      fetchStory(storyId);
+    }
+  }, [storyId]);
 
-  return useMutation({
-    mutationFn: (storyId: string) => storyService.deleteStory(storyId),
-    onSuccess: (_, storyId) => {
-      // Update feed stories
-      queryClient.setQueryData(storyKeys.feed(), (oldData: any) => {
-        if (!oldData?.data || !Array.isArray(oldData.data)) return oldData;
-        return {
-          ...oldData,
-          data: oldData.data.filter((story: Story) => story.id !== storyId),
-        };
-      });
-
-      // Invalidate all story queries to refresh
-      queryClient.invalidateQueries({ queryKey: storyKeys.all });
-    },
-  });
-};
-
-// View story mutation
-export const useViewStory = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (storyId: string) => storyService.viewStory(storyId),
-    onSuccess: (_, storyId) => {
-      // Update feed stories
-      queryClient.setQueryData(storyKeys.feed(), (oldData: any) => {
-        if (!oldData?.data || !Array.isArray(oldData.data)) return oldData;
-        return {
-          ...oldData,
-          data: oldData.data.map((story: Story) =>
-            story.id === storyId ? { ...story, isViewed: true } : story,
-          ),
-        };
-      });
-    },
-  });
+  return {
+    story,
+    loading,
+    error,
+    refetch: () => fetchStory(storyId),
+  };
 };

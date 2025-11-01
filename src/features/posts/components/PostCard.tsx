@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FaHeart, FaComment, FaShare, FaBookmark } from 'react-icons/fa';
+import { FaComment, FaShare, FaBookmark } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import type { LegacyPost as Post } from '@/types';
 import ImageList from '@/components/ui/image-list-custom';
+import PostReactions from './interactions/PostReactions';
+import PostDetailModal from './PostDetailModal';
+import { usePostReactions } from '../hooks/usePostReactions';
 
 interface PostProps {
   post: Post;
@@ -15,25 +18,32 @@ interface PostProps {
 }
 
 export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
-  const [isLiked, setIsLiked] = useState(post.isLiked || false);
   const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked || false);
-  const [likes, setLikes] = useState<number>(post.likes);
   const [commentText, setCommentText] = useState('');
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const handleLike = () => {
-    const newIsLiked = !isLiked;
-    setIsLiked(newIsLiked);
-    setLikes((prev) => (newIsLiked ? prev + 1 : prev - 1));
+  // Use new reactions hook
+  const { reactions, userReaction, totalCount, toggleReaction } =
+    usePostReactions({
+      postId: post.id.toString(),
+      initialReactions: [], // Will be populated from post data later
+    });
+
+  // Handle reaction changes
+  const handleReactionChange = (reactionType: any) => {
+    toggleReaction(reactionType);
 
     if (onUpdate) {
       onUpdate({
         ...post,
-        isLiked: newIsLiked,
-        likes: newIsLiked ? post.likes + 1 : post.likes - 1,
+        isLiked: !!userReaction,
+        likes: totalCount,
       });
     }
   };
 
+  // Get dynamic comments count (mock for now, will be real count later)
+  const commentsCount = post.comments || 0;
   const handleBookmark = () => {
     const newIsBookmarked = !isBookmarked;
     setIsBookmarked(newIsBookmarked);
@@ -47,7 +57,7 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
   };
 
   const handleComment = () => {
-    console.log('Comment button clicked');
+    setShowDetailModal(true);
   };
 
   const handleShare = () => {
@@ -104,7 +114,7 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
         )}
         {/* Engagement Stats */}
         <div className="px-4 py-2 text-xs text-muted-foreground">
-          <span>{likes} likes</span>
+          <span>{totalCount || post.likes} likes</span>
           {post.comments > 0 && (
             <>
               <span className="mx-2">•</span>
@@ -122,31 +132,33 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
         {/* Action Buttons */}
         <div className="flex justify-between items-center px-4 py-2 border-t border-border">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLike}
-              className={`flex items-center gap-2 ${
-                isLiked ? 'text-red-500' : 'text-muted-foreground'
-              }`}
-            >
-              <FaHeart className="w-4 h-4" />
-            </Button>
+            <PostReactions
+              postId={post.id.toString()}
+              reactions={reactions}
+              userReaction={userReaction}
+              totalCount={totalCount}
+              onReact={handleReactionChange}
+              onRemoveReaction={() => handleReactionChange(null)}
+              className="p-0"
+            />
 
             <Button
               variant="ghost"
               size="sm"
               onClick={handleComment}
-              className="flex items-center gap-2 text-muted-foreground"
+              className="flex items-center gap-2 text-muted-foreground hover:text-gray-700 transition-colors"
             >
               <FaComment className="w-4 h-4" />
+              {commentsCount > 0 && (
+                <span className="text-sm">{commentsCount}</span>
+              )}
             </Button>
 
             <Button
               variant="ghost"
               size="sm"
               onClick={handleShare}
-              className="flex items-center gap-2 text-muted-foreground"
+              className="flex items-center gap-2 text-muted-foreground hover:text-gray-700"
             >
               <FaShare className="w-4 h-4" />
             </Button>
@@ -158,7 +170,7 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
             onClick={handleBookmark}
             className={`flex items-center gap-2 ${
               isBookmarked ? 'text-blue-500' : 'text-muted-foreground'
-            }`}
+            } hover:text-blue-600`}
           >
             <FaBookmark className="w-4 h-4" />
           </Button>
@@ -186,6 +198,14 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
             )}
           </div>
         </div>
+
+        {/* Post Detail Modal */}
+        <PostDetailModal
+          post={post}
+          isOpen={showDetailModal}
+          onClose={() => setShowDetailModal(false)}
+          onUpdate={onUpdate}
+        />
       </CardContent>
     </Card>
   );

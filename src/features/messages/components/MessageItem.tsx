@@ -13,6 +13,8 @@ import {
   useMessageReactions,
 } from './MessageReactions';
 import { MessageReply, ReplyContext } from './MessageReply';
+import { MessageActions } from './MessageActions';
+import { MessageEdit } from './MessageEdit';
 
 interface MessageItemProps {
   message: Message;
@@ -50,6 +52,7 @@ export function MessageItem({
   useWebSocket = false,
 }: MessageItemProps) {
   const [showActions, setShowActions] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const {
     reactions: messageReactions,
     addReaction,
@@ -73,6 +76,27 @@ export function MessageItem({
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  // Message action handlers
+  const handleEditMessage = () => {
+    setIsEditing(true);
+    setShowActions(false);
+  };
+
+  const handleDeleteMessage = () => {
+    onDelete?.(message.id);
+    setShowActions(false);
+  };
+
+  const handleEditComplete = (newContent: string) => {
+    // TODO: Call API to update message
+    console.log('Editing message:', message.id, 'New content:', newContent);
+    setIsEditing(false);
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
   };
 
   // Handle message actions
@@ -193,6 +217,26 @@ export function MessageItem({
         );
 
       default:
+        if (isEditing) {
+          return (
+            <MessageEdit
+              message={{
+                id: message.id,
+                content: message.content || '',
+                type: 'text' as const,
+                status: 'sent' as const,
+                sentAt: message.createdAt.toISOString(),
+                conversationId: conversationId || '',
+                senderId: message.senderId || '',
+                reactions: [],
+              }}
+              isEditing={true}
+              onSave={(messageId, newContent) => handleEditComplete(newContent)}
+              onCancel={handleEditCancel}
+            />
+          );
+        }
+
         return (
           <p className="whitespace-pre-wrap break-words">{message.content}</p>
         );
@@ -344,28 +388,27 @@ export function MessageItem({
           />
         </div>
 
-        {/* More actions */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
-          title="More"
-        >
-          <MoreHorizontal className="h-3 w-3" />
-        </Button>
-
-        {/* Copy text (only for text messages) */}
-        {message.messageType === 'text' && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCopy}
-            className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
-            title="Copy"
-          >
-            <Copy className="h-3 w-3" />
-          </Button>
-        )}
+        {/* Message Actions */}
+        <MessageActions
+          message={{
+            id: message.id,
+            content: message.content || '',
+            type: 'text' as const,
+            status: 'sent' as const,
+            sentAt: message.createdAt.toISOString(),
+            conversationId: conversationId || '',
+            senderId: message.senderId || '',
+            reactions: [],
+          }}
+          isOwner={isFromCurrentUser}
+          canEdit={isFromCurrentUser}
+          canDelete={isFromCurrentUser}
+          canForward={true}
+          onEdit={(messageId, newContent) => handleEditComplete(newContent)}
+          onDelete={handleDeleteMessage}
+          onCopy={handleCopy}
+          onReply={() => onReply?.(message)}
+        />
 
         {/* Delete (only for current user's messages) */}
         {isFromCurrentUser && onDelete && (

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Reset and base styles */
 html,
@@ -44,12 +44,191 @@ body {
   border-radius: 8px;
 }
 
+/* Enhanced Animations */
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce-in {
+  0%,
+  20%,
+  40%,
+  60%,
+  80%,
+  100% {
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  0% {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 0.3);
+  }
+  20% {
+    transform: scale3d(1.1, 1.1, 1.1);
+  }
+  40% {
+    transform: scale3d(0.9, 0.9, 0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: scale3d(1.03, 1.03, 1.03);
+  }
+  80% {
+    transform: scale3d(0.97, 0.97, 0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+@keyframes message-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes loading-dots {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Utility classes */
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.2s ease-out;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s ease-out;
+}
+
+.animate-message-appear {
+  animation: message-appear 0.3s ease-out;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Touch optimizations */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* === Tailwind v4 Theme Tokens === */
 :root {
-  --font-geist-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue";
-  --font-geist-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono",
-    "Courier New", monospace;
+  --font-geist-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue';
+  --font-geist-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New',
+    monospace;
 
   /* Light theme (hex values) */
   --color-background: #ffffff;
@@ -80,7 +259,7 @@ body {
 }
 
 /* Dark theme override */
-html[data-theme="dark"] {
+html[data-theme='dark'] {
   --color-background: #000000;
   --color-foreground: #eaeaea;
 
@@ -104,22 +283,22 @@ html[data-theme="dark"] {
 }
 
 /* Form Controls Styling for Better Contrast */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="search"],
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='search'],
 textarea,
 .input-base {
   color: #374151 !important; /* Gray-700 for light mode */
 }
 
 /* Dark mode form controls */
-html[data-theme="dark"] input[type="text"],
-html[data-theme="dark"] input[type="email"],
-html[data-theme="dark"] input[type="password"],
-html[data-theme="dark"] input[type="search"],
-html[data-theme="dark"] textarea,
-html[data-theme="dark"] .input-base {
+html[data-theme='dark'] input[type='text'],
+html[data-theme='dark'] input[type='email'],
+html[data-theme='dark'] input[type='password'],
+html[data-theme='dark'] input[type='search'],
+html[data-theme='dark'] textarea,
+html[data-theme='dark'] .input-base {
   color: #f4f3f6 !important; /* Gray-100 for dark mode */
 }
 
@@ -130,8 +309,8 @@ textarea::placeholder {
   opacity: 1;
 }
 
-html[data-theme="dark"] input::placeholder,
-html[data-theme="dark"] textarea::placeholder {
+html[data-theme='dark'] input::placeholder,
+html[data-theme='dark'] textarea::placeholder {
   color: #6b7280 !important; /* Gray-500 for dark mode */
 }
 

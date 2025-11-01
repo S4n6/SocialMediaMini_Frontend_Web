@@ -1,12 +1,23 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Send, Smile, Paperclip, Image, Mic, X, Loader2 } from 'lucide-react';
+import {
+  Send,
+  Smile,
+  Paperclip,
+  Image,
+  Mic,
+  X,
+  Loader2,
+  Plus,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { ImageUploadDialog } from './ImageUploadDialog';
 import { ReplyPreview, ReplyContext } from './MessageReply';
+import { FileUpload, FileAttachment } from './FileUpload';
+import { VoiceRecording } from './VoiceRecording';
 import { useSendMessage, useUploadAttachment } from '../hooks/useMessagingApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { toast } from 'sonner';
@@ -37,7 +48,10 @@ export default function MessageInput({
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  const [showVoiceRecording, setShowVoiceRecording] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -152,14 +166,31 @@ export default function MessageInput({
   // Handle send message click
   const handleSendClick = async () => {
     const trimmedMessage = message.trim();
-    if (!trimmedMessage && selectedFiles.length === 0) return;
+    if (
+      !trimmedMessage &&
+      selectedFiles.length === 0 &&
+      attachments.length === 0
+    )
+      return;
     if (disabled) return;
 
     // Determine message type and content
     let messageType: 'text' | 'image' | 'video' | 'audio' | 'file' = 'text';
     let content = trimmedMessage;
 
-    if (selectedFiles.length > 0) {
+    // Check attachments first (from FileUpload component)
+    if (attachments.length > 0) {
+      const attachment = attachments[0];
+      if (attachment.type.startsWith('image/')) {
+        messageType = 'image';
+      } else if (attachment.type.startsWith('video/')) {
+        messageType = 'video';
+      } else if (attachment.type.startsWith('audio/')) {
+        messageType = 'audio';
+      } else {
+        messageType = 'file';
+      }
+    } else if (selectedFiles.length > 0) {
       const file = selectedFiles[0];
       if (file.type.startsWith('image/')) {
         messageType = 'image';
@@ -180,6 +211,9 @@ export default function MessageInput({
     // Clear state
     setMessage('');
     setSelectedFiles([]);
+    setAttachments([]);
+    setShowFileUpload(false);
+    setShowVoiceRecording(false);
     onCancelReply?.();
 
     // Stop typing indicator
@@ -197,6 +231,30 @@ export default function MessageInput({
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
+  };
+
+  // Handle file attachments from FileUpload component
+  const handleFileAttachments = (files: FileAttachment[]) => {
+    setAttachments(files);
+  };
+
+  // Handle voice recording
+  const handleVoiceRecording = (audioBlob: Blob, duration: number) => {
+    const voiceAttachment: FileAttachment = {
+      id: Date.now().toString(),
+      name: `voice-${Date.now()}.webm`,
+      size: audioBlob.size,
+      type: 'audio/webm',
+      url: URL.createObjectURL(audioBlob),
+      file: new File([audioBlob], `voice-${Date.now()}.webm`, {
+        type: 'audio/webm',
+      }),
+      uploadProgress: 100,
+      duration,
+    };
+
+    setAttachments([voiceAttachment]);
+    setShowVoiceRecording(false);
   };
 
   // Handle key press
@@ -329,12 +387,23 @@ export default function MessageInput({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleQuickFileUpload('file')}
+              onClick={() => setShowFileUpload(true)}
               disabled={disabled}
               className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
-              title="Attach file"
+              title="Attach files"
             >
               <Paperclip className="h-4 w-4" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowVoiceRecording(true)}
+              disabled={disabled}
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+              title="Record voice message"
+            >
+              <Mic className="h-4 w-4" />
             </Button>
           </div>
 
@@ -398,6 +467,72 @@ export default function MessageInput({
         {/* Typing indicator placeholder */}
         {isTyping && (
           <div className="mt-2 text-xs text-muted-foreground">Typing...</div>
+        )}
+
+        {/* Advanced features */}
+        {showFileUpload && (
+          <div className="mt-3">
+            <FileUpload
+              onFilesSelected={handleFileAttachments}
+              onFileRemove={(fileId) => {
+                setAttachments((prev) => prev.filter((f) => f.id !== fileId));
+              }}
+              maxFiles={5}
+              maxFileSize={50 * 1024 * 1024} // 50MB
+            />
+            <div className="mt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFileUpload(false)}
+                className="text-muted-foreground"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {showVoiceRecording && (
+          <div className="mt-3">
+            <VoiceRecording
+              onRecordingComplete={handleVoiceRecording}
+              onCancel={() => setShowVoiceRecording(false)}
+              maxDuration={300} // 5 minutes
+            />
+          </div>
+        )}
+
+        {/* Show current attachments */}
+        {attachments.length > 0 && (
+          <div className="mt-2 p-2 bg-muted rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">
+                Attachments ({attachments.length})
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAttachments([])}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {attachments.map((attachment) => (
+                <div
+                  key={attachment.id}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="truncate">{attachment.name}</span>
+                  <span className="text-muted-foreground">
+                    {(attachment.size / 1024 / 1024).toFixed(1)}MB
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 

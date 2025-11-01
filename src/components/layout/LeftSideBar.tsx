@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils/cn-tailwind';
 import { ThemeToggle } from '../ui/theme-toggle';
 import { useAuth } from '@/features/auth/hooks';
 import { SearchDrawer } from '@/features/search';
+import { NotificationDrawer, useNotifications } from '@/features/notification';
 import { CreatePostDialog } from '@/features/posts';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -86,12 +87,16 @@ const menuItems: MenuItem[] = [
 export default function LeftSideBar() {
   const pathname = usePathname();
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isCreatePostOpen, setIsCreatePostOpen] = React.useState(false);
   const [isNavigating, setIsNavigating] = React.useState(false);
   const { logoutUser, isLoggingOut } = useAuth();
   const router = useRouter();
   const user = useSelector((state: RootState) => state.auth.user);
+
+  // Get notification data
+  const { unreadCount } = useNotifications();
 
   // Memoize navigation handler to prevent unnecessary re-renders
   const handleNavigation = React.useCallback(
@@ -131,6 +136,26 @@ export default function LeftSideBar() {
 
   const handleCloseSearch = () => {
     setIsSearchOpen(false);
+    setIsCollapsed(false);
+  };
+
+  const handleNotificationClick = () => {
+    console.log('Notification clicked', isNotificationOpen);
+    if (isNotificationOpen) {
+      setIsNotificationOpen(false);
+      setIsCollapsed(false);
+    } else {
+      setIsNotificationOpen(true);
+      setIsCollapsed(true);
+      // Close search if open
+      if (isSearchOpen) {
+        setIsSearchOpen(false);
+      }
+    }
+  };
+
+  const handleCloseNotification = () => {
+    setIsNotificationOpen(false);
     setIsCollapsed(false);
   };
 
@@ -193,6 +218,53 @@ export default function LeftSideBar() {
                         : 'w-6 h-6 text-muted-foreground',
                     )}
                   />
+                  {!isCollapsed && (
+                    <span
+                      className={cn(
+                        'ml-4',
+                        active ? 'text-base' : 'text-sm text-muted-foreground',
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                </Button>
+              );
+            }
+
+            if (item.label === 'Notifications') {
+              return (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  onClick={handleNotificationClick}
+                  data-notification-toggle
+                  className={cn(
+                    'justify-start h-12 px-3 py-2 hover:bg-accent w-full transition-all duration-200 relative',
+                    active ? 'font-bold' : '',
+                    isCollapsed ? 'justify-center' : '',
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      active
+                        ? 'w-7 h-7 fill-current text-foreground'
+                        : 'w-6 h-6 text-muted-foreground',
+                    )}
+                  />
+                  {/* Unread count badge */}
+                  {unreadCount > 0 && (
+                    <div
+                      className={cn(
+                        'absolute bg-red-500 text-white text-xs font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center',
+                        isCollapsed
+                          ? 'top-1 right-1 text-[10px] min-w-[16px] h-[16px]'
+                          : 'top-2 left-8',
+                      )}
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </div>
+                  )}
                   {!isCollapsed && (
                     <span
                       className={cn(
@@ -347,6 +419,12 @@ export default function LeftSideBar() {
         isOpen={isSearchOpen}
         isCollapsed={isCollapsed}
         onClose={handleCloseSearch}
+      />
+
+      <NotificationDrawer
+        isOpen={isNotificationOpen}
+        isCollapsed={isCollapsed}
+        onClose={handleCloseNotification}
       />
 
       <CreatePostDialog

@@ -1,22 +1,31 @@
-// Story feature types
+// Story feature types - matching backend structure
 
 export interface Story {
   id: string;
   userId: string;
-  user: {
-    id: string;
-    username: string;
-    name: string;
-    avatar: string;
-    isVerified?: boolean;
-  };
-  mediaUrl: string;
-  mediaType: "image" | "video";
-  duration?: number; // For videos, in seconds
+  content?: string;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video';
   createdAt: string;
   expiresAt: string;
-  views: StoryView[];
-  isViewed?: boolean; // By current user
+  viewCount: number;
+  isExpired: boolean;
+
+  // User info (populated from backend)
+  user: {
+    id: string;
+    name: string;
+    username: string;
+    avatar?: string;
+    isVerified?: boolean;
+  };
+
+  // View tracking
+  hasViewed?: boolean;
+  viewedAt?: string;
+
+  // Optional features (can be extended later)
+  duration?: number; // For videos, in seconds
   canReply?: boolean;
   music?: {
     id: string;
@@ -36,15 +45,20 @@ export interface Story {
 
 export interface StoryView {
   id: string;
+  storyId: string;
   userId: string;
-  username: string;
-  avatar: string;
   viewedAt: string;
+
+  // User info for display
+  user?: {
+    username: string;
+    avatar?: string;
+  };
 }
 
 export interface Sticker {
   id: string;
-  type: "text" | "emoji" | "location" | "music" | "poll" | "question";
+  type: 'text' | 'emoji' | 'location' | 'music' | 'poll' | 'question';
   position: {
     x: number;
     y: number;
@@ -54,9 +68,38 @@ export interface Sticker {
   content?: any; // Depends on sticker type
 }
 
+// API Request/Response types
+export interface CreateStoryRequest {
+  content?: string;
+  mediaFile?: File;
+}
+
+export interface CreateStoryDto {
+  content?: string;
+  media?: File;
+}
+
+export interface GetStoriesResponse {
+  stories: Story[];
+  hasMore: boolean;
+  total: number;
+}
+
+export interface StoryError {
+  code:
+    | 'STORY_NOT_FOUND'
+    | 'STORY_EXPIRED'
+    | 'ACCESS_DENIED'
+    | 'VALIDATION_ERROR'
+    | 'NETWORK_ERROR';
+  message: string;
+  details?: Record<string, any>;
+}
+
+// Legacy - for backward compatibility
 export interface StoryCreateData {
   mediaFile: File;
-  mediaType: "image" | "video";
+  mediaType: 'image' | 'video';
   duration?: number;
   stickers?: Sticker[];
   music?: string; // Music ID
