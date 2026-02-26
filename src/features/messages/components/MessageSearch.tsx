@@ -51,6 +51,11 @@ import {
   SearchHistoryItem,
   AdvancedSearchOptions,
 } from '../types/search';
+import {
+  mockSearchResults as defaultMockResults,
+  mockSearchHistory as defaultMockHistory,
+} from '../__fixtures__/search.fixtures';
+import { apiService } from '@/services/api.service';
 
 interface MessageSearchProps {
   isOpen: boolean;
@@ -94,59 +99,10 @@ export function MessageSearch({
     },
   );
 
-  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([
-    {
-      id: '1',
-      query: 'project deadline',
-      filters: { messageTypes: ['text'] },
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      resultCount: 12,
-    },
-    {
-      id: '2',
-      query: 'meeting notes',
-      filters: { conversations: ['conv1'] },
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      resultCount: 8,
-    },
-  ]);
+  const [searchHistory, setSearchHistory] =
+    useState<SearchHistoryItem[]>(defaultMockHistory);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Mock search results
-  const mockSearchResults: SearchResult[] = [
-    {
-      id: 'result1',
-      messageId: 'msg1',
-      conversationId: 'conv1',
-      content: 'Can we discuss the project deadline tomorrow?',
-      snippet: 'Can we discuss the <mark>project deadline</mark> tomorrow?',
-      messageType: 'text',
-      senderId: 'user1',
-      senderName: 'John Doe',
-      senderAvatar: '',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      matchedText: ['project deadline'],
-      contextBefore: 'Hey team, ',
-      contextAfter: ' I think we need to review the timeline.',
-    },
-    {
-      id: 'result2',
-      messageId: 'msg2',
-      conversationId: 'conv2',
-      content: 'Here are the project files you requested',
-      snippet: 'Here are the <mark>project</mark> files you requested',
-      messageType: 'file',
-      senderId: 'user2',
-      senderName: 'Jane Smith',
-      senderAvatar: '',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      matchedText: ['project'],
-      attachments: [
-        { name: 'project-spec.pdf', type: 'application/pdf', url: '#' },
-      ],
-    },
-  ];
 
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
@@ -162,11 +118,12 @@ export function MessageSearch({
 
     setIsSearching(true);
     try {
-      // Mock API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // TODO: Replace with real API call when backend is ready
+      // const response = await apiService.search.searchAll(searchQuery);
+      // For now, use fixtures as fallback
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Filter mock results based on query
-      const filteredResults = mockSearchResults.filter((result) =>
+      const filteredResults = defaultMockResults.filter((result) =>
         result.content.toLowerCase().includes(searchQuery.toLowerCase()),
       );
 

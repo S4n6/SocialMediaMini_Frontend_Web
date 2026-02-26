@@ -5,15 +5,45 @@ import {
 } from '../types/create-post.types';
 
 /**
- * Transform frontend form data to backend API payload
+ * Upload an array of media files and return their remote URLs.
+ * Accepts an injected upload function so callers can swap between
+ * real uploads and stubs in tests.
  */
-export const transformPostFormToPayload = (
+export type UploadMediaFn = (files: File[]) => Promise<string[]>;
+
+/**
+ * Transform frontend form data to backend API payload.
+ *
+ * @param formData  – current form state
+ * @param mediaFiles – files selected by the user
+ * @param uploadFn  – async function that uploads files and returns URLs
+ *                    (defaults to a no-op that returns empty strings so the
+ *                     app never sends blob: URLs to the backend)
+ */
+export const transformPostFormToPayload = async (
   formData: PostFormData,
   mediaFiles: MediaFile[] = [],
-): CreatePostPayload => {
-  // Transform media files to the format expected by backend
+  uploadFn?: UploadMediaFn,
+): Promise<CreatePostPayload> => {
+  // Upload files first, then build payload with real URLs
+  let uploadedUrls: string[] = [];
+
+  if (mediaFiles.length > 0) {
+    const rawFiles = mediaFiles.map((mf) => mf.file);
+    if (uploadFn) {
+      uploadedUrls = await uploadFn(rawFiles);
+    } else {
+      // Fallback: use empty strings so we never leak blob: URLs
+      console.warn(
+        '[transformPostFormToPayload] No uploadFn provided – media URLs will be empty',
+      );
+      uploadedUrls = rawFiles.map(() => '');
+    }
+  }
+
+  // Build media array with real uploaded URLs
   const media = mediaFiles.map((file, index) => ({
-    url: file.preview, // This will be replaced with actual uploaded URLs
+    url: uploadedUrls[index] ?? '',
     type: file.type,
     order: index,
   }));
