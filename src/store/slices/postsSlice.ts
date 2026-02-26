@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Post } from "@/types";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Post } from '@/types';
 
 interface PostsState {
   posts: Post[];
@@ -18,7 +18,7 @@ const initialState: PostsState = {
 };
 
 const postsSlice = createSlice({
-  name: "posts",
+  name: 'posts',
   initialState,
   reducers: {
     fetchPostsStart: (state) => {
@@ -27,7 +27,7 @@ const postsSlice = createSlice({
     },
     fetchPostsSuccess: (
       state,
-      action: PayloadAction<{ posts: Post[]; hasNextPage: boolean }>
+      action: PayloadAction<{ posts: Post[]; hasNextPage: boolean }>,
     ) => {
       state.isLoading = false;
       state.posts = action.payload.posts;
@@ -43,7 +43,7 @@ const postsSlice = createSlice({
     },
     updatePost: (state, action: PayloadAction<Post>) => {
       const index = state.posts.findIndex(
-        (post) => post.id === action.payload.id
+        (post) => post.id === action.payload.id,
       );
       if (index !== -1) {
         state.posts[index] = action.payload;
@@ -56,7 +56,7 @@ const postsSlice = createSlice({
       const post = state.posts.find((post) => post.id === action.payload);
       if (post) {
         post.isLiked = !post.isLiked;
-        post.likesCount += post.isLiked ? 1 : -1;
+        post.likesCount = (post.likesCount || 0) + (post.isLiked ? 1 : -1);
       }
     },
     clearPosts: (state) => {

@@ -2,10 +2,10 @@ import * as yup from "yup";
 
 // Login form validation
 export const loginSchema = yup.object({
-  email: yup
+  identifier: yup
     .string()
-    .email("Please enter a valid email address")
-    .required("Email is required"),
+    .min(3, "Email or username must be at least 3 characters")
+    .required("Email or username is required"),
   password: yup
     .string()
     .min(6, "Password must be at least 6 characters")
@@ -14,12 +14,12 @@ export const loginSchema = yup.object({
 
 // Register form validation
 export const registerSchema = yup.object({
-  fullname: yup
+  fullName: yup
     .string()
     .min(2, "Display name must be at least 2 characters")
     .max(50, "Display name must be less than 50 characters")
     .required("Display name is required"),
-  username: yup
+  userName: yup
     .string()
     .min(3, "Username must be at least 3 characters")
     .max(30, "Username must be less than 30 characters")
@@ -40,11 +40,14 @@ export const registerSchema = yup.object({
       "Password must contain at least one uppercase letter, one lowercase letter, and one number"
     )
     .required("Password is required"),
-  birthDate: yup.string().required("Birthdate is required"),
-  gender: yup
+  confirmPassword: yup
     .string()
-    .oneOf(["male", "female"], "Please select a valid gender")
-    .required("Gender is required"),
+    .oneOf([yup.ref("password")], "Passwords must match")
+    .required("Please confirm your password"),
+  termsAccepted: yup
+    .boolean()
+    .oneOf([true], "You must accept the terms and conditions")
+    .required("You must accept the terms and conditions"),
 });
 
 // Signup form validation (matches your SignupForm component)
@@ -122,9 +125,26 @@ export const commentSchema = yup.object({
     .required("Comment is required"),
 });
 
+// Reset password form validation
+export const resetPasswordSchema = yup.object({
+  password: yup
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+    )
+    .required("Password is required"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("password")], "Passwords must match")
+    .required("Please confirm your password"),
+});
+
 export type LoginFormData = yup.InferType<typeof loginSchema>;
 export type RegisterFormData = yup.InferType<typeof registerSchema>;
 export type SignupFormData = yup.InferType<typeof signupSchema>;
 export type CreatePostFormData = yup.InferType<typeof createPostSchema>;
 export type UpdateProfileFormData = yup.InferType<typeof updateProfileSchema>;
 export type CommentFormData = yup.InferType<typeof commentSchema>;
+export type ResetPasswordFormData = yup.InferType<typeof resetPasswordSchema>;

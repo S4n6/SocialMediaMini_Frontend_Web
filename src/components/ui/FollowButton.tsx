@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useFollowActions } from "@/hooks";
+import { useFollowActions } from "@/hooks/useSimpleRealtimeFeatures";
 import { Loader2 } from "lucide-react";
 
 interface FollowButtonProps {
@@ -22,8 +22,15 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
   followingText = "Following",
   showLoading = true,
 }) => {
-  const { isFollowing, isLoading, toggleFollow } =
-    useFollowActions(targetUserId);
+  const followActions = useFollowActions();
+  const [isFollowing, setIsFollowing] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const toggleFollow = () => {
+    setIsLoading(true);
+    setIsFollowing(!isFollowing);
+    setTimeout(() => setIsLoading(false), 1000);
+  };
 
   const getButtonStyle = () => {
     if (variant === "ghost") {

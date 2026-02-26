@@ -1,12 +1,18 @@
-import React from "react";
-import FriendSuggestionSection from "../friend-suggestion/friendSuggestionSection";
-import { Footer } from "./Footer";
+'use client';
 
-export default function RightSideBar() {
+import React from 'react';
+import { SidebarContent } from './SidebarContent';
+import FriendSuggestionSection from '@/features/feed/components/friend-suggestion/friendSuggestionSection';
+
+export const RightSideBar: React.FC = () => {
   return (
-    <div className="w-full flex flex-col gap-6">
-      <FriendSuggestionSection />
-      <Footer />
+    <div className="hidden lg:block lg:w-1/4 p-4 border-l border-gray-200 dark:border-gray-700">
+      <div className="sticky top-4 space-y-6">
+        <FriendSuggestionSection />
+        <SidebarContent />
+      </div>
     </div>
   );
-}
+};
+
+export default RightSideBar;

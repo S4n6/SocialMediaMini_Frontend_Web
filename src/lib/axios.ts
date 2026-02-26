@@ -16,7 +16,8 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
 }
 
 /**
- * Standard API Response Structure for Social Media App
+ * Legacy types - keeping for backward compatibility
+ * @deprecated Use types from @/types/api instead
  */
 export interface ApiResponse<T = unknown> {
   data: T;
@@ -32,7 +33,7 @@ export interface ApiResponse<T = unknown> {
 }
 
 /**
- * Error Response Structure
+ * @deprecated Use StandardApiError from @/types/api instead
  */
 export interface ApiError {
   message: string;

@@ -15,8 +15,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { useUpdateUser } from "@/hooks/useUser";
-import { toast } from "sonner";
+import { useUpdateUserProfileMutation } from "@/features/profile/hooks/useUserMutations";
 
 const sidebarItems = [
   { id: "edit-profile", label: "Edit profile", active: true },
@@ -47,7 +46,8 @@ export default function EditProfilePage() {
     gender: user?.gender || "prefer-not-to-say",
   });
 
-  const { mutate: updateProfile, isPending } = useUpdateUser();
+  const updateProfileMutation = useUpdateUserProfileMutation();
+  const isPending = updateProfileMutation.isPending;
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -55,19 +55,7 @@ export default function EditProfilePage() {
 
   const handleSubmit = () => {
     const payload = { ...formData };
-    updateProfile(payload, {
-      onSuccess: () => {
-        toast.success("Profile updated successfully!");
-      },
-      onError: (error) => {
-        toast.error(
-          typeof error === "object" && error !== null && "message" in error
-            ? (error as { message?: string }).message +
-                " when updating profile."
-            : "An error occurred while updating profile."
-        );
-      },
-    });
+    updateProfileMutation.mutate(payload);
   };
 
   const handleDeactivate = () => {

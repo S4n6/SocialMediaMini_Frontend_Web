@@ -1,32 +1,41 @@
-// User types (aligned with API response)
-export interface UserCount {
-  posts: number;
-  followers: number;
-  following: number;
-}
-
 export interface User {
   id: string;
-  fullName?: string | null; // display name
-  userName: string; // API uses `userName`
+  username: string; // Standard field name
+  userName?: string; // API compatibility alias
   email: string;
-  googleId?: string | null;
-  dateOfBirth?: string | null; // API uses ISO date `dateOfBirth`
-  birthDate?: string | null; // legacy alias
-  phoneNumber?: string | null;
-  avatar?: string | null; // API field for profile picture
-  profilePicture?: string | null; // legacy alias
-  bio?: string | null;
-  location?: string | null;
-  gender?: string | null;
+  name?: string;
+  fullName?: string;
+  displayName?: string;
+  bio?: string;
+  avatar?: string;
+  profilePicture?: string; // legacy alias
+  isVerified?: boolean;
+  isPrivate?: boolean;
+  followersCount?: number;
+  followingCount?: number;
+  postsCount?: number;
+  website?: string;
+  websiteUrl?: string; // API alias
+  location?: string;
+  dateOfBirth?: string;
+  birthDate?: string; // legacy alias
+  phoneNumber?: string;
+  gender?: string;
   role?: string;
-  websiteUrl?: string | null;
   isEmailVerified?: boolean;
-  emailVerifiedAt?: string | null;
+  emailVerifiedAt?: string;
   createdAt: string;
   updatedAt: string;
-  posts?: unknown[]; // keep generic for now
+  isOnline?: boolean;
+  lastSeen?: string;
+  // API counts structure
+  _count?: {
+    posts: number;
+    followers: number;
+    following: number;
+  };
+  // Legacy nested objects
+  posts?: unknown[];
   followers?: unknown[];
   following?: unknown[];
-  _count?: UserCount;
 }
