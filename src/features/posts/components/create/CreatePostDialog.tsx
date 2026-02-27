@@ -98,17 +98,14 @@ export default function CreatePostDialog({
         return;
       }
 
-      // Transform to API payload
-      const payload = transformPostFormToPayload(postData, mediaFiles);
+      // Transform to API payload (now async – uploads files first)
+      const payload = await transformPostFormToPayload(postData, mediaFiles);
 
-      // Extract files for upload
-      const files = mediaFiles.map((mf) => mf.file);
-
-      // Create post with media files using new hook
+      // Files have already been uploaded inside transformPostFormToPayload,
+      // so we no longer need to pass raw files separately.
       createPost.mutate(
         {
           payload,
-          mediaFiles: files.length > 0 ? files : undefined,
         },
         {
           onSuccess: () => {
