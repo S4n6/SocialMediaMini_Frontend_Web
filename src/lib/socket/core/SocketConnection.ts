@@ -1,10 +1,10 @@
-import { io, Socket } from "socket.io-client";
+import { io, Socket } from 'socket.io-client';
 import type {
   ClientToServerEvents,
   ServerToClientEvents,
   SocketConfig,
   SocketConnectionState,
-} from "@/types/socket";
+} from '@/types/socket';
 
 export class SocketConnection {
   private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null =
@@ -56,14 +56,14 @@ export class SocketConnection {
       const socketOptions = {
         ...this.config.options,
         auth: userId ? { userId } : undefined,
-        transports: ["websocket", "polling"] as unknown as string[],
+        transports: ['websocket', 'polling'] as unknown as string[],
       };
 
       this.socket = io(this.config.url, socketOptions);
 
       // Connection event handlers
-      this.socket.on("connect", () => {
-        console.log("Socket connected:", this.socket?.id);
+      this.socket.on('connect', () => {
+        console.log('Socket connected:', this.socket?.id);
         this.onStateChange?.({
           isConnected: true,
           isConnecting: false,
@@ -76,8 +76,8 @@ export class SocketConnection {
         resolve();
       });
 
-      this.socket.on("disconnect", (reason: string) => {
-        console.log("Socket disconnected:", reason);
+      this.socket.on('disconnect', (reason: string) => {
+        console.log('Socket disconnected:', reason);
         this.onStateChange?.({
           isConnected: false,
           isConnecting: false,
@@ -85,7 +85,7 @@ export class SocketConnection {
         this.onDisconnect?.(reason);
         this.stopHeartbeat();
 
-        if (reason === "io server disconnect") {
+        if (reason === 'io server disconnect') {
           // Manual disconnect, don't reconnect
           return;
         }
@@ -93,8 +93,8 @@ export class SocketConnection {
         this.handleReconnection();
       });
 
-      this.socket.on("connect_error", (error: Error) => {
-        console.error("Socket connection error:", error);
+      this.socket.on('connect_error', (error: Error) => {
+        console.error('Socket connection error:', error);
         this.onStateChange?.({
           isConnected: false,
           isConnecting: false,
@@ -145,13 +145,31 @@ export class SocketConnection {
       reconnectAttempt: currentAttempt + 1,
     });
 
-    this.reconnectTimer = setTimeout(() => {
-      console.log(`Reconnection attempt ${currentAttempt + 1}`);
-      this.connect().catch(console.error);
-    }, delay * Math.pow(2, currentAttempt)); // Exponential backoff
+    this.reconnectTimer = setTimeout(
+      () => {
+        console.log(`Reconnection attempt ${currentAttempt + 1}`);
+        this.connect().catch(console.error);
+      },
+      delay * Math.pow(2, currentAttempt),
+    ); // Exponential backoff
   }
 
   // ===== SOCKET ACCESS =====
+
+  /**
+   * Update the auth token on the live socket and reconnect if connected.
+   * Call this after a successful token refresh.
+   */
+  updateAuthToken(newToken: string): void {
+    if (this.socket) {
+      this.socket.auth = { ...(this.socket.auth as object), token: newToken };
+
+      if (this.socket.connected) {
+        this.socket.disconnect();
+        this.socket.connect();
+      }
+    }
+  }
 
   getSocket(): Socket<ServerToClientEvents, ClientToServerEvents> | null {
     return this.socket;
@@ -171,20 +189,45 @@ export class SocketConnection {
     if (!this.socket) return;
 
     this.socket.on(
-      "error",
+      'error',
       (error: { message: string; code?: string; data?: any }) => {
-        console.error("Socket error:", error);
+        console.error('Socket error:', error);
         this.onStateChange?.({ error: error.message });
-      }
+      },
     );
 
-    this.socket.on("reconnect", (attemptNumber: number) => {
-      console.log("Socket reconnected after", attemptNumber, "attempts");
+    this.socket.on('reconnect', (attemptNumber: number) => {
+      console.log('Socket reconnected after', attemptNumber, 'attempts');
       this.onStateChange?.({
         isReconnecting: false,
         reconnectAttempt: 0,
         error: null,
       });
+    });
+
+    // Handle auth-related connection errors by refreshing the token
+    this.socket.on('connect_error', async (err) => {
+      const authErrors = [
+        'TOKEN_EXPIRED',
+        'jwt expired',
+        'UNAUTHORIZED',
+        'invalid token',
+      ];
+
+      if (authErrors.some((msg) => err.message.includes(msg))) {
+        try {
+          const { performTokenRefresh } = await import(
+            '@/lib/helpers/refresh-tokens'
+          );
+          const newToken = await performTokenRefresh();
+          this.updateAuthToken(newToken);
+        } catch {
+          this.onStateChange?.({
+            isConnected: false,
+            error: 'Authentication failed — please log in again',
+          });
+        }
+      }
     });
   }
 

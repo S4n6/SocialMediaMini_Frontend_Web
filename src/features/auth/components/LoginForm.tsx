@@ -1,25 +1,26 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { loginSchema } from "@/lib/validations/schemas";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { FcGoogle } from "react-icons/fc";
-import { Loader2, Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ComponentErrorBoundary } from "@/components/error-boundary";
-import { RequestLoadingWrapper } from "@/components/loading";
-import { useAuth } from "../hooks";
-import { useErrorHandler, useFormErrorHandler } from "@/hooks";
-import { ForgotPasswordModal } from "./ForgotPasswordModal";
-import type { LoginFormData } from "../types";
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { loginSchema } from '@/lib/validations/schemas';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { FcGoogle } from 'react-icons/fc';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ComponentErrorBoundary } from '@/components/error-boundary';
+import { RequestLoadingWrapper } from '@/components/loading';
+import { useAuth } from '../hooks';
+import { useErrorHandler, useFormErrorHandler } from '@/hooks';
+import { ForgotPasswordModal } from './ForgotPasswordModal';
+import { loginRateLimiter } from '../utils/rate-limiter';
+import type { LoginFormData } from '../types';
 
 export const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +35,7 @@ export const LoginForm: React.FC = () => {
   } = useAuth();
 
   const { handleError } = useErrorHandler();
-  const { handleSubmitError } = useFormErrorHandler("LoginForm");
+  const { handleSubmitError } = useFormErrorHandler('LoginForm');
 
   const {
     register,
@@ -43,33 +44,53 @@ export const LoginForm: React.FC = () => {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
-    mode: "onChange",
+    mode: 'onChange',
   });
 
   const router = useRouter();
 
   const onSubmit = async (data: LoginFormData) => {
+    const rateLimitKey = data.identifier.toLowerCase();
+
+    if (!loginRateLimiter.canAttempt(rateLimitKey)) {
+      const waitMs = loginRateLimiter.getTimeUntilReset(rateLimitKey);
+      const waitMin = Math.ceil(waitMs / 60_000);
+      toast.error(
+        `Too many login attempts. Please try again in ${waitMin} minute(s).`,
+      );
+      return;
+    }
+
     try {
-      // Gọi login và chờ kết quả
+      loginRateLimiter.recordAttempt(rateLimitKey);
+
+      // Call login and wait for result
       await login(data);
 
-      // Nếu đến đây nghĩa là login thành công
-      toast.success("Login successful! Redirecting...");
+      // Success — clear the rate-limit counter
+      loginRateLimiter.reset(rateLimitKey);
+      toast.success('Login successful! Redirecting...');
 
-      // Chờ 0.5s rồi chuyển trang
       setTimeout(() => {
-        router.push("/");
+        router.push('/');
       }, 500);
     } catch (error: any) {
-      // Xử lý lỗi từ server
-      console.error("Login error:", error);
+      console.error('Login error:', error);
+
+      // Warn when running low on attempts
+      const remaining = loginRateLimiter.getRemainingAttempts(rateLimitKey);
+      if (remaining > 0 && remaining <= 2) {
+        toast.warning(
+          `${remaining} login attempt(s) remaining before lockout.`,
+        );
+      }
 
       // Nếu có lỗi field cụ thể từ server (như email/password sai)
       if (error?.response?.data?.fieldErrors) {
         const fieldErrors = error.response.data.fieldErrors;
         Object.entries(fieldErrors).forEach(([field, message]) => {
           setError(field as keyof LoginFormData, {
-            type: "server",
+            type: 'server',
             message: String(message),
           });
         });
@@ -81,17 +102,17 @@ export const LoginForm: React.FC = () => {
         toast.error(error.message);
       } else {
         // Lỗi không xác định
-        toast.error("Login failed. Please try again.");
+        toast.error('Login failed. Please try again.');
       }
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
-      console.log("Google login clicked - integrate with Google OAuth");
+      console.log('Google login clicked - integrate with Google OAuth');
       // await loginWithGoogle(googleCredential);
     } catch (error) {
-      handleError(error, { action: "google_login" });
+      handleError(error, { action: 'google_login' });
     }
   };
 
@@ -100,7 +121,7 @@ export const LoginForm: React.FC = () => {
       await forgotPassword(email);
       setIsForgotPasswordOpen(false);
     } catch (error) {
-      handleError(error, { action: "forgot_password" });
+      handleError(error, { action: 'forgot_password' });
     }
   };
 
@@ -136,14 +157,14 @@ export const LoginForm: React.FC = () => {
                     Email or Username
                   </Label>
                   <Input
-                    {...register("identifier")}
+                    {...register('identifier')}
                     id="identifier"
                     type="text"
                     placeholder="Enter your email or username"
                     className={`${
                       errors.identifier
-                        ? "border-red-500 focus:ring-red-500"
-                        : ""
+                        ? 'border-red-500 focus:ring-red-500'
+                        : ''
                     }`}
                     disabled={isLoggingIn}
                   />
@@ -161,14 +182,14 @@ export const LoginForm: React.FC = () => {
                   </Label>
                   <div className="relative">
                     <Input
-                      {...register("password")}
+                      {...register('password')}
                       id="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
                       className={`pr-10 ${
                         errors.password
-                          ? "border-red-500 focus:ring-red-500"
-                          : ""
+                          ? 'border-red-500 focus:ring-red-500'
+                          : ''
                       }`}
                       disabled={isLoggingIn}
                     />
@@ -199,7 +220,7 @@ export const LoginForm: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="remember"
-                      {...register("rememberMe")}
+                      {...register('rememberMe')}
                       disabled={isLoggingIn}
                     />
                     <Label htmlFor="remember" className="text-sm">
@@ -232,7 +253,7 @@ export const LoginForm: React.FC = () => {
                       Signing in...
                     </>
                   ) : (
-                    "Sign In"
+                    'Sign In'
                   )}
                 </Button>
 
@@ -260,7 +281,7 @@ export const LoginForm: React.FC = () => {
 
                 {/* Sign Up Link */}
                 <p className="text-center text-sm text-muted-foreground">
-                  Don&apos;t have an account?{" "}
+                  Don&apos;t have an account?{' '}
                   <Link
                     href="/signup"
                     className="text-[#EA454C] font-semibold hover:underline"

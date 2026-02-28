@@ -11,7 +11,8 @@ import {
 import { usePathname } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { loginSuccess, logout } from '@/store/slices/authSlice';
-import { authService } from '@/services/api.service';
+import { authService } from '@/features/auth/services/auth.service';
+import { authSyncBroadcast } from '@/features/auth/utils/cross-tab-sync';
 import { User } from '@/types/user';
 
 // Auth state types
@@ -107,14 +108,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
         dispatch(logout());
       }
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Authentication failed';
-      authDispatch({ type: 'SET_ERROR', payload: errorMessage });
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
 
-      if (
-        (error as { response?: { status?: number } })?.response?.status === 401
-      ) {
+      if (status === 401 || status === 403) {
+        // Only clear auth on actual auth failures
         dispatch(logout());
+      } else {
+        // Network error, 5xx, etc. — preserve current session, just flag the error
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Authentication check failed';
+        authDispatch({ type: 'SET_ERROR', payload: errorMessage });
+        console.warn(
+          'Auth fetch failed (non-auth error), preserving session:',
+          errorMessage,
+        );
       }
     }
   }, [dispatch]);
@@ -151,16 +161,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /**
    * Cross-tab synchronization
-   * Listen for auth events từ other tabs
+   * Listen for auth events from other tabs via BroadcastChannel
+   * and same-tab CustomEvent fallback.
    */
   useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'auth-sync') {
-        // Another tab has updated auth state, sync here
+    // BroadcastChannel listener (other tabs)
+    const unsubscribe = authSyncBroadcast.onMessage((msg) => {
+      if (msg.action === 'logout') {
+        dispatch(logout());
+      } else if (msg.action === 'login' || msg.action === 'token-refresh') {
         refetchUser();
       }
-    };
+    });
 
+    // Same-tab CustomEvent listener (fired by authSyncBroadcast.send)
     const handleAuthSyncEvent = (event: CustomEvent) => {
       if (event.detail?.action === 'logout') {
         dispatch(logout());
@@ -169,11 +183,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
     window.addEventListener('auth-sync', handleAuthSyncEvent as EventListener);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      unsubscribe();
       window.removeEventListener(
         'auth-sync',
         handleAuthSyncEvent as EventListener,

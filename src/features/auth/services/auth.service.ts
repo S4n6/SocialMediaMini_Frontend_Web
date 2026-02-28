@@ -1,11 +1,11 @@
-import { api } from "@/lib/axios";
-import type { LoginFormData } from "@/lib/validations/schemas";
-import type { User, ApiResponse } from "@/types";
+import { api } from '@/lib/axios';
+import type { LoginFormData } from '@/lib/validations/schemas';
+import type { User, ApiResponse } from '@/types';
 
 export const authService = {
   // Login user
   login: async (
-    credentials: LoginFormData
+    credentials: LoginFormData,
   ): Promise<
     ApiResponse<{
       user: User;
@@ -14,17 +14,17 @@ export const authService = {
       isEmailVerified?: boolean;
     }>
   > => {
-    const response = await api.post("/auth/login", credentials, {
-      headers: { "x-skip-refresh": "1" },
+    const response = await api.post('/auth/login', credentials, {
+      headers: { 'x-skip-refresh': '1' },
     });
-    console.log("Login response:", response.data);
+    console.log('Login response:', response.data);
     return response.data;
   },
 
-  // Login with Google - postMessage approach
+  // Login with Google - postMessage approach with CSRF state token
   // Accept optional data to match callers that may pass info
   loginWithGoogle: (
-    data?: any
+    data?: any,
   ): Promise<{
     user: User;
     accessToken?: string;
@@ -35,39 +35,53 @@ export const authService = {
     isNewUser?: boolean;
   }> => {
     return new Promise((resolve, reject) => {
-      const googleAuthUrl = `http://localhost:3107/auth/google`;
+      // Generate a cryptographic state token to prevent CSRF attacks
+      const stateToken = crypto.randomUUID();
+      sessionStorage.setItem('oauth_state', stateToken);
+
+      const backendOrigin =
+        process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') ||
+        'http://localhost:3107';
+      const googleAuthUrl = `${backendOrigin}/auth/google?state=${encodeURIComponent(stateToken)}`;
 
       // Open popup window for Google authentication
       const popup = window.open(
         googleAuthUrl,
-        "google-auth",
-        "width=500,height=600,scrollbars=yes,resizable=yes"
+        'google-auth',
+        'width=500,height=600,scrollbars=yes,resizable=yes',
       );
 
       if (!popup) {
-        reject(new Error("Popup blocked. Please allow popups for this site."));
+        sessionStorage.removeItem('oauth_state');
+        reject(new Error('Popup blocked. Please allow popups for this site.'));
         return;
       }
 
       // Listen for postMessage from popup
       const messageListener = (event: MessageEvent) => {
-        // Allow both backend domain and current domain for development
-        const allowedOrigins = [
-          window.location.origin,
-          "http://localhost:3107", // Backend domain
-          "http://localhost:3000", // Frontend domain
-        ];
-
-        console.log("Received message from origin:", event.origin);
-        console.log("Message data:", event.data);
+        // Strict origin check — only accept messages from the backend
+        const allowedOrigins = [backendOrigin];
 
         if (!allowedOrigins.includes(event.origin)) {
-          console.warn("Message from unauthorized origin:", event.origin);
           return;
         }
 
-        if (event.data.type === "GOOGLE_AUTH_SUCCESS") {
-          window.removeEventListener("message", messageListener);
+        // Validate the state token matches what we generated
+        const expectedState = sessionStorage.getItem('oauth_state');
+        if (event.data?.state !== expectedState) {
+          window.removeEventListener('message', messageListener);
+          clearTimeout(timeoutId);
+          clearInterval(checkClosed);
+          sessionStorage.removeItem('oauth_state');
+          popup.close();
+          reject(new Error('OAuth state mismatch — possible CSRF attack'));
+          return;
+        }
+
+        sessionStorage.removeItem('oauth_state');
+
+        if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
+          window.removeEventListener('message', messageListener);
           clearTimeout(timeoutId);
           clearInterval(checkClosed);
           popup.close();
@@ -75,39 +89,44 @@ export const authService = {
           const { user } = event.data.payload;
           resolve({
             user,
-            accessToken: "from_cookie", // Token is in httpOnly cookie
+            accessToken: 'from_cookie', // Token is in httpOnly cookie
             refreshToken: undefined,
           });
-        } else if (event.data.type === "GOOGLE_AUTH_ERROR") {
-          window.removeEventListener("message", messageListener);
+        } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
+          window.removeEventListener('message', messageListener);
           clearTimeout(timeoutId);
           clearInterval(checkClosed);
           popup.close();
-          reject(new Error(event.data.error || "Google authentication failed"));
+          reject(new Error(event.data.error || 'Google authentication failed'));
         }
       };
 
-      window.addEventListener("message", messageListener);
+      window.addEventListener('message', messageListener);
 
       // Check if popup is closed manually without success
       const checkClosed = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkClosed);
           clearTimeout(timeoutId);
-          window.removeEventListener("message", messageListener);
-          reject(new Error("Authentication cancelled"));
+          window.removeEventListener('message', messageListener);
+          sessionStorage.removeItem('oauth_state');
+          reject(new Error('Authentication cancelled'));
         }
       }, 1000);
 
       // Timeout after 5 minutes
-      const timeoutId = setTimeout(() => {
-        clearInterval(checkClosed);
-        window.removeEventListener("message", messageListener);
-        if (!popup.closed) {
-          popup.close();
-        }
-        reject(new Error("Authentication timeout"));
-      }, 5 * 60 * 1000);
+      const timeoutId = setTimeout(
+        () => {
+          clearInterval(checkClosed);
+          window.removeEventListener('message', messageListener);
+          sessionStorage.removeItem('oauth_state');
+          if (!popup.closed) {
+            popup.close();
+          }
+          reject(new Error('Authentication timeout'));
+        },
+        5 * 60 * 1000,
+      );
     });
   },
 
@@ -121,8 +140,8 @@ export const authService = {
   }): Promise<
     ApiResponse<{ email: string; requiresEmailVerification: boolean }>
   > => {
-    const response = await api.post("/auth/register", userData, {
-      headers: { "x-skip-refresh": "1" },
+    const response = await api.post('/auth/register', userData, {
+      headers: { 'x-skip-refresh': '1' },
     });
     return response.data;
   },
@@ -133,11 +152,11 @@ export const authService = {
     password: string;
   }): Promise<ApiResponse<null>> => {
     const response = await api.post(
-      "/auth/setup-password",
+      '/auth/setup-password',
       { token: data.token, password: data.password },
       {
-        headers: { "x-skip-refresh": "1" },
-      }
+        headers: { 'x-skip-refresh': '1' },
+      },
     );
     return response.data;
   },
@@ -145,30 +164,30 @@ export const authService = {
   // Resend verification email
   resendVerification: async (email: string): Promise<ApiResponse<null>> => {
     const response = await api.post(
-      "/auth/resend-verification",
+      '/auth/resend-verification',
       { email },
       {
-        headers: { "x-skip-refresh": "1" },
-      }
+        headers: { 'x-skip-refresh': '1' },
+      },
     );
     return response.data;
   },
 
   // Get current user
   getCurrentUser: async (): Promise<ApiResponse<User>> => {
-    const response = await api.get("/auth/me");
+    const response = await api.get('/auth/me');
     return response.data;
   },
 
   // Logout user
   logout: async (): Promise<ApiResponse<null>> => {
-    const response = await api.post("/auth/logout");
+    const response = await api.post('/auth/logout');
     return response.data;
   },
 
   // Check if email exists
   checkEmailExists: async (
-    email: string
+    email: string,
   ): Promise<ApiResponse<{ exists: boolean }>> => {
     const response = await api.get(`/auth/check-email`, { params: { email } });
     return response.data;
@@ -176,7 +195,7 @@ export const authService = {
 
   // Check if username exists
   checkUsernameExists: async (
-    username: string
+    username: string,
   ): Promise<ApiResponse<{ exists: boolean }>> => {
     const response = await api.get(`/auth/check-username`, {
       params: { username },
@@ -194,8 +213,8 @@ export const authService = {
       user?: User;
     }>
   > => {
-    const response = await api.post("/auth/refresh", undefined, {
-      headers: { "x-skip-refresh": "1" },
+    const response = await api.post('/auth/refresh', undefined, {
+      headers: { 'x-skip-refresh': '1' },
       withCredentials: true, // Ensure cookies are sent
     });
     return response.data;
@@ -219,8 +238,8 @@ export const authService = {
       `/auth/verify-email`,
       { token: data.token, password: data.password },
       {
-        headers: { "x-skip-refresh": "1" },
-      }
+        headers: { 'x-skip-refresh': '1' },
+      },
     );
     return response.data;
   },
@@ -228,11 +247,11 @@ export const authService = {
   // Forgot password
   forgotPassword: async (email: string): Promise<ApiResponse<null>> => {
     const response = await api.post(
-      "/auth/forgot-password",
+      '/auth/forgot-password',
       { email },
       {
-        headers: { "x-skip-refresh": "1" },
-      }
+        headers: { 'x-skip-refresh': '1' },
+      },
     );
     return response.data;
   },
@@ -252,8 +271,8 @@ export const authService = {
         confirmPassword: data.confirmPassword,
       },
       {
-        headers: { "x-skip-refresh": "1" },
-      }
+        headers: { 'x-skip-refresh': '1' },
+      },
     );
     return response.data;
   },

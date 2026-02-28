@@ -6,6 +6,7 @@ import { loginSuccess, logout } from '@/store/slices/authSlice';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useErrorHandler, createQueryKeys } from '../utils';
+import { authSyncBroadcast } from '../utils/cross-tab-sync';
 import type {
   LoginFormData,
   RegisterFormData,
@@ -52,12 +53,11 @@ export const useAuthMutations = () => {
           await refetchUser();
           queryClient.invalidateQueries({ queryKey: authKeys.all() });
 
-          // Cross-tab sync
-          window.dispatchEvent(
-            new CustomEvent('auth-sync', {
-              detail: { action: 'login', user: response.data?.user },
-            }),
-          );
+          // Cross-tab sync via BroadcastChannel
+          authSyncBroadcast.send({
+            action: 'login',
+            userId: response.data?.user?.id,
+          });
 
           console.log('Login successful!');
         }
@@ -89,12 +89,11 @@ export const useAuthMutations = () => {
         await refetchUser();
         queryClient.invalidateQueries({ queryKey: authKeys.all() });
 
-        // Cross-tab sync
-        window.dispatchEvent(
-          new CustomEvent('auth-sync', {
-            detail: { action: 'login', user },
-          }),
-        );
+        // Cross-tab sync via BroadcastChannel
+        authSyncBroadcast.send({
+          action: 'login',
+          userId: user?.id,
+        });
 
         console.log('Google login successful!');
       } catch (error) {
@@ -143,12 +142,8 @@ export const useAuthMutations = () => {
       dispatch(logout());
       queryClient.clear();
 
-      // Cross-tab sync
-      window.dispatchEvent(
-        new CustomEvent('auth-sync', {
-          detail: { action: 'logout' },
-        }),
-      );
+      // Cross-tab sync via BroadcastChannel
+      authSyncBroadcast.send({ action: 'logout' });
 
       // Redirect to login
       router.push('/login');
