@@ -4,12 +4,10 @@ import {
   useQueryClient,
   useInfiniteQuery,
 } from '@tanstack/react-query';
-import { useState } from 'react';
 import { postsService } from '../services/post.service';
 import { CreatePostPayload } from '../types/create-post.types';
 import type { Post, PaginatedResponse } from '@/types';
 import { toast } from 'sonner';
-import { useUploadProgress } from './useUploadProgress';
 
 // Query keys
 export const postsKeys = {
@@ -116,66 +114,27 @@ export const usePostsQuery = () => {
 };
 
 /**
- * Hook for post mutations (write operations)
+ * Hook for post mutations (write operations).
+ *
+ * NOTE: Media upload is intentionally NOT handled here anymore.
+ * The caller (CreatePostDialog) uses `useDirectUpload` to get the final CDN
+ * URLs, then passes a fully-resolved `CreatePostPayload` to `createPost`.
+ * This keeps the mutation focused on a single responsibility: POST /posts.
  */
 export const usePostsMutation = () => {
   const queryClient = useQueryClient();
-  const [isUploading, setIsUploading] = useState(false);
-  const { progress, resetProgress, updateFileProgress, initializeFiles } =
-    useUploadProgress();
 
-  // Create post mutation with enhanced error handling and progress tracking
+  // Create post — expects media URLs already resolved by useDirectUpload
   const createPost = useMutation({
-    mutationFn: async ({
-      payload,
-      mediaFiles,
-    }: {
-      payload: CreatePostPayload;
-      mediaFiles?: File[];
-    }) => {
-      try {
-        setIsUploading(true);
-        resetProgress();
-
-        // Initialize progress tracking for files
-        if (mediaFiles && mediaFiles.length > 0) {
-          initializeFiles(mediaFiles);
-        }
-
-        // Use the new createPostWithMedia method that handles everything
-        return await postsService.createPostWithMedia(payload, mediaFiles);
-      } catch (error) {
-        // Enhanced error handling with user-friendly messages
-        if (error instanceof Error) {
-          if (error.message.includes('upload')) {
-            throw new Error(
-              'Failed to upload media files. Please check your internet connection and try again.',
-            );
-          } else if (error.message.includes('post')) {
-            throw new Error(
-              'Failed to create post. Your media files have been cleaned up.',
-            );
-          } else if (error.message.includes('signature')) {
-            throw new Error(
-              'Failed to get upload permissions. Please try again.',
-            );
-          }
-        }
-        throw error;
-      } finally {
-        setIsUploading(false);
-      }
-    },
+    mutationFn: ({ payload }: { payload: CreatePostPayload }) =>
+      postsService.createPost(payload),
     onSuccess: () => {
-      // Invalidate and refetch posts
       queryClient.invalidateQueries({ queryKey: postsKeys.lists() });
       queryClient.invalidateQueries({ queryKey: postsKeys.feed() });
-
       toast.success('Post created successfully!');
-      resetProgress(); // Clear progress after success
     },
     onError: (error: Error) => {
-      console.error('Failed to create post:', error);
+      console.error('[createPost] Failed:', error);
       toast.error(error.message || 'Failed to create post');
     },
   });
@@ -219,10 +178,5 @@ export const usePostsMutation = () => {
     createPost,
     updatePost,
     deletePost,
-    // Progress tracking
-    progress,
-    isUploading,
-    // expose progress reset so callers can clear UI after success/close
-    resetProgress,
   };
 };
