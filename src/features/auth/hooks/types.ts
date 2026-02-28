@@ -1,9 +1,9 @@
-import type { User } from "@/types/user";
-import type { ApiResponse } from "@/types/api";
+import type { User } from '@/types/user';
+import type { ApiResponse } from '@/types/api';
 import type {
   LoginFormData,
   RegisterFormData,
-} from "@/lib/validations/schemas";
+} from '@/lib/validations/auth.schema';
 
 // Auth hook types and interfaces
 export interface AuthConfig {

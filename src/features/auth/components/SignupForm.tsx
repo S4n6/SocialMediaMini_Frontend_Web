@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { registerSchema } from "@/lib/validations/schemas";
-import Image from "next/image";
-import Link from "next/link";
-import { FcGoogle } from "react-icons/fc";
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { registerSchema } from '@/lib/validations/auth.schema';
+import Image from 'next/image';
+import Link from 'next/link';
+import { FcGoogle } from 'react-icons/fc';
 import {
   Loader2,
   Eye,
@@ -16,18 +16,18 @@ import {
   User,
   Mail,
   Lock,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ComponentErrorBoundary } from "@/components/error-boundary";
-import { RequestLoadingWrapper } from "@/components/loading";
-import { useAuth } from "../hooks";
-import { useEmailCheck, useUsernameCheck } from "../hooks/useAuthQueries";
-import { useErrorHandler, useFormErrorHandler } from "@/hooks";
-import { ResendVerificationModal } from "./ResendVerificationModal";
-import type { RegisterFormData } from "../types";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ComponentErrorBoundary } from '@/components/error-boundary';
+import { RequestLoadingWrapper } from '@/components/loading';
+import { useAuth } from '../hooks';
+import { useEmailCheck, useUsernameCheck } from '../hooks/useAuthQueries';
+import { useErrorHandler, useFormErrorHandler } from '@/hooks';
+import { ResendVerificationModal } from './ResendVerificationModal';
+import type { RegisterFormData } from '../types';
 
 export const SignupForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -43,7 +43,7 @@ export const SignupForm: React.FC = () => {
 
   const { handleError } = useErrorHandler();
   const { handleValidationError, handleSubmitError } =
-    useFormErrorHandler("SignupForm");
+    useFormErrorHandler('SignupForm');
 
   const {
     register,
@@ -53,12 +53,12 @@ export const SignupForm: React.FC = () => {
     trigger,
   } = useForm<RegisterFormData>({
     resolver: yupResolver(registerSchema),
-    mode: "onChange",
+    mode: 'onChange',
   });
 
-  const watchedEmail = watch("email");
-  const watchedUserName = watch("userName");
-  const watchedPassword = watch("password");
+  const watchedEmail = watch('email');
+  const watchedUserName = watch('userName');
+  const watchedPassword = watch('password');
 
   // Real-time validation hooks
   const { data: emailCheck, isLoading: isCheckingEmail } =
@@ -71,12 +71,12 @@ export const SignupForm: React.FC = () => {
     try {
       // Check for existing email/username before submitting
       if (emailCheck?.exists) {
-        handleValidationError(new Error("Email already exists"), "email");
+        handleValidationError(new Error('Email already exists'), 'email');
         return;
       }
 
       if (usernameCheck?.exists) {
-        handleValidationError(new Error("Username already taken"), "userName");
+        handleValidationError(new Error('Username already taken'), 'userName');
         return;
       }
 
@@ -90,16 +90,16 @@ export const SignupForm: React.FC = () => {
   const handleGoogleSignup = async () => {
     try {
       // In a real app, this would integrate with Google OAuth
-      console.log("Google signup clicked - integrate with Google OAuth");
+      console.log('Google signup clicked - integrate with Google OAuth');
       // await loginWithGoogle(googleCredential);
     } catch (error) {
-      handleError(error, { action: "google_signup" });
+      handleError(error, { action: 'google_signup' });
     }
   };
 
   // Password strength indicator
   const getPasswordStrength = (password: string) => {
-    if (!password) return { score: 0, text: "", color: "" };
+    if (!password) return { score: 0, text: '', color: '' };
 
     let score = 0;
     if (password.length >= 8) score++;
@@ -109,18 +109,18 @@ export const SignupForm: React.FC = () => {
     if (/[^A-Za-z0-9]/.test(password)) score++;
 
     const levels = [
-      { score: 0, text: "", color: "" },
-      { score: 1, text: "Very Weak", color: "text-red-500" },
-      { score: 2, text: "Weak", color: "text-orange-500" },
-      { score: 3, text: "Fair", color: "text-yellow-500" },
-      { score: 4, text: "Good", color: "text-blue-500" },
-      { score: 5, text: "Strong", color: "text-green-500" },
+      { score: 0, text: '', color: '' },
+      { score: 1, text: 'Very Weak', color: 'text-red-500' },
+      { score: 2, text: 'Weak', color: 'text-orange-500' },
+      { score: 3, text: 'Fair', color: 'text-yellow-500' },
+      { score: 4, text: 'Good', color: 'text-blue-500' },
+      { score: 5, text: 'Strong', color: 'text-green-500' },
     ];
 
     return levels[score] || levels[0];
   };
 
-  const passwordStrength = getPasswordStrength(watchedPassword || "");
+  const passwordStrength = getPasswordStrength(watchedPassword || '');
 
   // Create request state for loading wrapper
   const requestState = {
@@ -158,12 +158,12 @@ export const SignupForm: React.FC = () => {
                     Full Name
                   </Label>
                   <Input
-                    {...register("fullName")}
+                    {...register('fullName')}
                     id="fullName"
                     type="text"
                     placeholder="Enter your full name"
                     className={`${
-                      errors.fullName ? "border-red-500 focus:ring-red-500" : ""
+                      errors.fullName ? 'border-red-500 focus:ring-red-500' : ''
                     }`}
                     disabled={isRegistering}
                   />
@@ -185,24 +185,24 @@ export const SignupForm: React.FC = () => {
                   </Label>
                   <div className="relative">
                     <Input
-                      {...register("userName")}
+                      {...register('userName')}
                       id="userName"
                       type="text"
                       placeholder="Choose a username"
                       className={`pr-10 ${
                         errors.userName || usernameCheck?.exists
-                          ? "border-red-500 focus:ring-red-500"
+                          ? 'border-red-500 focus:ring-red-500'
                           : watchedUserName &&
-                            usernameCheck &&
-                            !usernameCheck.exists
-                          ? "border-green-500 focus:ring-green-500"
-                          : ""
+                              usernameCheck &&
+                              !usernameCheck.exists
+                            ? 'border-green-500 focus:ring-green-500'
+                            : ''
                       }`}
                       disabled={isRegistering}
                       onChange={async (e) => {
-                        register("userName").onChange(e);
+                        register('userName').onChange(e);
                         if (e.target.value.length > 2) {
-                          await trigger("userName");
+                          await trigger('userName');
                         }
                       }}
                     />
@@ -239,22 +239,22 @@ export const SignupForm: React.FC = () => {
                   </Label>
                   <div className="relative">
                     <Input
-                      {...register("email")}
+                      {...register('email')}
                       id="email"
                       type="email"
                       placeholder="Enter your email"
                       className={`pr-10 ${
                         errors.email || emailCheck?.exists
-                          ? "border-red-500 focus:ring-red-500"
+                          ? 'border-red-500 focus:ring-red-500'
                           : watchedEmail && emailCheck && !emailCheck.exists
-                          ? "border-green-500 focus:ring-green-500"
-                          : ""
+                            ? 'border-green-500 focus:ring-green-500'
+                            : ''
                       }`}
                       disabled={isRegistering}
                       onChange={async (e) => {
-                        register("email").onChange(e);
-                        if (e.target.value.includes("@")) {
-                          await trigger("email");
+                        register('email').onChange(e);
+                        if (e.target.value.includes('@')) {
+                          await trigger('email');
                         }
                       }}
                     />
@@ -275,7 +275,7 @@ export const SignupForm: React.FC = () => {
                   )}
                   {emailCheck?.exists && (
                     <p className="text-red-500 text-sm">
-                      Email already exists.{" "}
+                      Email already exists.{' '}
                       <Link
                         href="/login"
                         className="text-[#EA454C] hover:underline"
@@ -297,14 +297,14 @@ export const SignupForm: React.FC = () => {
                   </Label>
                   <div className="relative">
                     <Input
-                      {...register("password")}
+                      {...register('password')}
                       id="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Create a password"
                       className={`pr-10 ${
                         errors.password
-                          ? "border-red-500 focus:ring-red-500"
-                          : ""
+                          ? 'border-red-500 focus:ring-red-500'
+                          : ''
                       }`}
                       disabled={isRegistering}
                     />
@@ -346,14 +346,14 @@ export const SignupForm: React.FC = () => {
                   </Label>
                   <div className="relative">
                     <Input
-                      {...register("confirmPassword")}
+                      {...register('confirmPassword')}
                       id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm your password"
                       className={`pr-10 ${
                         errors.confirmPassword
-                          ? "border-red-500 focus:ring-red-500"
-                          : ""
+                          ? 'border-red-500 focus:ring-red-500'
+                          : ''
                       }`}
                       disabled={isRegistering}
                     />
@@ -385,18 +385,18 @@ export const SignupForm: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="termsAccepted"
-                    {...register("termsAccepted")}
+                    {...register('termsAccepted')}
                     disabled={isRegistering}
                   />
                   <Label htmlFor="termsAccepted" className="text-sm">
-                    I agree to the{" "}
+                    I agree to the{' '}
                     <Link
                       href="/terms"
                       className="text-[#EA454C] hover:underline"
                     >
                       Terms of Service
-                    </Link>{" "}
-                    and{" "}
+                    </Link>{' '}
+                    and{' '}
                     <Link
                       href="/privacy"
                       className="text-[#EA454C] hover:underline"
@@ -429,7 +429,7 @@ export const SignupForm: React.FC = () => {
                       Creating Account...
                     </>
                   ) : (
-                    "Create Account"
+                    'Create Account'
                   )}
                 </Button>
 
@@ -457,7 +457,7 @@ export const SignupForm: React.FC = () => {
 
                 {/* Sign In Link */}
                 <p className="text-center text-sm text-muted-foreground">
-                  Already have an account?{" "}
+                  Already have an account?{' '}
                   <Link
                     href="/login"
                     className="text-[#EA454C] font-semibold hover:underline"

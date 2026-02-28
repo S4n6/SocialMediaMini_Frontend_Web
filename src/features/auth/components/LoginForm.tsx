@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { loginSchema } from '@/lib/validations/schemas';
+import { loginSchema } from '@/lib/validations/auth.schema';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
