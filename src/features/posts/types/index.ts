@@ -41,9 +41,22 @@ export interface UpdatePostData extends Partial<CreatePostData> {
   id: string;
 }
 
+/**
+ * Cursor-paginated response from GET /posts/feed/timeline
+ */
+export interface CursorPaginatedPostsResponse {
+  data: Post[];
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
+/**
+ * @deprecated Use CursorPaginatedPostsResponse for feed endpoints.
+ * Kept for backward compatibility with offset-paginated endpoints (e.g. search, profile).
+ */
 export interface PostsResponse {
-  data?: Post[]; // Standard format
-  posts?: Post[]; // Alternative format used by actual API
+  data?: Post[];
+  posts?: Post[];
   pagination?: {
     page: number;
     limit: number;
@@ -52,7 +65,6 @@ export interface PostsResponse {
     hasNext: boolean;
     hasPrev: boolean;
   };
-  // Additional properties from actual API response
   hasNextPage?: boolean;
   hasNextPreviousPage?: boolean;
   limit?: number;
