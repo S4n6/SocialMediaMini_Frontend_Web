@@ -1,50 +1,65 @@
-import axios from "axios";
+import axios from 'axios';
+
+// ── Token refresh queue ────────────────────────────────────
+// Only ONE refresh request flies at a time.  Every other 401
+// that fires while the request is in-flight joins the queue
+// and resolves/rejects together with it.
+// ───────────────────────────────────────────────────────────
 
 let isRefreshing = false;
-let refreshPromise: Promise<string | null> | null = null;
+let failedQueue: Array<{
+  resolve: (value: string) => void;
+  reject: (error: Error) => void;
+}> = [];
 
-export async function performTokenRefresh(): Promise<string | null> {
-  if (isRefreshing && refreshPromise) return refreshPromise;
+function processQueue(error: Error | null, token: string | null = null) {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token!);
+    }
+  });
+  failedQueue = [];
+}
+
+export async function performTokenRefresh(): Promise<string> {
+  // If a refresh is already in-flight, queue this caller
+  if (isRefreshing) {
+    return new Promise<string>((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    });
+  }
 
   isRefreshing = true;
-  refreshPromise = (async () => {
-    try {
-      const base =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3107/api";
-      await axios.post(
-        `${base}/auth/refresh`,
-        {},
-        { withCredentials: true, timeout: 10000 }
-      );
 
-      // With HTTP-only cookies, the token is automatically stored in cookies
-      // No need to manually store the access token
-      console.log("Token refresh successful via HTTP-only cookies");
+  try {
+    const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3107/api';
+    await axios.post(
+      `${base}/auth/refresh`,
+      {},
+      {
+        withCredentials: true,
+        timeout: 10000,
+        headers: { 'x-skip-refresh': '1' },
+      },
+    );
 
-      return "token-refreshed"; // Return a success indicator
-    } catch (err) {
-      // Clear any client-side token references
-      // The actual HTTP-only cookies will be cleared by the server
-      console.error("Token refresh failed:", err);
-
-      // Preserve original error for upstream handling
-      throw err instanceof Error ? err : new Error("Refresh failed");
-    } finally {
-      isRefreshing = false;
-      refreshPromise = null;
-    }
-  })();
-
-  return refreshPromise;
+    // With HTTP-only cookies the token is set automatically by the server.
+    const successIndicator = 'token-refreshed';
+    processQueue(null, successIndicator);
+    return successIndicator;
+  } catch (err) {
+    const refreshError =
+      err instanceof Error ? err : new Error('Token refresh failed');
+    processQueue(refreshError);
+    throw refreshError;
+  } finally {
+    isRefreshing = false;
+  }
 }
 
 export async function refreshTokenIfNeeded(): Promise<void> {
-  try {
-    // With HTTP-only cookies, we can't check token expiration client-side
-    // The server will handle token validation and refresh automatically
-    // This function can be simplified or removed in HTTP-only cookie implementation
-    console.log("Token management handled by HTTP-only cookies");
-  } catch {
-    console.warn("refreshTokenIfNeeded failed");
-  }
+  // With HTTP-only cookies we cannot inspect token expiry client-side.
+  // The Axios 401 interceptor handles refresh automatically.
 }

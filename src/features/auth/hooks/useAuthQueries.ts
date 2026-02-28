@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { authService } from "@/services/api.service";
-import { createQueryKeys, createBaseQueryOptions } from "../utils";
-import { useAppSelector } from "@/hooks/redux";
+import { useQuery } from '@tanstack/react-query';
+import { authService } from '../services/auth.service';
+import { createQueryKeys, createBaseQueryOptions } from '../utils';
+import { useAppSelector } from '@/hooks/redux';
 
 // Create query keys for auth domain
 const authKeys = createQueryKeys.auth;
@@ -35,10 +35,10 @@ export const useAuthQueries = () => {
  */
 export const useEmailCheck = (email: string) => {
   return useQuery({
-    queryKey: ["auth", "email-exists", email],
+    queryKey: ['auth', 'email-exists', email],
     queryFn: () => authService.checkEmailExists(email),
     select: (res: any) => (res && res.data ? res.data : null),
-    enabled: !!email && email.includes("@"),
+    enabled: !!email && email.includes('@'),
     staleTime: 30000, // 30 seconds
   });
 };
@@ -48,7 +48,7 @@ export const useEmailCheck = (email: string) => {
  */
 export const useUsernameCheck = (userName: string) => {
   return useQuery({
-    queryKey: ["auth", "username-exists", userName],
+    queryKey: ['auth', 'username-exists', userName],
     queryFn: () => authService.checkUsernameExists(userName),
     select: (res: any) => (res && res.data ? res.data : null),
     enabled: !!userName && userName.length > 2,

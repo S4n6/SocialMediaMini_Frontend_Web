@@ -1,67 +1,74 @@
-import * as yup from "yup";
+import * as yup from 'yup';
+
+// ── Shared strong-password rule ──────────────────────────────
+// Aligned with the PasswordPolicy type used by the UI strength meter.
+const strongPasswordRules = yup
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .matches(/[0-9]/, 'Password must contain at least one number')
+  .matches(
+    /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
+    'Password must contain at least one special character',
+  )
+  .required('Password is required');
 
 // Login form validation
 export const loginSchema = yup.object({
   identifier: yup
     .string()
-    .min(3, "Email or username must be at least 3 characters")
-    .required("Email or username is required"),
+    .min(3, 'Email or username must be at least 3 characters')
+    .required('Email or username is required'),
   password: yup
     .string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
+    .min(8, 'Password must be at least 8 characters')
+    .required('Password is required'),
 });
 
 // Register form validation
 export const registerSchema = yup.object({
   fullName: yup
     .string()
-    .min(2, "Display name must be at least 2 characters")
-    .max(50, "Display name must be less than 50 characters")
-    .required("Display name is required"),
+    .min(2, 'Display name must be at least 2 characters')
+    .max(50, 'Display name must be less than 50 characters')
+    .required('Display name is required'),
   userName: yup
     .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(30, "Username must be less than 30 characters")
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be less than 30 characters')
     .matches(
       /^[a-zA-Z0-9_]+$/,
-      "Username can only contain letters, numbers, and underscores"
+      'Username can only contain letters, numbers, and underscores',
     )
-    .required("Username is required"),
+    .required('Username is required'),
   email: yup
     .string()
-    .email("Please enter a valid email address")
-    .required("Email is required"),
-  password: yup
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-    )
-    .required("Password is required"),
+    .email('Please enter a valid email address')
+    .required('Email is required'),
+  password: strongPasswordRules,
   confirmPassword: yup
     .string()
-    .oneOf([yup.ref("password")], "Passwords must match")
-    .required("Please confirm your password"),
+    .oneOf([yup.ref('password')], 'Passwords must match')
+    .required('Please confirm your password'),
   termsAccepted: yup
     .boolean()
-    .oneOf([true], "You must accept the terms and conditions")
-    .required("You must accept the terms and conditions"),
+    .oneOf([true], 'You must accept the terms and conditions')
+    .required('You must accept the terms and conditions'),
 });
 
 // Signup form validation (matches your SignupForm component)
 export const signupSchema = yup.object({
   fullName: yup
     .string()
-    .min(2, "Full name must be at least 2 characters")
-    .max(50, "Full name must be less than 50 characters")
-    .required("Full name is required"),
+    .min(2, 'Full name must be at least 2 characters')
+    .max(50, 'Full name must be less than 50 characters')
+    .required('Full name is required'),
   email: yup
     .string()
-    .email("Please enter a valid email address")
-    .required("Email is required"),
-  birthdate: yup.string().required("Birthdate is required"),
+    .email('Please enter a valid email address')
+    .required('Email is required'),
+  birthdate: yup.string().required('Birthdate is required'),
   // .test("age", "You must be at least 13 years old", function (value) {
   //   if (!value) return false;
   //   const today = new Date();
@@ -79,66 +86,52 @@ export const signupSchema = yup.object({
   //   }
   //   return age >= 13;
   // }),
-  password: yup
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-    )
-    .required("Password is required"),
+  password: strongPasswordRules,
   confirmPassword: yup
     .string()
-    .oneOf([yup.ref("password")], "Passwords must match")
-    .required("Please confirm your password"),
+    .oneOf([yup.ref('password')], 'Passwords must match')
+    .required('Please confirm your password'),
   gender: yup
     .string()
-    .oneOf(["male", "female"], "Please select a valid gender")
-    .required("Gender is required"),
+    .oneOf(['male', 'female'], 'Please select a valid gender')
+    .required('Gender is required'),
 });
 
 // Post creation form validation
 export const createPostSchema = yup.object({
   content: yup
     .string()
-    .min(1, "Post content cannot be empty")
-    .max(500, "Post content must be less than 500 characters")
-    .required("Post content is required"),
+    .min(1, 'Post content cannot be empty')
+    .max(500, 'Post content must be less than 500 characters')
+    .required('Post content is required'),
 });
 
 // Profile update form validation
 export const updateProfileSchema = yup.object({
   displayName: yup
     .string()
-    .min(2, "Display name must be at least 2 characters")
-    .max(50, "Display name must be less than 50 characters")
-    .required("Display name is required"),
-  bio: yup.string().max(160, "Bio must be less than 160 characters").optional(),
+    .min(2, 'Display name must be at least 2 characters')
+    .max(50, 'Display name must be less than 50 characters')
+    .required('Display name is required'),
+  bio: yup.string().max(160, 'Bio must be less than 160 characters').optional(),
 });
 
 // Comment form validation
 export const commentSchema = yup.object({
   content: yup
     .string()
-    .min(1, "Comment cannot be empty")
-    .max(200, "Comment must be less than 200 characters")
-    .required("Comment is required"),
+    .min(1, 'Comment cannot be empty')
+    .max(200, 'Comment must be less than 200 characters')
+    .required('Comment is required'),
 });
 
 // Reset password form validation
 export const resetPasswordSchema = yup.object({
-  password: yup
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-    )
-    .required("Password is required"),
+  password: strongPasswordRules,
   confirmPassword: yup
     .string()
-    .oneOf([yup.ref("password")], "Passwords must match")
-    .required("Please confirm your password"),
+    .oneOf([yup.ref('password')], 'Passwords must match')
+    .required('Please confirm your password'),
 });
 
 export type LoginFormData = yup.InferType<typeof loginSchema>;

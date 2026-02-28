@@ -2,8 +2,8 @@ import axios, {
   AxiosResponse,
   AxiosError,
   InternalAxiosRequestConfig,
-} from "axios";
-import { performTokenRefresh } from "@/lib/helpers/refresh-tokens";
+} from 'axios';
+import { performTokenRefresh } from '@/lib/helpers/refresh-tokens';
 
 /**
  * Extended Axios Request Config with metadata
@@ -49,22 +49,22 @@ export interface ApiError {
  * Create Axios Instance with base configuration
  */
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3107/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3107/api',
   timeout: 30000, // 30 seconds for social media uploads
   headers: {
-    "Content-Type": "application/json",
-    "x-client-type": "web",
+    'Content-Type': 'application/json',
+    'x-client-type': 'web',
   },
   withCredentials: true, // Important: Include cookies in requests
 });
 
 const PUBLIC_ENDPOINTS = [
-  "/auth/login",
-  "/auth/register",
-  "/auth/refresh",
-  "/auth/verify-email",
-  "/auth/forgot-password",
-  "/auth/reset-password",
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/verify-email',
+  '/auth/forgot-password',
+  '/auth/reset-password',
 ];
 
 function isPublicRequest(url?: string) {
@@ -85,17 +85,29 @@ api.interceptors.request.use(
     // Add request timestamp for debugging
     config.metadata = { startTime: Date.now() };
 
+    // Attach CSRF token from cookie if present (set by server)
+    if (typeof document !== 'undefined') {
+      const csrfToken = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('XSRF-TOKEN='))
+        ?.split('=')[1];
+
+      if (csrfToken) {
+        config.headers['X-XSRF-TOKEN'] = decodeURIComponent(csrfToken);
+      }
+    }
+
     // Log request in development
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === 'development') {
       console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
     }
 
     return config;
   },
   (error: AxiosError) => {
-    console.error("Request Error:", error);
+    console.error('Request Error:', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
@@ -105,7 +117,7 @@ api.interceptors.response.use(
   (response: AxiosResponse) => {
     // Log response time in development
     if (
-      process.env.NODE_ENV === "development" &&
+      process.env.NODE_ENV === 'development' &&
       (response.config as ExtendedAxiosRequestConfig).metadata
     ) {
       const duration =
@@ -117,7 +129,7 @@ api.interceptors.response.use(
     // Transform response to match our ApiResponse interface
     const transformedResponse: ApiResponse = {
       data: response.data.data || response.data,
-      message: response.data.message || "Success",
+      message: response.data.message || 'Success',
       success: response.data.success !== false,
       statusCode: response.status,
       pagination: response.data.pagination,
@@ -134,7 +146,7 @@ api.interceptors.response.use(
 
       // Token expired - attempt refresh
       if (status === 401 && !originalRequest._retry) {
-        const reqUrl = originalRequest.url ?? "";
+        const reqUrl = originalRequest.url ?? '';
         const publicReq = isPublicRequest(reqUrl);
 
         if (!publicReq) {
@@ -143,12 +155,12 @@ api.interceptors.response.use(
           try {
             await performTokenRefresh();
 
-            console.log("Retrying request after token refresh");
+            console.log('Retrying request after token refresh');
             return api(originalRequest);
           } catch (refreshError) {
-            console.error("Token refresh failed");
-            if (typeof window !== "undefined") {
-              window.location.href = "/login";
+            console.error('Token refresh failed');
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login';
             }
             return Promise.reject(refreshError);
           }
@@ -157,19 +169,19 @@ api.interceptors.response.use(
 
       // Forbidden - show error message
       if (status === 403) {
-        console.error("Access forbidden");
+        console.error('Access forbidden');
       }
 
       // Server error
       if (status >= 500) {
-        console.error("Server error:", status);
+        console.error('Server error:', status);
       }
 
       // Transform error response
       const errorResponse: ApiError = {
         message:
           ((data as Record<string, unknown>)?.message as string) ||
-          "An error occurred",
+          'An error occurred',
         success: false,
         statusCode: status,
         errors: (data as Record<string, unknown>)?.errors as
@@ -185,9 +197,9 @@ api.interceptors.response.use(
 
     // Network error
     if (error.request) {
-      console.error("Network Error:", error.message);
+      console.error('Network Error:', error.message);
       const networkError: ApiError = {
-        message: "Network error. Please check your connection.",
+        message: 'Network error. Please check your connection.',
         success: false,
         statusCode: 0,
       };
@@ -195,9 +207,9 @@ api.interceptors.response.use(
     }
 
     // Request setup error
-    console.error("Request Setup Error:", error.message);
+    console.error('Request Setup Error:', error.message);
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
