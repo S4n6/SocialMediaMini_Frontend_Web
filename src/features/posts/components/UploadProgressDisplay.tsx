@@ -1,11 +1,47 @@
 'use client';
 
-import { CheckCircle, XCircle, Upload, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Upload, Loader2, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import type { UploadState } from '../types/create-post.types';
+
+/**
+ * Maps the full UploadState FSM to a display-friendly subset.
+ *
+ * requesting_url  → maps to 'requesting'  (fetching presigned URLs)
+ * uploading_to_s3 → maps to 'uploading'   (XHR PUT to S3)
+ * waiting_for_sse → maps to 'creating'    (backend processing)
+ * success         → maps to 'success'
+ * error           → maps to 'error'
+ * idle            → hidden (returns null)
+ */
+export type DisplayStep =
+  | 'idle'
+  | 'requesting'
+  | 'uploading'
+  | 'creating'
+  | 'success'
+  | 'error';
+
+export function uploadStateToDisplayStep(state: UploadState): DisplayStep {
+  switch (state) {
+    case 'requesting_url':
+      return 'requesting';
+    case 'uploading_to_s3':
+      return 'uploading';
+    case 'waiting_for_sse':
+      return 'creating';
+    case 'success':
+      return 'success';
+    case 'error':
+      return 'error';
+    default:
+      return 'idle';
+  }
+}
 
 interface UploadProgressDisplayProps {
-  currentStep: 'idle' | 'uploading' | 'creating' | 'success' | 'error';
+  currentStep: DisplayStep;
   progress: {
     overall: number;
     files: {
@@ -28,6 +64,8 @@ export function UploadProgressDisplay({
 
   const getStatusIcon = () => {
     switch (currentStep) {
+      case 'requesting':
+        return <Clock className="w-4 h-4 animate-pulse text-yellow-500" />;
       case 'uploading':
         return <Upload className="w-4 h-4 animate-pulse text-blue-500" />;
       case 'creating':
@@ -43,10 +81,12 @@ export function UploadProgressDisplay({
 
   const getStatusMessage = () => {
     switch (currentStep) {
+      case 'requesting':
+        return 'Preparing upload...';
       case 'uploading':
-        return `Uploading ${progress.files.length} file(s)...`;
+        return `Uploading ${progress.files.length} file(s) to S3...`;
       case 'creating':
-        return 'Creating post...';
+        return 'Processing & creating post...';
       case 'success':
         return 'Post created successfully!';
       case 'error':
@@ -58,10 +98,12 @@ export function UploadProgressDisplay({
 
   const getProgressValue = () => {
     switch (currentStep) {
+      case 'requesting':
+        return 5; // Small indicator that something is happening
       case 'uploading':
         return progress.overall;
       case 'creating':
-        return 90; // Show high progress while creating
+        return 95; // Show near-complete while waiting for SSE
       case 'success':
         return 100;
       case 'error':
@@ -80,19 +122,23 @@ export function UploadProgressDisplay({
           <p className="text-sm font-medium">{getStatusMessage()}</p>
           {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
         </div>
-        {currentStep === 'uploading' && (
+        {(currentStep === 'uploading' || currentStep === 'requesting') && (
           <span className="text-xs text-muted-foreground">
-            {Math.round(progress.overall)}%
+            {currentStep === 'uploading'
+              ? `${Math.round(progress.overall)}%`
+              : ''}
           </span>
         )}
       </div>
 
       {/* Progress Bar */}
-      {(currentStep === 'uploading' || currentStep === 'creating') && (
+      {(currentStep === 'requesting' ||
+        currentStep === 'uploading' ||
+        currentStep === 'creating') && (
         <Progress value={getProgressValue()} className="h-2" />
       )}
 
-      {/* Individual File Progress */}
+      {/* Individual File Progress — only shown while XHR upload is active */}
       {currentStep === 'uploading' && progress.files.length > 1 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground">

@@ -2,6 +2,8 @@ import { api } from '@/lib/axios';
 import {
   CreatePostPayload,
   CreatePostResponse,
+  PresignedUrlRequest,
+  PresignedUrlResponse,
 } from '../types/create-post.types';
 import type { Post, ApiResponse, PaginatedResponse } from '@/types';
 
@@ -30,6 +32,61 @@ interface MediaItem {
  * Unified Posts Service - handles all post-related API operations
  */
 export const postsService = {
+  // ===== S3 DIRECT UPLOAD (PRESIGNED URL + SSE PATTERN) =====
+
+  /**
+   * Step 1 of the S3 direct-upload flow.
+   * Asks the backend to generate short-lived S3 presigned PUT URLs for each file.
+   * The backend also creates a session and returns a sessionId that scopes the
+   * SSE channel used in Step 3.
+   *
+   * Expected response shape:
+   *   { data: { sessionId: string; presignedUrls: PresignedUrlResponse[] } }
+   */
+  getPresignedUrls: async (
+    files: PresignedUrlRequest[],
+    signal?: AbortSignal,
+  ): Promise<{ sessionId: string; presignedUrls: PresignedUrlResponse[] }> => {
+    const response = await api.post(
+      '/post-medias/presigned-urls',
+      { files },
+      { signal },
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Step 3 of the S3 direct-upload flow.
+   * Notifies the backend that all S3 PUT uploads are done so it can start
+   * processing (thumbnail generation, CDN replication, DB write, etc.).
+   * The backend will emit an SSE event on the session channel when finished.
+   */
+  notifyUploadsComplete: async (
+    sessionId: string,
+    s3Keys: string[],
+    signal?: AbortSignal,
+  ): Promise<void> => {
+    await api.post('/post-medias/complete', { sessionId, s3Keys }, { signal });
+  },
+
+  /**
+   * Polls the backend for the status of an upload session.
+   * Used as a fallback when the SSE connection drops before the 'complete'
+   * event arrives.
+   *
+   * Expected response:
+   *   { data: { status: 'pending' | 'completed' | 'failed'; urls?: string[] } }
+   */
+  pollUploadStatus: async (
+    sessionId: string,
+  ): Promise<{
+    status: 'pending' | 'completed' | 'failed';
+    urls?: string[];
+  }> => {
+    const response = await api.get(`/post-medias/status/${sessionId}`);
+    return response.data.data;
+  },
+
   // ===== POST CREATION & MANAGEMENT =====
 
   /**
@@ -332,6 +389,11 @@ export default postsService;
 
 // Named exports for specific functions (posts-related only)
 export const {
+  // S3 direct-upload helpers
+  getPresignedUrls,
+  notifyUploadsComplete,
+  pollUploadStatus,
+  // Post CRUD
   createPost,
   createPostWithMedia,
   uploadMediaFiles,
