@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { FaComment, FaShare, FaBookmark } from 'react-icons/fa';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +19,8 @@ interface PostProps {
 }
 
 export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
+  const isProcessing = post.status === 'PROCESSING';
+  const isFailed = post.status === 'FAILED';
   const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked || false);
   const [commentText, setCommentText] = useState('');
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -66,7 +69,28 @@ export const PostCard: React.FC<PostProps> = ({ post, onUpdate }) => {
   };
 
   return (
-    <Card className="w-full max-w-lg mx-auto border-none shadow-none">
+    <Card
+      className={`w-full max-w-lg mx-auto border-none shadow-none relative ${
+        isProcessing ? 'opacity-80' : ''
+      }`}
+    >
+      {/* Processing overlay */}
+      {isProcessing && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60 backdrop-blur-sm rounded-lg">
+          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="text-sm font-medium">Processing image…</span>
+          </div>
+        </div>
+      )}
+
+      {/* Failed banner */}
+      {isFailed && (
+        <div className="absolute top-0 inset-x-0 z-10 bg-destructive/90 text-destructive-foreground text-center text-xs py-1 rounded-t-lg">
+          Media processing failed
+        </div>
+      )}
+
       <CardContent className="p-0">
         {/* Header */}
         <div className="flex justify-between items-center p-4 pb-2">

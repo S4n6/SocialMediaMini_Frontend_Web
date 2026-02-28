@@ -7,6 +7,8 @@ import {
 import { postsService } from '../services/post.service';
 import { CreatePostPayload } from '../types/create-post.types';
 import type { Post, PaginatedResponse } from '@/types';
+import type { InfiniteFeedResult } from '@/features/feed/types/feed.types';
+import { FEED_QUERY_KEYS } from '@/features/feed/hooks/feed/useFeedQueries';
 import { toast } from 'sonner';
 
 // Query keys
@@ -116,6 +118,11 @@ export const usePostsQuery = () => {
 /**
  * Hook for post mutations (write operations).
  *
+ * Implements **Optimistic UI**: instantly injects the new post at the
+ * top of the infinite-scroll feed cache with `status: 'PROCESSING'` so
+ * the user sees immediate feedback while the backend + Go worker handle
+ * media processing asynchronously.
+ *
  * NOTE: Media upload is intentionally NOT handled here anymore.
  * The caller (CreatePostDialog) uses `useDirectUpload` to get the final CDN
  * URLs, then passes a fully-resolved `CreatePostPayload` to `createPost`.
@@ -128,12 +135,102 @@ export const usePostsMutation = () => {
   const createPost = useMutation({
     mutationFn: ({ payload }: { payload: CreatePostPayload }) =>
       postsService.createPost(payload),
-    onSuccess: () => {
+
+    // ── Optimistic update: push a "PROCESSING" placeholder into the feed ──
+    onMutate: async ({ payload }) => {
+      // 1. Cancel in-flight feed fetches so they don't overwrite the optimistic entry
+      await queryClient.cancelQueries({
+        queryKey: FEED_QUERY_KEYS.timeline(),
+      });
+
+      // 2. Snapshot current feed cache (for rollback on error)
+      const previousFeed = queryClient.getQueryData<InfiniteFeedResult>(
+        FEED_QUERY_KEYS.timelineWithParams({}),
+      );
+
+      // 3. Build a temporary optimistic post
+      const optimisticPost: Post = {
+        id: `optimistic-${Date.now()}`,
+        content: payload.content || '',
+        image: payload.media?.[0]?.url,
+        author: {
+          id: '',
+          username: '',
+          fullName: 'You',
+          email: '',
+        },
+        status: 'PROCESSING' as const,
+        likesCount: 0,
+        commentsCount: 0,
+        sharesCount: 0,
+        isLiked: false,
+        isBookmarked: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        tags: payload.hashtags,
+      };
+
+      // 4. Prepend to the first page
+      queryClient.setQueryData<InfiniteFeedResult>(
+        FEED_QUERY_KEYS.timelineWithParams({}),
+        (old) => {
+          if (!old) return old;
+          const firstPage = old.pages[0];
+          return {
+            ...old,
+            pages: [
+              {
+                ...firstPage,
+                data: [optimisticPost, ...(firstPage?.data ?? [])],
+              },
+              ...old.pages.slice(1),
+            ],
+          };
+        },
+      );
+
+      return { previousFeed };
+    },
+
+    // ── On success: replace the optimistic placeholder with the real post ──
+    onSuccess: (serverPost, _variables, context) => {
+      queryClient.setQueryData<InfiniteFeedResult>(
+        FEED_QUERY_KEYS.timelineWithParams({}),
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page, idx) => {
+              if (idx !== 0) return page;
+              return {
+                ...page,
+                data: page.data.map((p) =>
+                  p.id.startsWith('optimistic-')
+                    ? {
+                        ...p,
+                        ...serverPost,
+                        status: serverPost.status ?? 'PROCESSING',
+                      }
+                    : p,
+                ),
+              };
+            }),
+          };
+        },
+      );
+
       queryClient.invalidateQueries({ queryKey: postsKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: postsKeys.feed() });
       toast.success('Post created successfully!');
     },
-    onError: (error: Error) => {
+
+    // ── On error: rollback to snapshot ──
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousFeed) {
+        queryClient.setQueryData(
+          FEED_QUERY_KEYS.timelineWithParams({}),
+          context.previousFeed,
+        );
+      }
       console.error('[createPost] Failed:', error);
       toast.error(error.message || 'Failed to create post');
     },

@@ -86,6 +86,7 @@ export interface LegacyPost {
   isLiked: boolean;
   isBookmarked: boolean;
   timestamp: string;
+  status?: 'PROCESSING' | 'PUBLISHED' | 'FAILED';
   images?: { id: string; imageUrl: string; caption?: string }[];
   video?: { id: string; videoUrl: string; thumbnailUrl?: string };
   author: {

@@ -1,11 +1,14 @@
 import { User } from '@/types/user';
 
+export type PostStatus = 'PROCESSING' | 'PUBLISHED' | 'FAILED';
+
 export interface Post {
   id: string;
   content: string;
   image?: string;
   video?: string;
   author: User;
+  status?: PostStatus;
   likesCount: number;
   commentsCount: number;
   sharesCount: number;
