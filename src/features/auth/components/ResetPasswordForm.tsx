@@ -1,26 +1,26 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { resetPasswordSchema } from "@/lib/validations/schemas";
-import type { ResetPasswordFormData } from "@/lib/validations/schemas";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { resetPasswordSchema } from '@/lib/validations/auth.schema';
+import type { ResetPasswordFormData } from '@/lib/validations/auth.schema';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Loader2, Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
-import { ComponentErrorBoundary } from "@/components/error-boundary";
-import { RequestLoadingWrapper } from "@/components/loading";
-import { useAuth } from "../hooks";
-import { useErrorHandler, useFormErrorHandler } from "@/hooks";
+} from '@/components/ui/card';
+import { Loader2, Eye, EyeOff, Lock, CheckCircle } from 'lucide-react';
+import { ComponentErrorBoundary } from '@/components/error-boundary';
+import { RequestLoadingWrapper } from '@/components/loading';
+import { useAuth } from '../hooks';
+import { useErrorHandler, useFormErrorHandler } from '@/hooks';
 
 export const ResetPasswordForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,12 +29,12 @@ export const ResetPasswordForm: React.FC = () => {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams.get('token');
 
   const { resetPassword, isResetPasswordPending } = useAuth();
   const { handleError } = useErrorHandler();
   const { handleValidationError, handleSubmitError } =
-    useFormErrorHandler("ResetPasswordForm");
+    useFormErrorHandler('ResetPasswordForm');
 
   const {
     register,
@@ -43,14 +43,14 @@ export const ResetPasswordForm: React.FC = () => {
     watch,
   } = useForm<ResetPasswordFormData>({
     resolver: yupResolver(resetPasswordSchema),
-    mode: "onChange",
+    mode: 'onChange',
   });
 
-  const watchedPassword = watch("password");
+  const watchedPassword = watch('password');
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (!token) {
-      handleValidationError(new Error("Reset token is missing"), "token");
+      handleValidationError(new Error('Reset token is missing'), 'token');
       return;
     }
 
@@ -64,7 +64,7 @@ export const ResetPasswordForm: React.FC = () => {
 
       // Redirect to login after 3 seconds
       setTimeout(() => {
-        router.push("/login");
+        router.push('/login');
       }, 3000);
     } catch (error) {
       handleSubmitError(error);
@@ -73,7 +73,7 @@ export const ResetPasswordForm: React.FC = () => {
 
   // Password strength indicator
   const getPasswordStrength = (password: string) => {
-    if (!password) return { score: 0, text: "", color: "" };
+    if (!password) return { score: 0, text: '', color: '' };
 
     let score = 0;
     if (password.length >= 8) score++;
@@ -83,18 +83,18 @@ export const ResetPasswordForm: React.FC = () => {
     if (/[^A-Za-z0-9]/.test(password)) score++;
 
     const levels = [
-      { score: 0, text: "", color: "" },
-      { score: 1, text: "Very Weak", color: "text-red-500" },
-      { score: 2, text: "Weak", color: "text-orange-500" },
-      { score: 3, text: "Fair", color: "text-yellow-500" },
-      { score: 4, text: "Good", color: "text-blue-500" },
-      { score: 5, text: "Strong", color: "text-green-500" },
+      { score: 0, text: '', color: '' },
+      { score: 1, text: 'Very Weak', color: 'text-red-500' },
+      { score: 2, text: 'Weak', color: 'text-orange-500' },
+      { score: 3, text: 'Fair', color: 'text-yellow-500' },
+      { score: 4, text: 'Good', color: 'text-blue-500' },
+      { score: 5, text: 'Strong', color: 'text-green-500' },
     ];
 
     return levels[score] || levels[0];
   };
 
-  const passwordStrength = getPasswordStrength(watchedPassword || "");
+  const passwordStrength = getPasswordStrength(watchedPassword || '');
 
   // Create request state for loading wrapper
   const requestState = {
@@ -120,7 +120,7 @@ export const ResetPasswordForm: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Button
-                onClick={() => router.push("/login")}
+                onClick={() => router.push('/login')}
                 className="w-full bg-[#EA454C] hover:bg-[#d63384]"
               >
                 Go to Login
@@ -146,7 +146,7 @@ export const ResetPasswordForm: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Button
-                onClick={() => router.push("/login")}
+                onClick={() => router.push('/login')}
                 className="w-full bg-[#EA454C] hover:bg-[#d63384]"
               >
                 Back to Login
@@ -190,14 +190,14 @@ export const ResetPasswordForm: React.FC = () => {
                   </Label>
                   <div className="relative">
                     <Input
-                      {...register("password")}
+                      {...register('password')}
                       id="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your new password"
                       className={`pr-10 ${
                         errors.password
-                          ? "border-red-500 focus:ring-red-500"
-                          : ""
+                          ? 'border-red-500 focus:ring-red-500'
+                          : ''
                       }`}
                       disabled={isResetPasswordPending}
                     />
@@ -239,14 +239,14 @@ export const ResetPasswordForm: React.FC = () => {
                   </Label>
                   <div className="relative">
                     <Input
-                      {...register("confirmPassword")}
+                      {...register('confirmPassword')}
                       id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm your new password"
                       className={`pr-10 ${
                         errors.confirmPassword
-                          ? "border-red-500 focus:ring-red-500"
-                          : ""
+                          ? 'border-red-500 focus:ring-red-500'
+                          : ''
                       }`}
                       disabled={isResetPasswordPending}
                     />
@@ -287,7 +287,7 @@ export const ResetPasswordForm: React.FC = () => {
                       Updating Password...
                     </>
                   ) : (
-                    "Update Password"
+                    'Update Password'
                   )}
                 </Button>
 
@@ -297,7 +297,7 @@ export const ResetPasswordForm: React.FC = () => {
                   variant="outline"
                   size="lg"
                   className="w-full"
-                  onClick={() => router.push("/login")}
+                  onClick={() => router.push('/login')}
                   disabled={isResetPasswordPending}
                 >
                   Back to Login

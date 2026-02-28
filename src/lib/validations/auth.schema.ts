@@ -1,10 +1,22 @@
-// ── Backward-compatibility barrel ───────────────────────────
-// schemas.ts is kept so any import path that already uses
-// '@/lib/validations/schemas' continues to work without changes.
-// Prefer importing from '@/lib/validations' or the specific domain file.
-export * from './index';
+import * as yup from 'yup';
 
-// Login form validation
+/**
+ * Shared strong-password rule — aligned with the PasswordPolicy type
+ * used by the UI strength meter in SignupForm / ResetPasswordForm.
+ * Re-used across all auth schemas that collect a new password.
+ */
+export const strongPasswordRules = yup
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .matches(/[0-9]/, 'Password must contain at least one number')
+  .matches(
+    /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
+    'Password must contain at least one special character',
+  )
+  .required('Password is required');
+
 export const loginSchema = yup.object({
   identifier: yup
     .string()
@@ -16,7 +28,6 @@ export const loginSchema = yup.object({
     .required('Password is required'),
 });
 
-// Register form validation
 export const registerSchema = yup.object({
   fullName: yup
     .string()
@@ -47,7 +58,6 @@ export const registerSchema = yup.object({
     .required('You must accept the terms and conditions'),
 });
 
-// Signup form validation (matches your SignupForm component)
 export const signupSchema = yup.object({
   fullName: yup
     .string()
@@ -59,23 +69,6 @@ export const signupSchema = yup.object({
     .email('Please enter a valid email address')
     .required('Email is required'),
   birthdate: yup.string().required('Birthdate is required'),
-  // .test("age", "You must be at least 13 years old", function (value) {
-  //   if (!value) return false;
-  //   const today = new Date();
-  //   const birthDate = new Date(value);
-  //   const age = today.getFullYear() - birthDate.getFullYear();
-  //   const monthDiff = today.getMonth() - birthDate.getMonth();
-
-  //   console.log("Birthdate:", birthDate);
-
-  //   if (
-  //     monthDiff < 0 ||
-  //     (monthDiff === 0 && today.getDate() < birthDate.getDate())
-  //   ) {
-  //     return age - 1 >= 13;
-  //   }
-  //   return age >= 13;
-  // }),
   password: strongPasswordRules,
   confirmPassword: yup
     .string()
@@ -87,35 +80,6 @@ export const signupSchema = yup.object({
     .required('Gender is required'),
 });
 
-// Post creation form validation
-export const createPostSchema = yup.object({
-  content: yup
-    .string()
-    .min(1, 'Post content cannot be empty')
-    .max(500, 'Post content must be less than 500 characters')
-    .required('Post content is required'),
-});
-
-// Profile update form validation
-export const updateProfileSchema = yup.object({
-  displayName: yup
-    .string()
-    .min(2, 'Display name must be at least 2 characters')
-    .max(50, 'Display name must be less than 50 characters')
-    .required('Display name is required'),
-  bio: yup.string().max(160, 'Bio must be less than 160 characters').optional(),
-});
-
-// Comment form validation
-export const commentSchema = yup.object({
-  content: yup
-    .string()
-    .min(1, 'Comment cannot be empty')
-    .max(200, 'Comment must be less than 200 characters')
-    .required('Comment is required'),
-});
-
-// Reset password form validation
 export const resetPasswordSchema = yup.object({
   password: strongPasswordRules,
   confirmPassword: yup
@@ -127,7 +91,4 @@ export const resetPasswordSchema = yup.object({
 export type LoginFormData = yup.InferType<typeof loginSchema>;
 export type RegisterFormData = yup.InferType<typeof registerSchema>;
 export type SignupFormData = yup.InferType<typeof signupSchema>;
-export type CreatePostFormData = yup.InferType<typeof createPostSchema>;
-export type UpdateProfileFormData = yup.InferType<typeof updateProfileSchema>;
-export type CommentFormData = yup.InferType<typeof commentSchema>;
 export type ResetPasswordFormData = yup.InferType<typeof resetPasswordSchema>;

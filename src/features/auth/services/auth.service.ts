@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios';
-import type { LoginFormData } from '@/lib/validations/schemas';
+import type { LoginFormData } from '@/lib/validations/auth.schema';
 import type { User, ApiResponse } from '@/types';
 
 export const authService = {
