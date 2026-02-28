@@ -10,7 +10,6 @@ interface FeedSectionProps {
 }
 
 const PostsContainer: React.FC<FeedSectionProps> = ({ mockPosts = [] }) => {
-  // Use real feed hook
   const {
     posts,
     isLoading: postsLoading,
@@ -22,14 +21,12 @@ const PostsContainer: React.FC<FeedSectionProps> = ({ mockPosts = [] }) => {
     retry: retryFeed,
   } = useFeed();
 
-  // Event handlers
   const handleLoadMorePosts = () => {
     if (hasNextPage && !isFetchingNextPage) {
       loadMorePosts();
     }
   };
 
-  // Handle error messages
   const postsErrorMessage = postsError?.message || null;
 
   return (
@@ -39,6 +36,7 @@ const PostsContainer: React.FC<FeedSectionProps> = ({ mockPosts = [] }) => {
       error={postsErrorMessage}
       onLoadMore={handleLoadMorePosts}
       hasMore={hasNextPage}
+      isFetchingMore={isFetchingNextPage}
     />
   );
 };

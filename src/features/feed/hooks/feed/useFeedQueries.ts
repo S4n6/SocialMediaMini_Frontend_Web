@@ -13,20 +13,21 @@ import type {
 export const FEED_QUERY_KEYS = {
   all: ['feed'] as const,
   timeline: () => [...FEED_QUERY_KEYS.all, 'timeline'] as const,
-  timelineWithParams: (params: GetTimelineFeedParams) =>
+  timelineWithParams: (params: Omit<GetTimelineFeedParams, 'cursor'>) =>
     [...FEED_QUERY_KEYS.timeline(), params] as const,
 } as const;
 
 /**
- * Hook to get timeline feed with standard pagination
+ * Hook to get timeline feed with standard (single-page) fetch.
+ * Useful for SSR or one-off requests.
  */
 export const useTimelineFeed = (
   params: GetTimelineFeedParams = {},
   options: FeedQueryOptions = {},
 ) => {
   const {
-    staleTime = 1000 * 60 * 5, // 5 minutes
-    cacheTime = 1000 * 60 * 10, // 10 minutes
+    staleTime = 1000 * 60 * 5,
+    cacheTime = 1000 * 60 * 10,
     retry = 3,
     refetchOnWindowFocus = false,
     enabled = true,
@@ -37,7 +38,7 @@ export const useTimelineFeed = (
     queryKey: FEED_QUERY_KEYS.timelineWithParams(params),
     queryFn: () => feedService.getTimelineFeed(params),
     staleTime,
-    gcTime: cacheTime, // Updated from cacheTime to gcTime in newer react-query
+    gcTime: cacheTime,
     retry,
     refetchOnWindowFocus,
     enabled,
@@ -46,19 +47,25 @@ export const useTimelineFeed = (
 };
 
 /**
- * Hook to get timeline feed with infinite scroll support
+ * Hook to get timeline feed with cursor-based infinite scroll.
+ *
+ * Page params are `string | null` (the nextCursor value).
+ * First page uses `null` as initialPageParam, which means "no cursor → first page".
+ *
+ * `getNextPageParam` reads `lastPage.nextCursor`:
+ *   - if non-null → there are more posts, return the cursor for the next fetch
+ *   - if null → end of feed, return `undefined` to signal no more pages
  */
 export const useInfiniteTimelineFeed = (
-  params: Omit<GetTimelineFeedParams, 'page'> = {},
+  params: Omit<GetTimelineFeedParams, 'cursor'> = {},
   options: FeedQueryOptions = {},
 ) => {
   const {
-    staleTime = 1000 * 60 * 5, // 5 minutes
-    cacheTime = 1000 * 60 * 10, // 10 minutes
+    staleTime = 1000 * 60 * 5,
+    cacheTime = 1000 * 60 * 10,
     retry = 3,
     refetchOnWindowFocus = false,
     enabled = true,
-    initialPageParam = 1,
     ...queryOptions
   } = options;
 
@@ -67,27 +74,21 @@ export const useInfiniteTimelineFeed = (
     Error,
     InfiniteFeedResult,
     ReturnType<typeof FEED_QUERY_KEYS.timelineWithParams>,
-    number
+    string | null
   >({
     queryKey: FEED_QUERY_KEYS.timelineWithParams(params),
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       feedService.getTimelineFeed({
         ...params,
-        page: pageParam,
+        cursor: pageParam ?? undefined,
       }),
-    initialPageParam,
-    getNextPageParam: (lastPage, allPages) => {
-      // Check if there are more pages based on pagination info
-      if (lastPage.pagination?.hasNext) {
-        return allPages.length + 1;
+    initialPageParam: null, // null = first page (no cursor)
+    getNextPageParam: (lastPage) => {
+      // If the API says there are more pages, return the cursor for the next fetch
+      if (lastPage.hasNextPage && lastPage.nextCursor) {
+        return lastPage.nextCursor;
       }
-      return undefined;
-    },
-    getPreviousPageParam: (firstPage, allPages) => {
-      // For potential "pull to refresh" functionality
-      if (allPages.length > 1) {
-        return allPages.length - 1;
-      }
+      // undefined signals to react-query: no more pages
       return undefined;
     },
     staleTime,
@@ -103,11 +104,7 @@ export const useInfiniteTimelineFeed = (
  * Hook to refresh timeline feed (get latest posts)
  */
 export const useRefreshTimelineFeed = (options: FeedQueryOptions = {}) => {
-  const {
-    staleTime = 0, // Always fresh for refresh
-    enabled = true,
-    ...queryOptions
-  } = options;
+  const { staleTime = 0, enabled = true, ...queryOptions } = options;
 
   return useQuery({
     queryKey: [...FEED_QUERY_KEYS.timeline(), 'refresh'],

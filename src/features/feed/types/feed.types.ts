@@ -1,15 +1,22 @@
-import type { PostsResponse } from '@/features/posts/types';
-import type { ApiResponse } from '@/types/api';
+import type {
+  CursorPaginatedPostsResponse,
+  Post,
+} from '@/features/posts/types';
 
-// Feed timeline query parameters
+// Feed timeline query parameters (cursor-based)
 export interface GetTimelineFeedParams {
-  page?: number;
+  cursor?: string | null;
   limit?: number;
-  lastPostId?: string; // For cursor-based pagination
+  algorithm?: 'chronological' | 'smart' | 'diversified';
 }
 
-// Feed timeline response
-export type TimelineFeedResponse = PostsResponse;
+/**
+ * The API response shape from GET /posts/feed/timeline
+ * After the Axios interceptor unwraps, we receive:
+ *   { data: { data: Post[], nextCursor: string | null, hasNextPage: boolean }, ... }
+ * So the "inner" data accessed via `response.data.data` is CursorPaginatedPostsResponse.
+ */
+export type TimelineFeedResponse = CursorPaginatedPostsResponse;
 
 // Feed hook configuration
 export interface FeedConfig {
@@ -22,7 +29,7 @@ export interface FeedConfig {
 
 // Feed state interface
 export interface FeedState {
-  posts: any[]; // Will be typed based on your post type
+  posts: Post[];
   isLoading: boolean;
   isRefreshing: boolean;
   hasNextPage: boolean;
@@ -49,13 +56,12 @@ export interface FeedError {
 export interface FeedQueryOptions extends FeedConfig {
   enabled?: boolean;
   select?: (data: any) => any;
-  initialPageParam?: number;
 }
 
-// Infinite query result type
+// Infinite query result type (cursor-based pages)
 export interface InfiniteFeedResult {
   pages: TimelineFeedResponse[];
-  pageParams: any[];
+  pageParams: (string | null)[];
 }
 
 // Feed mutations options

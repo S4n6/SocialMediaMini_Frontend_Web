@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useTimelineFeed,
@@ -12,65 +12,57 @@ import type {
   FeedState,
   FeedActions,
 } from '../../types/feed.types';
-import type { PostsResponse } from '@/features/posts/types';
+import type { Post } from '@/features/posts/types';
 
 /**
- * Main feed hook that combines queries and business logic
- * This is the public API that components should use for feed functionality
+ * Main feed hook that combines queries and business logic.
+ * This is the public API that components should use for feed functionality.
+ *
+ * Uses cursor-based pagination — pages are keyed by nextCursor, not page numbers.
  */
 export const useFeed = (
-  params: GetTimelineFeedParams = {},
+  params: Omit<GetTimelineFeedParams, 'cursor'> = {},
   options: FeedConfig = {},
 ) => {
   const queryClient = useQueryClient();
   const { enableToast = true, ...queryOptions } = options;
 
-  // Get infinite timeline feed (recommended for most use cases)
+  // Infinite timeline feed (cursor-based)
   const infiniteTimelineFeed = useInfiniteTimelineFeed(params, queryOptions);
 
-  // Get single page timeline feed (for specific page needs)
+  // Single page feed (for specific one-off needs)
   const singlePageFeed = useTimelineFeed(params, {
     ...queryOptions,
-    enabled: false, // Only enable when explicitly requested
+    enabled: false,
   });
 
-  // Flatten posts from infinite query pages
-  // Handle both API response formats: {data: Post[]} and {posts: Post[]}
-  const allPosts =
-    infiniteTimelineFeed.data?.pages.flatMap((page) => {
-      const responseData = page.data as PostsResponse;
+  // Flatten posts from all fetched pages.
+  // Each page has a stable `.data: Post[]` array — no guessing needed.
+  const allPosts: Post[] = useMemo(() => {
+    if (!infiniteTimelineFeed.data?.pages) return [];
 
-      console.log('Processing page data:', responseData);
+    const seen = new Set<string>();
+    const posts: Post[] = [];
 
-      // Handle PostsResponse format with 'posts' property (actual API)
-      if (responseData?.posts && Array.isArray(responseData.posts)) {
-        console.log('Using posts array:', responseData.posts.length, 'items');
-        return responseData.posts;
+    for (const page of infiniteTimelineFeed.data.pages) {
+      for (const post of page.data ?? []) {
+        // Deduplicate by post ID to prevent React key collisions
+        // (can happen if a post is prepended between refetches)
+        if (!seen.has(post.id)) {
+          seen.add(post.id);
+          posts.push(post);
+        }
       }
+    }
 
-      // Handle PostsResponse format with 'data' property (expected format)
-      if (responseData?.data && Array.isArray(responseData.data)) {
-        console.log('Using data array:', responseData.data.length, 'items');
-        return responseData.data;
-      }
+    return posts;
+  }, [infiniteTimelineFeed.data?.pages]);
 
-      // Handle direct array response (fallback)
-      if (Array.isArray(page.data)) {
-        console.log('Using direct array:', page.data.length, 'items');
-        return page.data;
-      }
-
-      console.log('No posts found in page data');
-      return [];
-    }) || [];
-
-  // Create action methods
+  // Action methods
   const actions: FeedActions = {
     refreshFeed: useCallback(async () => {
       await infiniteTimelineFeed.refetch();
-
       if (enableToast) {
-        // You can integrate toast notification here
         console.log('Feed refreshed successfully');
       }
     }, [infiniteTimelineFeed, enableToast]),
@@ -85,14 +77,13 @@ export const useFeed = (
     }, [infiniteTimelineFeed]),
 
     refetchFeed: useCallback(async () => {
-      // Invalidate and refetch all feed-related queries
       await queryClient.invalidateQueries({
         queryKey: FEED_QUERY_KEYS.all,
       });
     }, [queryClient]),
   };
 
-  // Create state object
+  // State object
   const state: FeedState = {
     posts: allPosts,
     isLoading: infiniteTimelineFeed.isLoading,
@@ -132,12 +123,6 @@ export const useFeed = (
     // Raw query objects for advanced usage
     infiniteQuery: infiniteTimelineFeed,
     singlePageQuery: singlePageFeed,
-
-    // Pagination info from the latest page
-    pagination:
-      infiniteTimelineFeed.data?.pages[
-        infiniteTimelineFeed.data.pages.length - 1
-      ]?.pagination,
 
     // Helper methods
     retry: infiniteTimelineFeed.refetch,
